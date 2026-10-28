@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
+import 'navigation_controller.dart';
 import '../routes/app_routes.dart';
 import '../services/demo_repository.dart';
 import '../services/local_storage_service.dart';
@@ -66,6 +67,7 @@ class AuthController extends GetxController {
       await _storage.setUserEmail(null);
     }
 
+    Get.find<NavigationController>().goToHome();
     Get.offAllNamed(AppRoutes.home);
     return true;
     } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }
@@ -134,6 +136,7 @@ class AuthController extends GetxController {
       colorText: const Color(0xFF006B3C),
     );
 
+    Get.find<NavigationController>().goToHome();
     Get.offAllNamed(AppRoutes.home);
     return true;
     } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }

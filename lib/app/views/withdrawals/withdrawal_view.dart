@@ -191,6 +191,7 @@ class WithdrawalView extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () => _showWithdrawModal(context, withCtrl),
                         style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(0,48),
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           elevation: 0,
