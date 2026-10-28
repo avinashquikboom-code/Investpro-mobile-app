@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "215955146037",
+    "project_id": "investerpro",
+    "storage_bucket": "investerpro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215955146037:android:32f404165d354d56af787c",
+        "android_client_info": {
+          "package_name": "com.investpro.app.investpro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6KoFFZEEmxOfBG5FlcaAJZ3VCFfPcJ0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
