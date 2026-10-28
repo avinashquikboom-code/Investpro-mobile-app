@@ -20,19 +20,27 @@ class InvestmentCalculator {
   InvestmentCalculator._();
 
   // All financial values are integer paise; rates are full-term percentages.
-  static int totalReturn(int principal, int rate) => (principal * rate + 50) ~/ 100;
-  static int maturity(int principal, int rate) => principal + totalReturn(principal, rate);
-  static int monthly(int principal, int rate, int months) => totalReturn(principal, rate) ~/ months;
+  static int totalReturn(int principal, int rate) =>
+      (principal * rate + 50) ~/ 100;
+  static int maturity(int principal, int rate) =>
+      principal + totalReturn(principal, rate);
+  static int monthly(int principal, int rate, int months) =>
+      totalReturn(principal, rate) ~/ months;
   static DateTime addMonths(DateTime date, int months) {
     final first = DateTime(date.year, date.month + months);
     final lastDay = DateTime(first.year, first.month + 1, 0).day;
-    return DateTime(first.year, first.month, date.day > lastDay ? lastDay : date.day);
-  }
-  static double progress(DateTime start, int months, DateTime now) {
-    final end = addMonths(start, months);
-    return (now.difference(start).inSeconds / end.difference(start).inSeconds).clamp(0.0, 1.0);
+    return DateTime(
+      first.year,
+      first.month,
+      date.day > lastDay ? lastDay : date.day,
+    );
   }
 
+  static double progress(DateTime start, int months, DateTime now) {
+    final end = addMonths(start, months);
+    return (now.difference(start).inSeconds / end.difference(start).inSeconds)
+        .clamp(0.0, 1.0);
+  }
 
   /// Calculates returns based on full-term projected return rate convention
   /// For instance: ₹50,000 at 18% for 12 months:

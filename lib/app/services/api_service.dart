@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -41,7 +42,8 @@ class ApiService extends getx.GetxService {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          if (error.response?.statusCode == 401 && error.requestOptions.extra['retry'] != true) {
+          if (error.response?.statusCode == 401 &&
+              error.requestOptions.extra['retry'] != true) {
             final refreshed = await _refreshToken();
             if (refreshed) {
               final token = await getAccessToken();
@@ -79,7 +81,10 @@ class ApiService extends getx.GetxService {
     }
   }
 
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     await _secureStorage.write(key: _keyAccessToken, value: accessToken);
     await _secureStorage.write(key: _keyRefreshToken, value: refreshToken);
   }
@@ -119,12 +124,15 @@ class ApiService extends getx.GetxService {
 
   // --- AUTH APIS ---
 
-  Future<Map<String, dynamic>?> login(String emailOrMobile, String password) async {
+  Future<Map<String, dynamic>?> login(
+    String emailOrMobile,
+    String password,
+  ) async {
     try {
-      final response = await dio.post('/auth/login', data: {
-        'email': emailOrMobile,
-        'password': password,
-      });
+      final response = await dio.post(
+        '/auth/login',
+        data: {'email': emailOrMobile, 'password': password},
+      );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
@@ -147,12 +155,15 @@ class ApiService extends getx.GetxService {
     required String password,
   }) async {
     try {
-      final response = await dio.post('/auth/register', data: {
-        'fullName': fullName,
-        'email': email,
-        'mobileNumber': mobileNumber,
-        'password': password,
-      });
+      final response = await dio.post(
+        '/auth/register',
+        data: {
+          'fullName': fullName,
+          'email': email,
+          'mobileNumber': mobileNumber,
+          'password': password,
+        },
+      );
 
       if (response.statusCode == 201 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
@@ -212,7 +223,10 @@ class ApiService extends getx.GetxService {
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (status != null && status.isNotEmpty) queryParams['status'] = status;
 
-      final response = await dio.get('/mobile/projects', queryParameters: queryParams);
+      final response = await dio.get(
+        '/mobile/projects',
+        queryParameters: queryParams,
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return response.data['data'] as List<dynamic>;
       }
@@ -252,11 +266,14 @@ class ApiService extends getx.GetxService {
     String paymentMethod = 'BANK_TRANSFER',
   }) async {
     try {
-      final response = await dio.post('/mobile/investments', data: {
-        'projectId': projectId,
-        'amount': amount,
-        'paymentMethod': paymentMethod,
-      });
+      final response = await dio.post(
+        '/mobile/investments',
+        data: {
+          'projectId': projectId,
+          'amount': amount,
+          'paymentMethod': paymentMethod,
+        },
+      );
 
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data['success'] == true) {
@@ -299,9 +316,7 @@ class ApiService extends getx.GetxService {
     String? notes,
   }) async {
     try {
-      final payload = <String, dynamic>{
-        'amount': amount,
-      };
+      final payload = <String, dynamic>{'amount': amount};
       if (bankAccountId != null) payload['bankAccountId'] = bankAccountId;
       if (notes != null) payload['notes'] = notes;
 
@@ -416,11 +431,7 @@ class ApiService extends getx.GetxService {
     try {
       final response = await dio.post(
         '/mobile/device-tokens',
-        data: {
-          'token': token,
-          'platform': platform,
-          'deviceId': ?deviceId,
-        },
+        data: {'token': token, 'platform': platform, 'deviceId': ?deviceId},
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {

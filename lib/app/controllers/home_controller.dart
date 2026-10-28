@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+
 import '../models/project_model.dart';
 import '../models/user_model.dart';
 import '../services/demo_repository.dart';
@@ -25,10 +26,13 @@ class HomeController extends GetxController {
   Future<void> refreshDashboard() async {
     isRefreshing.value = true;
     try {
-    await Future.delayed(const Duration(milliseconds: 600));
-    await _repo.loadData();
-    _notificationService.loadNotifications();
-    } catch(e) { Get.snackbar('Refresh failed',e.toString()); }
-    finally { isRefreshing.value = false; }
+      await Future.delayed(const Duration(milliseconds: 600));
+      await _repo.loadData();
+      _notificationService.loadNotifications();
+    } catch (e) {
+      Get.snackbar('Refresh failed', e.toString());
+    } finally {
+      isRefreshing.value = false;
+    }
   }
 }

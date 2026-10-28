@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+
 import '../constants/app_constants.dart';
 import '../models/investment_model.dart';
 import '../models/notification_model.dart';
@@ -47,17 +49,28 @@ class DemoRepository extends GetxService {
   static int minor(double amount) => (amount * 100).round();
 
   double get totalInvested =>
-      investments.where((i) => i.status == 'Active').fold<int>(0, (s, i) => s + minor(i.investedAmount)) / 100;
+      investments
+          .where((i) => i.status == 'Active')
+          .fold<int>(0, (s, i) => s + minor(i.investedAmount)) /
+      100;
 
   double get totalReturns =>
-      returns.where((r) => r.status == 'Received').fold<int>(0, (s, r) => s + minor(r.amount)) / 100;
+      returns
+          .where((r) => r.status == 'Received')
+          .fold<int>(0, (s, r) => s + minor(r.amount)) /
+      100;
 
-  double get totalPortfolioValue => (minor(totalInvested) + minor(availableBalance.value)) / 100;
+  double get totalPortfolioValue =>
+      (minor(totalInvested) + minor(availableBalance.value)) / 100;
 
-  int get totalActiveProjects =>
-      investments.where((i) => i.status == 'Active').map((i) => i.projectId).toSet().length;
+  int get totalActiveProjects => investments
+      .where((i) => i.status == 'Active')
+      .map((i) => i.projectId)
+      .toSet()
+      .length;
 
-  double get growthPercent => totalInvested == 0 ? 0 : totalReturns / totalInvested * 100;
+  double get growthPercent =>
+      totalInvested == 0 ? 0 : totalReturns / totalInvested * 100;
 
   ProjectModel liveProject(ProjectModel project) {
     try {
@@ -101,23 +114,29 @@ class DemoRepository extends GetxService {
     final previous = _storage.readList(AppConstants.keyInvestmentsData);
     if (previous != null) {
       investments.assignAll(
-        previous.map((v) => InvestmentModel.fromJson(Map<String, dynamic>.from(v))),
+        previous.map(
+          (v) => InvestmentModel.fromJson(Map<String, dynamic>.from(v)),
+        ),
       );
       final savedProjects = _storage.readList(AppConstants.keyProjectsData);
       if (savedProjects != null) {
         projects.assignAll(
-          savedProjects.map((v) => ProjectModel.fromJson(Map<String, dynamic>.from(v))),
+          savedProjects.map(
+            (v) => ProjectModel.fromJson(Map<String, dynamic>.from(v)),
+          ),
         );
       }
       final profile = _storage.readMap(AppConstants.keyUserData);
       if (profile != null) currentUser.value = UserModel.fromJson(profile);
       transactions.assignAll(
-        (_storage.readList(AppConstants.keyTransactionsData) ?? [])
-            .map((v) => TransactionModel.fromJson(Map<String, dynamic>.from(v))),
+        (_storage.readList(AppConstants.keyTransactionsData) ?? []).map(
+          (v) => TransactionModel.fromJson(Map<String, dynamic>.from(v)),
+        ),
       );
       returns.assignAll(
-        (_storage.readList(AppConstants.keyReturnsData) ?? [])
-            .map((v) => ReturnPayoutModel.fromJson(Map<String, dynamic>.from(v))),
+        (_storage.readList(AppConstants.keyReturnsData) ?? []).map(
+          (v) => ReturnPayoutModel.fromJson(Map<String, dynamic>.from(v)),
+        ),
       );
       for (final i in investments) {
         final existing = returns.where((r) => r.investmentId == i.id).toList();
@@ -140,7 +159,9 @@ class DemoRepository extends GetxService {
       final profile = await _api.getProfile();
       if (profile != null) {
         final bankAccs = profile['bankAccounts'] as List<dynamic>?;
-        final primaryBank = bankAccs != null && bankAccs.isNotEmpty ? bankAccs[0] as Map<String, dynamic>? : null;
+        final primaryBank = bankAccs != null && bankAccs.isNotEmpty
+            ? bankAccs[0] as Map<String, dynamic>?
+            : null;
         final rawAcc = primaryBank?['accountNumber']?.toString();
         final displayAcc = (rawAcc != null && rawAcc.length >= 4)
             ? '•••• ${rawAcc.substring(rawAcc.length - 4)}'
@@ -148,14 +169,20 @@ class DemoRepository extends GetxService {
 
         currentUser.value = UserModel(
           id: profile['id'] as String? ?? currentUser.value.id,
-          fullName: profile['fullName'] as String? ?? currentUser.value.fullName,
-          email: profile['user']?['email'] as String? ?? currentUser.value.email,
-          mobileNumber: profile['user']?['mobileNumber'] as String? ?? currentUser.value.mobileNumber,
+          fullName:
+              profile['fullName'] as String? ?? currentUser.value.fullName,
+          email:
+              profile['user']?['email'] as String? ?? currentUser.value.email,
+          mobileNumber:
+              profile['user']?['mobileNumber'] as String? ??
+              currentUser.value.mobileNumber,
           role: 'Investor',
           isBankVerified: profile['isBankVerified'] as bool? ?? true,
-          bankName: primaryBank?['bankName'] as String? ?? currentUser.value.bankName,
+          bankName:
+              primaryBank?['bankName'] as String? ?? currentUser.value.bankName,
           accountNumber: displayAcc,
-          ifscCode: primaryBank?['ifscCode'] as String? ?? currentUser.value.ifscCode,
+          ifscCode:
+              primaryBank?['ifscCode'] as String? ?? currentUser.value.ifscCode,
         );
       }
 
@@ -163,7 +190,8 @@ class DemoRepository extends GetxService {
       final dash = await _api.getDashboard();
       if (dash != null && dash['wallet'] != null) {
         final w = dash['wallet'];
-        availableBalance.value = (w['availableBalance'] as num?)?.toDouble() ?? 0.0;
+        availableBalance.value =
+            (w['availableBalance'] as num?)?.toDouble() ?? 0.0;
       }
 
       // 3. Sync Projects
@@ -174,7 +202,8 @@ class DemoRepository extends GetxService {
           String icon = 'code';
           if (typeName.toLowerCase().contains('mobile')) {
             icon = 'mobile';
-          } else if (typeName.toLowerCase().contains('ai') || typeName.toLowerCase().contains('auto')) {
+          } else if (typeName.toLowerCase().contains('ai') ||
+              typeName.toLowerCase().contains('auto')) {
             icon = 'gear';
           }
 
@@ -188,9 +217,15 @@ class DemoRepository extends GetxService {
             returnRatePercent: (p['expectedRoi'] as num?)?.toDouble() ?? 15.0,
             durationMonths: p['tenureMonths'] as int? ?? 12,
             status: p['status'] == 'ACTIVE' ? 'Active' : 'Completed',
-            riskLevel: p['riskLevel'] == 'LOW' ? 'Low' : p['riskLevel'] == 'HIGH' ? 'High' : 'Moderate',
+            riskLevel: p['riskLevel'] == 'LOW'
+                ? 'Low'
+                : p['riskLevel'] == 'HIGH'
+                ? 'High'
+                : 'Moderate',
             description: p['description'] as String? ?? '',
-            createdAt: p['createdAt'] != null ? DateTime.parse(p['createdAt']) : DateTime.now(),
+            createdAt: p['createdAt'] != null
+                ? DateTime.parse(p['createdAt'])
+                : DateTime.now(),
           );
         }).toList();
 
@@ -204,8 +239,11 @@ class DemoRepository extends GetxService {
           final p = i['project'] as Map<String, dynamic>?;
           final amt = (i['amount'] as num?)?.toDouble() ?? 0.0;
           final roi = (i['agreedRoi'] as num?)?.toDouble() ?? 15.0;
-          final expReturn = (i['totalExpectedReturns'] as num?)?.toDouble() ?? 0.0;
-          final start = i['createdAt'] != null ? DateTime.parse(i['createdAt']) : DateTime.now();
+          final expReturn =
+              (i['totalExpectedReturns'] as num?)?.toDouble() ?? 0.0;
+          final start = i['createdAt'] != null
+              ? DateTime.parse(i['createdAt'])
+              : DateTime.now();
           final months = p?['tenureMonths'] as int? ?? 12;
           final matDate = InvestmentCalculator.addMonths(start, months);
 
@@ -245,9 +283,16 @@ class DemoRepository extends GetxService {
             amount: (w['amount'] as num?)?.toDouble() ?? 0.0,
             bankName: bank?['bankName'] as String? ?? 'Bank Account',
             accountNumber: maskedAcc,
-            requestDate: w['requestedAt'] != null ? DateTime.parse(w['requestedAt']) : DateTime.now(),
-            status: w['status'] == 'COMPLETED' ? 'Completed' : w['status'] == 'REJECTED' ? 'Rejected' : 'Processing',
-            referenceId: w['withdrawalReference'] as String? ?? w['id'] as String,
+            requestDate: w['requestedAt'] != null
+                ? DateTime.parse(w['requestedAt'])
+                : DateTime.now(),
+            status: w['status'] == 'COMPLETED'
+                ? 'Completed'
+                : w['status'] == 'REJECTED'
+                ? 'Rejected'
+                : 'Processing',
+            referenceId:
+                w['withdrawalReference'] as String? ?? w['id'] as String,
           );
         }).toList();
 
@@ -274,13 +319,16 @@ class DemoRepository extends GetxService {
             title: type == TransactionType.investment
                 ? 'Investment'
                 : type == TransactionType.returnReceived
-                    ? 'Return Received'
-                    : 'Withdrawal',
+                ? 'Return Received'
+                : 'Withdrawal',
             subtitle: t['description'] as String? ?? 'Transaction',
             amount: (t['amount'] as num?)?.toDouble() ?? 0.0,
-            date: t['createdAt'] != null ? DateTime.parse(t['createdAt']) : DateTime.now(),
+            date: t['createdAt'] != null
+                ? DateTime.parse(t['createdAt'])
+                : DateTime.now(),
             status: t['status'] == 'COMPLETED' ? 'Completed' : 'Processing',
-            referenceId: t['transactionReference'] as String? ?? t['id'] as String,
+            referenceId:
+                t['transactionReference'] as String? ?? t['id'] as String,
           );
         }).toList();
 
@@ -293,36 +341,67 @@ class DemoRepository extends GetxService {
 
   void _recalculateBalance() {
     final credits = transactions
-        .where((t) => t.type == TransactionType.deposit || t.type == TransactionType.returnReceived)
+        .where(
+          (t) =>
+              t.type == TransactionType.deposit ||
+              t.type == TransactionType.returnReceived,
+        )
         .where((t) => t.status == 'Completed')
         .fold<int>(0, (s, t) => s + minor(t.amount));
     final debits = transactions
-        .where((t) => t.type == TransactionType.withdrawal && (t.status == 'Processing' || t.status == 'Completed'))
+        .where(
+          (t) =>
+              t.type == TransactionType.withdrawal &&
+              (t.status == 'Processing' || t.status == 'Completed'),
+        )
         .fold<int>(0, (s, t) => s + minor(t.amount));
     availableBalance.value = (credits - debits) / 100;
   }
 
   Map<String, dynamic> _snapshot() => {
-        'user': currentUser.value.toJson(),
-        'projects': projects.map((v) => v.toJson()).toList(),
-        'investments': investments.map((v) => v.toJson()).toList(),
-        'transactions': transactions.map((v) => v.toJson()).toList(),
-        'returns': returns.map((v) => v.toJson()).toList(),
-        'withdrawals': withdrawals.map((v) => v.toJson()).toList()
-      };
+    'user': currentUser.value.toJson(),
+    'projects': projects.map((v) => v.toJson()).toList(),
+    'investments': investments.map((v) => v.toJson()).toList(),
+    'transactions': transactions.map((v) => v.toJson()).toList(),
+    'returns': returns.map((v) => v.toJson()).toList(),
+    'withdrawals': withdrawals.map((v) => v.toJson()).toList(),
+  };
 
   void _apply(Map<String, dynamic> j) {
-    currentUser.value = UserModel.fromJson(Map<String, dynamic>.from(j['user']));
-    projects.assignAll((j['projects'] as List).map((v) => ProjectModel.fromJson(Map<String, dynamic>.from(v))));
-    investments.assignAll((j['investments'] as List).map((v) => InvestmentModel.fromJson(Map<String, dynamic>.from(v))));
-    transactions.assignAll((j['transactions'] as List).map((v) => TransactionModel.fromJson(Map<String, dynamic>.from(v))));
-    returns.assignAll((j['returns'] as List).map((v) => ReturnPayoutModel.fromJson(Map<String, dynamic>.from(v))));
-    withdrawals.assignAll((j['withdrawals'] as List).map((v) => WithdrawalModel.fromJson(Map<String, dynamic>.from(v))));
+    currentUser.value = UserModel.fromJson(
+      Map<String, dynamic>.from(j['user']),
+    );
+    projects.assignAll(
+      (j['projects'] as List).map(
+        (v) => ProjectModel.fromJson(Map<String, dynamic>.from(v)),
+      ),
+    );
+    investments.assignAll(
+      (j['investments'] as List).map(
+        (v) => InvestmentModel.fromJson(Map<String, dynamic>.from(v)),
+      ),
+    );
+    transactions.assignAll(
+      (j['transactions'] as List).map(
+        (v) => TransactionModel.fromJson(Map<String, dynamic>.from(v)),
+      ),
+    );
+    returns.assignAll(
+      (j['returns'] as List).map(
+        (v) => ReturnPayoutModel.fromJson(Map<String, dynamic>.from(v)),
+      ),
+    );
+    withdrawals.assignAll(
+      (j['withdrawals'] as List).map(
+        (v) => WithdrawalModel.fromJson(Map<String, dynamic>.from(v)),
+      ),
+    );
     _recalculateBalance();
   }
 
   Future<void> _commit(void Function(Map<String, dynamic>) update) async {
-    if (_writing) throw StateError('Another update is in progress. Please retry.');
+    if (_writing)
+      throw StateError('Another update is in progress. Please retry.');
     _writing = true;
     try {
       final next = jsonDecode(jsonEncode(_snapshot())) as Map<String, dynamic>;
@@ -365,7 +444,10 @@ class DemoRepository extends GetxService {
     );
   }
 
-  List<ReturnPayoutModel> _schedule(InvestmentModel i, {bool received = false}) {
+  List<ReturnPayoutModel> _schedule(
+    InvestmentModel i, {
+    bool received = false,
+  }) {
     final total = minor(i.expectedReturn), count = i.durationMonths;
     return List.generate(count, (n) {
       final date = InvestmentCalculator.addMonths(i.startDate, n + 1);
@@ -384,35 +466,64 @@ class DemoRepository extends GetxService {
   void _seedLedger() {
     final now = DateTime.now();
     final initial = [
-      _record('DEMO-01', projects[0], 30000, InvestmentCalculator.addMonths(now, -4)),
-      _record('DEMO-02', projects[1], 25000, InvestmentCalculator.addMonths(now, -3)),
-      _record('DEMO-03', projects[2], 15000, InvestmentCalculator.addMonths(now, -2)),
-      _record('DEMO-HISTORY', projects[1], 100000, InvestmentCalculator.addMonths(now, -18), status: 'Withdrawn'),
+      _record(
+        'DEMO-01',
+        projects[0],
+        30000,
+        InvestmentCalculator.addMonths(now, -4),
+      ),
+      _record(
+        'DEMO-02',
+        projects[1],
+        25000,
+        InvestmentCalculator.addMonths(now, -3),
+      ),
+      _record(
+        'DEMO-03',
+        projects[2],
+        15000,
+        InvestmentCalculator.addMonths(now, -2),
+      ),
+      _record(
+        'DEMO-HISTORY',
+        projects[1],
+        100000,
+        InvestmentCalculator.addMonths(now, -18),
+        status: 'Withdrawn',
+      ),
     ];
     investments.assignAll(initial);
-    returns.assignAll(initial.expand((i) => _schedule(i, received: i.status == 'Withdrawn')));
+    returns.assignAll(
+      initial.expand((i) => _schedule(i, received: i.status == 'Withdrawn')),
+    );
     transactions.assignAll([
-      ...initial.map((i) => TransactionModel(
-            id: '${i.id}-T',
-            type: TransactionType.investment,
-            title: 'Investment',
-            subtitle: i.projectName,
-            amount: i.investedAmount,
-            date: i.startDate,
-            referenceId: i.id,
-            projectId: i.projectId,
-            projectName: i.projectName,
-          )),
-      ...returns.where((r) => r.status == 'Received').map((r) => TransactionModel(
-            id: r.id,
-            type: TransactionType.returnReceived,
-            title: 'Return Received',
-            subtitle: r.projectName,
-            amount: r.amount,
-            date: r.payoutDate,
-            referenceId: r.id,
-            projectName: r.projectName,
-          )),
+      ...initial.map(
+        (i) => TransactionModel(
+          id: '${i.id}-T',
+          type: TransactionType.investment,
+          title: 'Investment',
+          subtitle: i.projectName,
+          amount: i.investedAmount,
+          date: i.startDate,
+          referenceId: i.id,
+          projectId: i.projectId,
+          projectName: i.projectName,
+        ),
+      ),
+      ...returns
+          .where((r) => r.status == 'Received')
+          .map(
+            (r) => TransactionModel(
+              id: r.id,
+              type: TransactionType.returnReceived,
+              title: 'Return Received',
+              subtitle: r.projectName,
+              amount: r.amount,
+              date: r.payoutDate,
+              referenceId: r.id,
+              projectName: r.projectName,
+            ),
+          ),
     ]);
   }
 
@@ -437,36 +548,57 @@ class DemoRepository extends GetxService {
           final res = await _api.createInvestment(
             projectId: project.id,
             amount: amount,
-            paymentMethod: paymentMethod.contains('UPI') ? 'UPI' : 'BANK_TRANSFER',
+            paymentMethod: paymentMethod.contains('UPI')
+                ? 'UPI'
+                : 'BANK_TRANSFER',
           );
           if (res != null) {
             await syncFromBackend();
             _notificationService.addNotification(
               type: NotificationType.investmentSuccess,
               title: 'Investment Successful 🎉',
-              description: 'Investment of ₹${amount.toStringAsFixed(0)} in ${project.name} confirmed.',
+              description:
+                  'Investment of ₹${amount.toStringAsFixed(0)} in ${project.name} confirmed.',
               relatedId: res['id'] as String?,
             );
             return investments.firstWhere(
               (inv) => inv.id == res['id'],
-              orElse: () => _record(res['id'] as String, project, amount, DateTime.now(), method: paymentMethod),
+              orElse: () => _record(
+                res['id'] as String,
+                project,
+                amount,
+                DateTime.now(),
+                method: paymentMethod,
+              ),
             );
           }
         }
       } catch (e) {
-        debugPrint('[DemoRepository] createInvestment backend sync fallback: $e');
+        debugPrint(
+          '[DemoRepository] createInvestment backend sync fallback: $e',
+        );
       }
     }
 
     // 2. Local commit fallback
     final p = liveProject(project);
-    final i = _record(reference, p, amount, DateTime.now(), method: paymentMethod);
+    final i = _record(
+      reference,
+      p,
+      amount,
+      DateTime.now(),
+      method: paymentMethod,
+    );
     await _commit((j) {
       (j['investments'] as List).insert(0, i.toJson());
       final list = j['projects'] as List;
       final index = list.indexWhere((v) => v['id'] == p.id);
       if (index >= 0) {
-        list[index] = p.copyWith(raisedAmount: (minor(p.raisedAmount) + minor(amount)) / 100).toJson();
+        list[index] = p
+            .copyWith(
+              raisedAmount: (minor(p.raisedAmount) + minor(amount)) / 100,
+            )
+            .toJson();
       }
       (j['returns'] as List).addAll(_schedule(i).map((r) => r.toJson()));
       (j['transactions'] as List).insert(
@@ -487,13 +619,17 @@ class DemoRepository extends GetxService {
     _notificationService.addNotification(
       type: NotificationType.investmentSuccess,
       title: 'Investment Successful',
-      description: 'Demo investment in ${p.name} recorded. Reference: $reference',
+      description:
+          'Demo investment in ${p.name} recorded. Reference: $reference',
       relatedId: reference,
     );
     return i;
   }
 
-  Future<bool> requestWithdrawal({required double amount, bool bankSelected = false}) async {
+  Future<bool> requestWithdrawal({
+    required double amount,
+    bool bankSelected = false,
+  }) async {
     if (!bankSelected ||
         !amount.isFinite ||
         minor(amount) < minor(AppConstants.minWithdrawalAmount) ||
@@ -512,14 +648,17 @@ class DemoRepository extends GetxService {
             _notificationService.addNotification(
               type: NotificationType.withdrawalApproved,
               title: 'Withdrawal Submitted',
-              description: 'Your withdrawal request of ₹${amount.toStringAsFixed(0)} has been submitted.',
+              description:
+                  'Your withdrawal request of ₹${amount.toStringAsFixed(0)} has been submitted.',
               relatedId: res['id'] as String?,
             );
             return true;
           }
         }
       } catch (e) {
-        debugPrint('[DemoRepository] requestWithdrawal backend sync fallback: $e');
+        debugPrint(
+          '[DemoRepository] requestWithdrawal backend sync fallback: $e',
+        );
       }
     }
 
@@ -541,7 +680,8 @@ class DemoRepository extends GetxService {
           id: reference,
           type: TransactionType.withdrawal,
           title: 'Withdrawal',
-          subtitle: '${currentUser.value.bankName} ${currentUser.value.accountNumber}',
+          subtitle:
+              '${currentUser.value.bankName} ${currentUser.value.accountNumber}',
           amount: amount,
           date: now,
           status: 'Processing',
@@ -552,7 +692,8 @@ class DemoRepository extends GetxService {
     _notificationService.addNotification(
       type: NotificationType.withdrawalApproved,
       title: 'Withdrawal Request Submitted',
-      description: 'Your withdrawal of ₹${amount.toStringAsFixed(0)} is Processing.',
+      description:
+          'Your withdrawal of ₹${amount.toStringAsFixed(0)} is Processing.',
       relatedId: reference,
     );
     return true;
@@ -576,14 +717,17 @@ class DemoRepository extends GetxService {
         debugPrint('[DemoRepository] updateProfile backend error: $e');
       }
     }
-    await saveUser(currentUser.value.copyWith(
-      fullName: fullName,
-      email: email,
-      mobileNumber: mobileNumber,
-    ));
+    await saveUser(
+      currentUser.value.copyWith(
+        fullName: fullName,
+        email: email,
+        mobileNumber: mobileNumber,
+      ),
+    );
   }
 
-  Future<void> saveUser(UserModel user) => _commit((j) => j['user'] = user.toJson());
+  Future<void> saveUser(UserModel user) =>
+      _commit((j) => j['user'] = user.toJson());
 
   void _seedProjects() {
     projects.value = [
@@ -598,8 +742,7 @@ class DemoRepository extends GetxService {
         durationMonths: 12,
         status: 'Active',
         riskLevel: 'Moderate',
-        description:
-            'A cutting-edge developer toolchain powering next-generation cross-platform applications with built-in cloud telemetry.',
+        description: 'A cutting-edge developer toolchain powering next-generation cross-platform applications with built-in cloud telemetry.',
         createdAt: DateTime(2025, 10, 1),
       ),
       ProjectModel(
@@ -613,8 +756,7 @@ class DemoRepository extends GetxService {
         durationMonths: 10,
         status: 'Active',
         riskLevel: 'Low',
-        description:
-            'Enterprise mobile productivity suite with AI workflows, trusted by over 200+ fast-growing startups.',
+        description: 'Enterprise mobile productivity suite with AI workflows, trusted by over 200+ fast-growing startups.',
         createdAt: DateTime(2025, 11, 15),
       ),
       ProjectModel(
@@ -628,8 +770,7 @@ class DemoRepository extends GetxService {
         durationMonths: 8,
         status: 'Active',
         riskLevel: 'Moderate',
-        description:
-            'Autonomous business process workflow agent cutting manual operations by 70% with intelligent heuristics.',
+        description: 'Autonomous business process workflow agent cutting manual operations by 70% with intelligent heuristics.',
         createdAt: DateTime(2026, 1, 10),
       ),
     ];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/navigation_controller.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../investments/my_investments_view.dart';
@@ -23,14 +24,22 @@ class MainNavigationShell extends StatelessWidget {
       const ProfileView(isTab: true),
     ];
 
-    return Obx(() => PopScope(canPop: navCtrl.currentIndex.value == 0, onPopInvokedWithResult: (didPop, result) { if(!didPop) navCtrl.goToHome(); }, child: Scaffold(
-      body: Obx(() {
-        return IndexedStack(
-          index: navCtrl.currentIndex.value,
-          children: pages,
-        );
-      }),
-      bottomNavigationBar: const CustomBottomNavBar(),
-    )));
+    return Obx(
+      () => PopScope(
+        canPop: navCtrl.currentIndex.value == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) navCtrl.goToHome();
+        },
+        child: Scaffold(
+          body: Obx(() {
+            return IndexedStack(
+              index: navCtrl.currentIndex.value,
+              children: pages,
+            );
+          }),
+          bottomNavigationBar: const CustomBottomNavBar(),
+        ),
+      ),
+    );
   }
 }

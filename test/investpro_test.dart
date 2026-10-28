@@ -103,13 +103,22 @@ void main() {
       expect(Validators.validateInvestmentAmount('500'), isNotNull); // < 1000
       expect(Validators.validateInvestmentAmount('5000'), isNull);
       expect(Validators.validateInvestmentAmount('50000'), isNull);
-      expect(Validators.validateInvestmentAmount('20000000'), isNotNull); // > 10L
+      expect(
+        Validators.validateInvestmentAmount('20000000'),
+        isNotNull,
+      ); // > 10L
     });
 
     test('Validates withdrawal amount against available balance', () {
-      expect(Validators.validateWithdrawalAmount('200', 12480.0), isNotNull); // < 500
+      expect(
+        Validators.validateWithdrawalAmount('200', 12480.0),
+        isNotNull,
+      ); // < 500
       expect(Validators.validateWithdrawalAmount('5000', 12480.0), isNull);
-      expect(Validators.validateWithdrawalAmount('15000', 12480.0), isNotNull); // exceeds balance
+      expect(
+        Validators.validateWithdrawalAmount('15000', 12480.0),
+        isNotNull,
+      ); // exceeds balance
     });
   });
 

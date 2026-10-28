@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../theme/app_colors.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -45,7 +46,9 @@ class CustomTextField extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),

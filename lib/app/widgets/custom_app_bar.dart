@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../theme/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -25,9 +26,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = showBackButton && (Navigator.canPop(context) || onBackPressed != null);
+    final canPop =
+        showBackButton && (Navigator.canPop(context) || onBackPressed != null);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTitleColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final defaultTitleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return AppBar(
       backgroundColor: backgroundColor ?? Colors.transparent,

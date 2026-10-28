@@ -91,20 +91,26 @@ class NotificationModel {
         break;
     }
 
-    String? relatedId = json['relatedId'] as String? ?? json['targetId'] as String?;
+    String? relatedId =
+        json['relatedId'] as String? ?? json['targetId'] as String?;
     if (relatedId == null && json['data'] is Map) {
-      relatedId = (json['data'] as Map)['referenceId']?.toString() ??
+      relatedId =
+          (json['data'] as Map)['referenceId']?.toString() ??
           (json['data'] as Map)['id']?.toString();
     }
 
     final dateStr = (json['createdAt'] ?? json['timestamp']) as String?;
-    final date = dateStr != null ? (DateTime.tryParse(dateStr) ?? DateTime.now()) : DateTime.now();
+    final date = dateStr != null
+        ? (DateTime.tryParse(dateStr) ?? DateTime.now())
+        : DateTime.now();
 
     return NotificationModel(
       id: (json['id'] ?? '').toString(),
       type: parsedType,
       title: (json['title'] ?? 'Notification').toString(),
-      description: (json['body'] ?? json['description'] ?? json['message'] ?? '').toString(),
+      description:
+          (json['body'] ?? json['description'] ?? json['message'] ?? '')
+              .toString(),
       timestamp: date,
       isRead: json['isRead'] as bool? ?? false,
       relatedId: relatedId,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/investment_controller.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
@@ -61,17 +62,34 @@ class PaymentConfirmationView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildRow('amountInvested'.tr, CurrencyFormatter.format(calc.principal)),
+                        _buildRow(
+                          'amountInvested'.tr,
+                          CurrencyFormatter.format(calc.principal),
+                        ),
                         const SizedBox(height: 10),
-                        _buildRow('expectedReturnTotal'.tr, CurrencyFormatter.format(calc.expectedTotalReturn), color: AppColors.primary),
+                        _buildRow(
+                          'expectedReturnTotal'.tr,
+                          CurrencyFormatter.format(calc.expectedTotalReturn),
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(height: 10),
-                        _buildRow('maturityAmount'.tr, CurrencyFormatter.format(calc.projectedMaturityAmount)),
+                        _buildRow(
+                          'maturityAmount'.tr,
+                          CurrencyFormatter.format(
+                            calc.projectedMaturityAmount,
+                          ),
+                        ),
                         const SizedBox(height: 10),
-                        _buildRow('investmentPeriod'.tr, '${project.durationMonths} Months'),
+                        _buildRow(
+                          'investmentPeriod'.tr,
+                          '${project.durationMonths} Months',
+                        ),
                         const Divider(height: 24, color: AppColors.border),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -81,7 +99,9 @@ class PaymentConfirmationView extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
                               ),
                             ),
                             Text(
@@ -105,14 +125,17 @@ class PaymentConfirmationView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
                   ...paymentMethods.map((method) {
                     final name = method['name'] as String;
                     final icon = method['icon'] as IconData;
-                    final isSelected = invCtrl.selectedPaymentMethod.value == name;
+                    final isSelected =
+                        invCtrl.selectedPaymentMethod.value == name;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
@@ -122,18 +145,29 @@ class PaymentConfirmationView extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : (isDark ? AppColors.borderDark : AppColors.border),
+                              : (isDark
+                                    ? AppColors.borderDark
+                                    : AppColors.border),
                           width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
                       child: ListTile(
-                        leading: Icon(icon, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                        leading: Icon(
+                          icon,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                        ),
                         title: Text(
                           name,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                           ),
                         ),
                         trailing: Container(
@@ -142,7 +176,9 @@ class PaymentConfirmationView extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? AppColors.primary : AppColors.border,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.border,
                               width: 2,
                             ),
                           ),
@@ -165,9 +201,22 @@ class PaymentConfirmationView extends StatelessWidget {
                   }),
                   const SizedBox(height: 16),
 
-                  const Text('DEMO PAYMENT • No real money is charged or card details collected.'),
-                  SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Simulate payment failure'), value: invCtrl.simulateFailure.value, onChanged: invCtrl.isProcessingPayment.value ? null : (v) => invCtrl.simulateFailure.value = v),
-                  if(invCtrl.paymentError.isNotEmpty) Text(invCtrl.paymentError.value, style: const TextStyle(color: AppColors.error)),
+                  const Text(
+                    'DEMO PAYMENT • No real money is charged or card details collected.',
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Simulate payment failure'),
+                    value: invCtrl.simulateFailure.value,
+                    onChanged: invCtrl.isProcessingPayment.value
+                        ? null
+                        : (v) => invCtrl.simulateFailure.value = v,
+                  ),
+                  if (invCtrl.paymentError.isNotEmpty)
+                    Text(
+                      invCtrl.paymentError.value,
+                      style: const TextStyle(color: AppColors.error),
+                    ),
                   // Terms & Conditions Checkbox
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,8 +227,12 @@ class PaymentConfirmationView extends StatelessWidget {
                         child: Checkbox(
                           value: invCtrl.agreeToTerms.value,
                           activeColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          onChanged: invCtrl.isProcessingPayment.value ? null : invCtrl.toggleTerms,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          onChanged: invCtrl.isProcessingPayment.value
+                              ? null
+                              : invCtrl.toggleTerms,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -188,7 +241,9 @@ class PaymentConfirmationView extends StatelessWidget {
                           'agreeTerms'.tr,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                             height: 1.4,
                           ),
                         ),
@@ -199,9 +254,14 @@ class PaymentConfirmationView extends StatelessWidget {
 
                   // Confirm Payment Button
                   CustomButton(
-                    text: '${'confirmAndPay'.tr}  ${CurrencyFormatter.format(calc.principal)}',
+                    text:
+                        '${'confirmAndPay'.tr}  ${CurrencyFormatter.format(calc.principal)}',
                     isLoading: invCtrl.isProcessingPayment.value,
-                    onPressed: invCtrl.agreeToTerms.value && invCtrl.amountError == null ? invCtrl.confirmAndPay : null,
+                    onPressed:
+                        invCtrl.agreeToTerms.value &&
+                            invCtrl.amountError == null
+                        ? invCtrl.confirmAndPay
+                        : null,
                   ),
                   const SizedBox(height: 20),
                 ],

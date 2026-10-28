@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+
 import '../models/notification_model.dart';
 import '../routes/app_routes.dart';
 import '../services/notification_service.dart';
@@ -30,7 +31,10 @@ class NotificationController extends GetxController {
     switch (notif.type) {
       case NotificationType.investmentSuccess:
         if (relatedId != null && relatedId.isNotEmpty) {
-          Get.toNamed(AppRoutes.investmentDetails, arguments: {'investmentId': relatedId});
+          Get.toNamed(
+            AppRoutes.investmentDetails,
+            arguments: {'investmentId': relatedId},
+          );
         } else {
           Get.toNamed(AppRoutes.myInvestments);
         }
@@ -44,7 +48,10 @@ class NotificationController extends GetxController {
       case NotificationType.projectUpdate:
       case NotificationType.newProject:
         if (relatedId != null && relatedId.isNotEmpty) {
-          Get.toNamed(AppRoutes.projectDetails, arguments: {'projectId': relatedId});
+          Get.toNamed(
+            AppRoutes.projectDetails,
+            arguments: {'projectId': relatedId},
+          );
         } else {
           Get.toNamed(AppRoutes.projects);
         }

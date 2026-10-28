@@ -40,7 +40,11 @@ class CurrencyFormatter {
 
   /// Parses string to double removing ₹ and commas
   static double parse(String input) {
-    final cleaned = input.replaceAll('₹', '').replaceAll(',', '').replaceAll(' ', '').trim();
+    final cleaned = input
+        .replaceAll('₹', '')
+        .replaceAll(',', '')
+        .replaceAll(' ', '')
+        .trim();
     return double.tryParse(cleaned) ?? 0.0;
   }
 }

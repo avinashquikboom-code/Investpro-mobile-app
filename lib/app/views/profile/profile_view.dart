@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../controllers/navigation_controller.dart';
 import '../../controllers/profile_controller.dart';
@@ -13,7 +14,10 @@ class ProfileView extends StatelessWidget {
 
   const ProfileView({super.key, this.isTab = true});
 
-  void _showBankDetailsDialog(BuildContext context, ProfileController controller) {
+  void _showBankDetailsDialog(
+    BuildContext context,
+    ProfileController controller,
+  ) {
     final user = controller.user;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -27,7 +31,9 @@ class ProfileView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF3F8F5),
+                color: isDark
+                    ? AppColors.surfaceDarkElevated
+                    : const Color(0xFFF3F8F5),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -41,10 +47,20 @@ class ProfileView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Status', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      const Text(
+                        'Status',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       Row(
                         children: [
-                          const Icon(Icons.verified_rounded, size: 16, color: AppColors.success),
+                          const Icon(
+                            Icons.verified_rounded,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Demo only • unverified',
@@ -75,8 +91,14 @@ class ProfileView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
@@ -103,7 +125,10 @@ class ProfileView extends StatelessWidget {
             ),
             ListTile(
               dense: true,
-              leading: Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary),
+              leading: Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: AppColors.primary,
+              ),
               title: Text('Live Concierge'),
               subtitle: Text('Available Mon–Sat (9 AM – 7 PM)'),
             ),
@@ -126,10 +151,7 @@ class ProfileView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(
-        title: 'profile'.tr,
-        showBackButton: !isTab,
-      ),
+      appBar: CustomAppBar(title: 'profile'.tr, showBackButton: !isTab),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
           context: context,
@@ -163,7 +185,9 @@ class ProfileView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                           ),
                         );
                       }),
@@ -173,7 +197,9 @@ class ProfileView extends StatelessWidget {
                           'Investor ID: ${profileCtrl.user.id}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         );
                       }),
@@ -208,7 +234,8 @@ class ProfileView extends StatelessWidget {
                         context: context,
                         icon: Icons.account_balance_outlined,
                         label: 'bankDetails'.tr,
-                        onTap: () => _showBankDetailsDialog(context, profileCtrl),
+                        onTap: () =>
+                            _showBankDetailsDialog(context, profileCtrl),
                       ),
                       _buildDivider(isDark),
                       _buildMenuItem(
@@ -280,23 +307,23 @@ class ProfileView extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       dense: true,
-      leading: Icon(
-        icon,
-        color: iconColor ?? AppColors.primary,
-        size: 22,
-      ),
+      leading: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
       title: Text(
         label,
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: textColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+          color:
+              textColor ??
+              (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
         ),
       ),
       trailing: showChevron
           ? Icon(
               Icons.chevron_right_rounded,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
               size: 20,
             )
           : null,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/investment_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
@@ -84,7 +85,9 @@ class InvestmentCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -94,7 +97,9 @@ class InvestmentCard extends StatelessWidget {
                             '${CurrencyFormatter.format(investment.investedAmount)}  |  ${investment.returnRatePercent.toInt()}%  |  ${investment.durationMonths} Months',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -112,9 +117,16 @@ class InvestmentCard extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
-                          value: (investment.progressPercent / 100.0).clamp(0.0, 1.0),
-                          backgroundColor: isDark ? AppColors.borderDark : const Color(0xFFE8F2EC),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+                          value: (investment.progressPercent / 100.0).clamp(
+                            0.0,
+                            1.0,
+                          ),
+                          backgroundColor: isDark
+                              ? AppColors.borderDark
+                              : const Color(0xFFE8F2EC),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.accent,
+                          ),
                           minHeight: 6,
                         ),
                       ),

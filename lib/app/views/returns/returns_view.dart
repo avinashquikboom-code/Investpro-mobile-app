@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/returns_controller.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
@@ -21,10 +22,7 @@ class ReturnsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(
-        title: 'returns'.tr,
-        showBackButton: !isTab,
-      ),
+      appBar: CustomAppBar(title: 'returns'.tr, showBackButton: !isTab),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
           context: context,
@@ -33,7 +31,10 @@ class ReturnsView extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -45,7 +46,9 @@ class ReturnsView extends StatelessWidget {
                           color: isDark ? AppColors.surfaceDark : Colors.white,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: isDark ? AppColors.borderDark : AppColors.border,
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
                             width: 1,
                           ),
                           boxShadow: [
@@ -63,7 +66,9 @@ class ReturnsView extends StatelessWidget {
                               'totalReturns'.tr,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -73,24 +78,35 @@ class ReturnsView extends StatelessWidget {
                               children: [
                                 Obx(() {
                                   return Text(
-                                    CurrencyFormatter.format(returnsCtrl.totalReturns),
+                                    CurrencyFormatter.format(
+                                      returnsCtrl.totalReturns,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimary,
                                       letterSpacing: -0.5,
                                     ),
                                   );
                                 }),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.badgeGreenBg,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.arrow_upward_rounded, size: 14, color: AppColors.primary),
+                                      const Icon(
+                                        Icons.arrow_upward_rounded,
+                                        size: 14,
+                                        color: AppColors.primary,
+                                      ),
                                       const SizedBox(width: 4),
                                       Obx(() {
                                         return Text(
@@ -112,29 +128,47 @@ class ReturnsView extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
 
-                      Obx(() => returnsCtrl.investmentFilter.value == null ? const SizedBox.shrink() : TextButton(onPressed: () => returnsCtrl.investmentFilter.value = null,child:const Text('Show all investment returns'))),
+                      Obx(
+                        () => returnsCtrl.investmentFilter.value == null
+                            ? const SizedBox.shrink()
+                            : TextButton(
+                                onPressed: () =>
+                                    returnsCtrl.investmentFilter.value = null,
+                                child: const Text(
+                                  'Show all investment returns',
+                                ),
+                              ),
+                      ),
                       // Filter Pills: Monthly, Quarterly, Yearly
                       Obx(() {
                         return Wrap(
                           runSpacing: 8,
                           children: periodTabs.map((period) {
-                            final isSelected = returnsCtrl.selectedPeriod.value == period;
+                            final isSelected =
+                                returnsCtrl.selectedPeriod.value == period;
                             return Padding(
                               padding: const EdgeInsets.only(right: 10),
                               child: GestureDetector(
                                 onTap: () => returnsCtrl.setPeriod(period),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.primaryDark
-                                        : (isDark ? AppColors.surfaceDark : Colors.white),
+                                        : (isDark
+                                              ? AppColors.surfaceDark
+                                              : Colors.white),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColors.primaryDark
-                                          : (isDark ? AppColors.borderDark : AppColors.border),
+                                          : (isDark
+                                                ? AppColors.borderDark
+                                                : AppColors.border),
                                       width: 1,
                                     ),
                                   ),
@@ -145,7 +179,9 @@ class ReturnsView extends StatelessWidget {
                                       fontWeight: FontWeight.w600,
                                       color: isSelected
                                           ? Colors.white
-                                          : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
+                                          : (isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textPrimary),
                                     ),
                                   ),
                                 ),
@@ -170,40 +206,55 @@ class ReturnsView extends StatelessWidget {
 
                         return Column(
                           children: list.map((item) {
-                            return GestureDetector(onTap: () => returnsCtrl.inspect(item), child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: isDark ? AppColors.surfaceDark : Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: isDark ? AppColors.borderDark : AppColors.border,
-                                  width: 1,
+                            return GestureDetector(
+                              onTap: () => returnsCtrl.inspect(item),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.surfaceDark
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.border,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      item.monthYear,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      CurrencyFormatter.format(item.amount),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    StatusBadge(status: item.status),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    item.monthYear,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  Text(
-                                    CurrencyFormatter.format(item.amount),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  StatusBadge(status: item.status),
-                                ],
-                              ),
-                            ));
+                            );
                           }).toList(),
                         );
                       }),
@@ -215,7 +266,10 @@ class ReturnsView extends StatelessWidget {
               // Bottom "Next Return Date" Card
               Container(
                 margin: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.surfaceDark : Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -241,7 +295,9 @@ class ReturnsView extends StatelessWidget {
                           'nextReturnDate'.tr,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -251,7 +307,9 @@ class ReturnsView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
                             ),
                           );
                         }),

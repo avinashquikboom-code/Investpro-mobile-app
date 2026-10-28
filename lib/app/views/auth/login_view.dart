@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
@@ -67,7 +68,9 @@ class _LoginViewState extends State<LoginView> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -75,7 +78,9 @@ class _LoginViewState extends State<LoginView> {
                     'loginSubtitle'.tr,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -86,7 +91,10 @@ class _LoginViewState extends State<LoginView> {
                     label: 'emailOrMobile'.tr,
                     hintText: 'enterEmailOrMobile'.tr,
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.person_outline_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 18),
 
@@ -97,7 +105,10 @@ class _LoginViewState extends State<LoginView> {
                       label: 'password'.tr,
                       hintText: 'enterPassword'.tr,
                       obscureText: !authCtrl.isPasswordVisible.value,
-                      prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary),
+                      prefixIcon: const Icon(
+                        Icons.lock_outline_rounded,
+                        color: AppColors.textSecondary,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           authCtrl.isPasswordVisible.value
@@ -137,7 +148,9 @@ class _LoginViewState extends State<LoginView> {
                             'rememberMe'.tr,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -162,7 +175,12 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 26),
 
-                  const Padding(padding: EdgeInsets.symmetric(vertical:12), child: Text('LOCAL DEMO: use any valid email/mobile and a password with 8+ characters, letters and numbers. No real authentication.')),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'LOCAL DEMO: use any valid email/mobile and a password with 8+ characters, letters and numbers. No real authentication.',
+                    ),
+                  ),
                   // Login Button
                   Obx(() {
                     return CustomButton(
@@ -190,7 +208,11 @@ class _LoginViewState extends State<LoginView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.shield_outlined, size: 16, color: AppColors.primary),
+                      const Icon(
+                        Icons.shield_outlined,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'secureAndTrusted'.tr,

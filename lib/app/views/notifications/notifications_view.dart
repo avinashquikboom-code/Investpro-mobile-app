@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/notification_controller.dart';
 import '../../models/notification_model.dart';
 import '../../theme/app_colors.dart';
@@ -101,7 +102,10 @@ class NotificationsView extends StatelessWidget {
               onRefresh: notifCtrl.refreshNotifications,
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: list.length,
                 itemBuilder: (context, index) {
                   final notif = list[index];
@@ -117,73 +121,84 @@ class NotificationsView extends StatelessWidget {
                     ),
                     child: ListTile(
                       onTap: () => notifCtrl.handleNotificationTap(notif),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                    leading: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _getIconBgColor(notif.type),
-                        shape: BoxShape.circle,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
                       ),
-                      child: Icon(
-                        _getNotificationIcon(notif.type),
-                        color: _getIconColor(notif.type),
-                        size: 22,
+                      leading: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: _getIconBgColor(notif.type),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _getNotificationIcon(notif.type),
+                          color: _getIconColor(notif.type),
+                          size: 22,
+                        ),
                       ),
-                    ),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notif.title,
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notif.title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: notif.isRead
+                                    ? FontWeight.w500
+                                    : FontWeight.w700,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (!notif.isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 3),
+                          Text(
+                            notif.description,
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: notif.isRead ? FontWeight.w500 : FontWeight.w700,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                             ),
                           ),
-                        ),
-                        if (!notif.isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormatter.formatDateTime(notif.timestamp),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : const Color(0xFF9AA8A1),
                             ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 3),
-                        Text(
-                          notif.description,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormatter.formatDateTime(notif.timestamp),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? AppColors.textSecondaryDark : const Color(0xFF9AA8A1),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        }),
+                  );
+                },
+              ),
+            );
+          }),
+        ),
       ),
-    ),
     );
   }
 }

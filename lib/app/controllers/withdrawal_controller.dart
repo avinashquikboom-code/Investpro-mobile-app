@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../models/transaction_model.dart';
 import '../services/demo_repository.dart';
 import '../utils/validators.dart';
@@ -24,7 +25,13 @@ class WithdrawalController extends GetxController {
       case 'Deposits':
         return txns.where((t) => t.type == TransactionType.deposit).toList();
       default:
-        return txns.where((t) => t.type == TransactionType.withdrawal || t.type == TransactionType.deposit).toList();
+        return txns
+            .where(
+              (t) =>
+                  t.type == TransactionType.withdrawal ||
+                  t.type == TransactionType.deposit,
+            )
+            .toList();
     }
   }
 
@@ -33,42 +40,63 @@ class WithdrawalController extends GetxController {
   }
 
   Future<bool> submitWithdrawal() async {
-    if(isSubmitting.value) return false;
-    if(!bankSelected.value) { Get.snackbar('Demo bank required','Select the demo bank account.'); return false; }
-    final error = Validators.validateWithdrawalAmount(amountController.text, availableBalance);
+    if (isSubmitting.value) return false;
+    if (!bankSelected.value) {
+      Get.snackbar('Demo bank required', 'Select the demo bank account.');
+      return false;
+    }
+    final error = Validators.validateWithdrawalAmount(
+      amountController.text,
+      availableBalance,
+    );
     if (error != null) {
-      Get.snackbar('Invalid Amount', error, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Invalid Amount',
+        error,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
-    final amount = double.tryParse(
+    final amount =
+        double.tryParse(
           amountController.text.replaceAll('₹', '').replaceAll(',', '').trim(),
         ) ??
         0.0;
 
     isSubmitting.value = true;
     try {
-    await Future.delayed(const Duration(milliseconds: 900));
+      await Future.delayed(const Duration(milliseconds: 900));
 
-
-    final success = await _repo.requestWithdrawal(amount: amount, bankSelected: bankSelected.value);
-    if (success) {
-      amountController.clear();
-      Get.back(); // Close dialog/bottom sheet
-      Get.snackbar(
-        'Request Submitted',
-        'Your withdrawal request of ₹ ${amount.toInt()} has been initiated.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFE8F8F0),
-        colorText: const Color(0xFF006B3C),
+      final success = await _repo.requestWithdrawal(
+        amount: amount,
+        bankSelected: bankSelected.value,
       );
-      return true;
-    } else {
-      Get.snackbar('Error', 'Unable to process withdrawal request.', snackPosition: SnackPosition.BOTTOM);
+      if (success) {
+        amountController.clear();
+        Get.back(); // Close dialog/bottom sheet
+        Get.snackbar(
+          'Request Submitted',
+          'Your withdrawal request of ₹ ${amount.toInt()} has been initiated.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFE8F8F0),
+          colorText: const Color(0xFF006B3C),
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'Unable to process withdrawal request.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Request failed', e.toString());
       return false;
+    } finally {
+      isSubmitting.value = false;
     }
-    } catch(e) { Get.snackbar('Request failed',e.toString()); return false; }
-    finally { isSubmitting.value = false; }
   }
 
   @override

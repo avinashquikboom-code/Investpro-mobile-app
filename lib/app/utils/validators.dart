@@ -3,17 +3,31 @@ import '../constants/app_constants.dart';
 class Validators {
   Validators._();
 
-  static String? name(String? v) => (v ?? '').trim().length < 2 ? 'Enter your full name' : null;
-  static String? email(String? v) => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch((v ?? '').trim()) ? null : 'Enter a valid email';
-  static String? phone(String? v) => RegExp(r'^\+?[0-9]{10,13}$').hasMatch((v ?? '').trim()) ? null : 'Enter a valid mobile number';
-  static String? identity(String? v) => email(v) == null || phone(v) == null ? null : 'Enter a valid email or mobile number';
-  static String? password(String? v) => (v ?? '').length >= 8 && RegExp(r'[A-Za-z]').hasMatch(v!) && RegExp(r'[0-9]').hasMatch(v) ? null : 'Use 8+ characters with letters and numbers';
+  static String? name(String? v) =>
+      (v ?? '').trim().length < 2 ? 'Enter your full name' : null;
+  static String? email(String? v) =>
+      RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch((v ?? '').trim())
+      ? null
+      : 'Enter a valid email';
+  static String? phone(String? v) =>
+      RegExp(r'^\+?[0-9]{10,13}$').hasMatch((v ?? '').trim())
+      ? null
+      : 'Enter a valid mobile number';
+  static String? identity(String? v) => email(v) == null || phone(v) == null
+      ? null
+      : 'Enter a valid email or mobile number';
+  static String? password(String? v) =>
+      (v ?? '').length >= 8 &&
+          RegExp(r'[A-Za-z]').hasMatch(v!) &&
+          RegExp(r'[0-9]').hasMatch(v)
+      ? null
+      : 'Use 8+ characters with letters and numbers';
   static int? amount(String value) {
     if (!RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(value.trim())) return null;
     final parts = value.trim().split('.');
-    return int.parse(parts[0]) * 100 + (parts.length > 1 ? int.parse(parts[1].padRight(2, '0')) : 0);
+    return int.parse(parts[0]) * 100 +
+        (parts.length > 1 ? int.parse(parts[1].padRight(2, '0')) : 0);
   }
-
 
   static String? validateRequired(String? value, String fieldName) {
     if (value == null || value.trim().isEmpty) {
@@ -43,7 +57,8 @@ class Validators {
     return null;
   }
 
-  static String? validateMobile(String? value) => phone(value?.replaceAll(RegExp(r'[\s-]'), ''));
+  static String? validateMobile(String? value) =>
+      phone(value?.replaceAll(RegExp(r'[\s-]'), ''));
 
   static String? validateEmailOrMobile(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -64,7 +79,9 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter an investment amount';
     }
-    final minor = Validators.amount(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final minor = Validators.amount(
+      value.replaceAll('₹', '').replaceAll(',', '').trim(),
+    );
     final amount = minor == null ? null : minor / 100;
     if (amount == null || amount <= 0) {
       return 'Enter a valid amount';
@@ -78,11 +95,16 @@ class Validators {
     return null;
   }
 
-  static String? validateWithdrawalAmount(String? value, double availableBalance) {
+  static String? validateWithdrawalAmount(
+    String? value,
+    double availableBalance,
+  ) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter a withdrawal amount';
     }
-    final minor = Validators.amount(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final minor = Validators.amount(
+      value.replaceAll('₹', '').replaceAll(',', '').trim(),
+    );
     final amount = minor == null ? null : minor / 100;
     if (amount == null || amount <= 0) {
       return 'Enter a valid amount';

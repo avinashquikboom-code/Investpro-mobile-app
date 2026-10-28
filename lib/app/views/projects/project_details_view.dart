@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../services/demo_repository.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/project_controller.dart';
@@ -43,16 +44,25 @@ class ProjectDetailsView extends StatelessWidget {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            final selected = projCtrl.selectedProject.value ??
-                (projCtrl.filteredProjects.isNotEmpty ? projCtrl.filteredProjects.first : null);
-            final project = selected == null ? null : Get.find<DemoRepository>().liveProject(selected);
+            final selected =
+                projCtrl.selectedProject.value ??
+                (projCtrl.filteredProjects.isNotEmpty
+                    ? projCtrl.filteredProjects.first
+                    : null);
+            final project = selected == null
+                ? null
+                : Get.find<DemoRepository>().liveProject(selected);
 
             if (project == null) {
               return const Center(child: Text('No project selected'));
             }
 
-            final totalReturn = project.calculateExpectedReturn(project.targetAmount);
-            final monthlyReturn = project.calculateMonthlyReturn(project.targetAmount);
+            final totalReturn = project.calculateExpectedReturn(
+              project.targetAmount,
+            );
+            final monthlyReturn = project.calculateMonthlyReturn(
+              project.targetAmount,
+            );
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -95,7 +105,9 @@ class ProjectDetailsView extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -103,7 +115,9 @@ class ProjectDetailsView extends StatelessWidget {
                                 '${project.returnRatePercent.toInt()}% Return  |  ${project.durationMonths} Months',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -139,16 +153,22 @@ class ProjectDetailsView extends StatelessWidget {
                                   'totalInvestmentRequired'.tr,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  CurrencyFormatter.format(project.targetAmount),
+                                  CurrencyFormatter.format(
+                                    project.targetAmount,
+                                  ),
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary,
                                   ),
                                 ),
                               ],
@@ -160,12 +180,16 @@ class ProjectDetailsView extends StatelessWidget {
                                   'alreadyRaised'.tr,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  CurrencyFormatter.format(project.raisedAmount),
+                                  CurrencyFormatter.format(
+                                    project.raisedAmount,
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
@@ -208,7 +232,9 @@ class ProjectDetailsView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -252,7 +278,9 @@ class ProjectDetailsView extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : const Color(0xFFF3F8F5),
+                      color: isDark
+                          ? AppColors.surfaceDark
+                          : const Color(0xFFF3F8F5),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -262,7 +290,9 @@ class ProjectDetailsView extends StatelessWidget {
                           project.description,
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textPrimary,
                             height: 1.4,
                           ),
                         ),
@@ -270,7 +300,11 @@ class ProjectDetailsView extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.warning),
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              size: 16,
+                              color: AppColors.warning,
+                            ),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
@@ -291,10 +325,14 @@ class ProjectDetailsView extends StatelessWidget {
                   // Primary Button: Invest Now
                   CustomButton(
                     text: 'investNow'.tr,
-                    onPressed: project.status == 'Active' && project.targetAmount - project.raisedAmount >= 5000 ? () {
-                      invCtrl.setProject(project);
-                      Get.toNamed(AppRoutes.investNow);
-                    } : null,
+                    onPressed:
+                        project.status == 'Active' &&
+                            project.targetAmount - project.raisedAmount >= 5000
+                        ? () {
+                            invCtrl.setProject(project);
+                            Get.toNamed(AppRoutes.investNow);
+                          }
+                        : null,
                   ),
                   const SizedBox(height: 12),
 
@@ -303,7 +341,11 @@ class ProjectDetailsView extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.check_circle_outline_rounded, size: 16, color: AppColors.success),
+                        const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 16,
+                          color: AppColors.success,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'safeAndSecureNote'.tr,
@@ -342,7 +384,9 @@ class ProjectDetailsView extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
           ),
         ),
         Text(
@@ -350,7 +394,9 @@ class ProjectDetailsView extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            color:
+                valueColor ??
+                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
           ),
         ),
       ],

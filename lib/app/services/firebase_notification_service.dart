@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -25,7 +26,8 @@ class FirebaseNotificationService extends GetxService {
   final NotificationService _notificationService;
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   static const String channelId = 'investpro_high_importance_channel';
   static const String channelName = 'InvestPro Push Notifications';
@@ -66,7 +68,9 @@ class FirebaseNotificationService extends GetxService {
   }
 
   Future<void> _setupLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -105,7 +109,9 @@ class FirebaseNotificationService extends GetxService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
   }
 
@@ -127,7 +133,9 @@ class FirebaseNotificationService extends GetxService {
 
       // Android 13+ permission request
       await _localNotifications
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.requestNotificationsPermission();
     } catch (e) {
       if (kDebugMode) {
@@ -144,8 +152,13 @@ class FirebaseNotificationService extends GetxService {
       }
 
       final notification = message.notification;
-      final title = notification?.title ?? message.data['title'] ?? 'InvestPro Notice';
-      final body = notification?.body ?? message.data['body'] ?? message.data['message'] ?? '';
+      final title =
+          notification?.title ?? message.data['title'] ?? 'InvestPro Notice';
+      final body =
+          notification?.body ??
+          message.data['body'] ??
+          message.data['message'] ??
+          '';
       final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
 
       // Show local heads-up notification
@@ -180,7 +193,9 @@ class FirebaseNotificationService extends GetxService {
     _messaging.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
         if (kDebugMode) {
-          print('[FCM] App opened from terminated state via push: ${message.data}');
+          print(
+            '[FCM] App opened from terminated state via push: ${message.data}',
+          );
         }
         handleNotificationRouting(message.data);
       }
@@ -240,10 +255,7 @@ class FirebaseNotificationService extends GetxService {
       _storage.write('fcm_device_token', token);
 
       final platform = Platform.isIOS ? 'ios' : 'android';
-      await _api.registerDeviceToken(
-        token: token,
-        platform: platform,
-      );
+      await _api.registerDeviceToken(token: token, platform: platform);
 
       if (kDebugMode) {
         print('[FCM] Device token registered successfully: $token');
@@ -275,17 +287,24 @@ class FirebaseNotificationService extends GetxService {
 
   void handleNotificationRouting(Map<String, dynamic> data) {
     final type = (data['type'] ?? '').toString().toUpperCase();
-    final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])?.toString();
+    final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
+        ?.toString();
 
     if (type.contains('PROJECT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
-        Get.toNamed(AppRoutes.projectDetails, arguments: {'projectId': relatedId});
+        Get.toNamed(
+          AppRoutes.projectDetails,
+          arguments: {'projectId': relatedId},
+        );
       } else {
         Get.toNamed(AppRoutes.projects);
       }
     } else if (type.contains('INVESTMENT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
-        Get.toNamed(AppRoutes.investmentDetails, arguments: {'investmentId': relatedId});
+        Get.toNamed(
+          AppRoutes.investmentDetails,
+          arguments: {'investmentId': relatedId},
+        );
       } else {
         Get.toNamed(AppRoutes.myInvestments);
       }
@@ -302,7 +321,8 @@ class FirebaseNotificationService extends GetxService {
     final upper = typeStr.toUpperCase();
     if (upper.contains('INVESTMENT')) return NotificationType.investmentSuccess;
     if (upper.contains('RETURN')) return NotificationType.returnReceived;
-    if (upper.contains('WITHDRAWAL')) return NotificationType.withdrawalApproved;
+    if (upper.contains('WITHDRAWAL'))
+      return NotificationType.withdrawalApproved;
     if (upper.contains('PROJECT_UPDATE')) return NotificationType.projectUpdate;
     return NotificationType.newProject;
   }

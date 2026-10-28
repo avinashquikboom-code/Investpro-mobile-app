@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
@@ -16,12 +18,15 @@ class ForgotPasswordView extends StatefulWidget {
 
 class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   final _formKey = GlobalKey<FormState>();
-  final _identityController = TextEditingController(text: 'rohit.sharma@example.com');
+  final _identityController = TextEditingController(
+    text: 'rohit.sharma@example.com',
+  );
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  int _currentStep = 0; // 0: Request OTP, 1: Enter OTP & New Password, 2: Success
+  int _currentStep =
+      0; // 0: Request OTP, 1: Enter OTP & New Password, 2: Success
   bool _isLoading = false;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
@@ -163,10 +168,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Form(
-              key: _formKey,
-              child: _buildCurrentStep(isDark),
-            ),
+            child: Form(key: _formKey, child: _buildCurrentStep(isDark)),
           ),
         ),
       ),
@@ -226,7 +228,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           style: TextStyle(
             fontSize: 13,
             height: 1.5,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 32),
@@ -236,7 +240,11 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           controller: _identityController,
           label: 'Email or Mobile Number',
           hintText: 'Enter your email or phone',
-          prefixIcon: const Icon(Icons.person_outline_rounded, size: 20, color: Color(0xFF00854B)),
+          prefixIcon: const Icon(
+            Icons.person_outline_rounded,
+            size: 20,
+            color: Color(0xFF00854B),
+          ),
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 28),
@@ -253,7 +261,11 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
         Center(
           child: TextButton.icon(
             onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back_rounded, size: 16, color: Color(0xFF00854B)),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              size: 16,
+              color: Color(0xFF00854B),
+            ),
             label: const Text(
               'Back to Login',
               style: TextStyle(
@@ -307,7 +319,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           style: TextStyle(
             fontSize: 13,
             height: 1.5,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 28),
@@ -317,7 +331,11 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           controller: _otpController,
           label: '4-Digit Verification Code',
           hintText: 'Enter 4-digit code',
-          prefixIcon: const Icon(Icons.pin_rounded, size: 20, color: Color(0xFF00854B)),
+          prefixIcon: const Icon(
+            Icons.pin_rounded,
+            size: 20,
+            color: Color(0xFF00854B),
+          ),
           keyboardType: TextInputType.number,
           suffixIcon: TextButton(
             onPressed: _resendCountdown == 0 ? _startResendTimer : null,
@@ -326,7 +344,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: _resendCountdown > 0 ? AppColors.textSecondary : const Color(0xFF00854B),
+                color: _resendCountdown > 0
+                    ? AppColors.textSecondary
+                    : const Color(0xFF00854B),
               ),
             ),
           ),
@@ -339,12 +359,20 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           label: 'New Password',
           hintText: 'Enter at least 6 characters',
           obscureText: _obscureNew,
-          prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: Color(0xFF00854B)),
+          prefixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            size: 20,
+            color: Color(0xFF00854B),
+          ),
           suffixIcon: IconButton(
             icon: Icon(
-              _obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _obscureNew
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 20,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
             ),
             onPressed: () => setState(() => _obscureNew = !_obscureNew),
           ),
@@ -357,12 +385,20 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           label: 'Confirm New Password',
           hintText: 'Re-enter your new password',
           obscureText: _obscureConfirm,
-          prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: Color(0xFF00854B)),
+          prefixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            size: 20,
+            color: Color(0xFF00854B),
+          ),
           suffixIcon: IconButton(
             icon: Icon(
-              _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _obscureConfirm
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 20,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
             ),
             onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
           ),
@@ -409,7 +445,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
@@ -420,7 +458,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               style: TextStyle(
                 fontSize: 14,
                 height: 1.5,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 36),
@@ -434,4 +474,3 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     );
   }
 }
-

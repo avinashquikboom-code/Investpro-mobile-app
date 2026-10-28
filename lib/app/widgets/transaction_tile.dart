@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/transaction_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
@@ -9,11 +10,7 @@ class TransactionTile extends StatelessWidget {
   final TransactionModel transaction;
   final VoidCallback? onTap;
 
-  const TransactionTile({
-    super.key,
-    required this.transaction,
-    this.onTap,
-  });
+  const TransactionTile({super.key, required this.transaction, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +62,7 @@ class TransactionTile extends StatelessWidget {
         leading: Container(
           width: 42,
           height: 42,
-          decoration: BoxDecoration(
-            color: iconBg,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
           child: Icon(icon, color: iconColor, size: 20),
         ),
         title: Text(
@@ -87,7 +81,9 @@ class TransactionTile extends StatelessWidget {
               '${DateFormatter.formatDate(transaction.date)}  •  ${transaction.subtitle}',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -106,8 +102,10 @@ class TransactionTile extends StatelessWidget {
                 color: isCredit
                     ? AppColors.success
                     : (transaction.type == TransactionType.withdrawal
-                        ? AppColors.error
-                        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
+                          ? AppColors.error
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary)),
               ),
             ),
             const SizedBox(height: 3),

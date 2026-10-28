@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/investment_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
@@ -22,10 +23,7 @@ class MyInvestmentsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(
-        title: 'myInvestments'.tr,
-        showBackButton: !isTab,
-      ),
+      appBar: CustomAppBar(title: 'myInvestments'.tr, showBackButton: !isTab),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
           context: context,
@@ -34,11 +32,15 @@ class MyInvestmentsView extends StatelessWidget {
             children: [
               // Filter Tabs (Active, Completed, Withdrawn)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Obx(() {
                   return Row(
                     children: filterTabs.map((filter) {
-                      final isSelected = invCtrl.myInvestmentsFilter.value == filter;
+                      final isSelected =
+                          invCtrl.myInvestmentsFilter.value == filter;
                       return Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -51,12 +53,16 @@ class MyInvestmentsView extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primaryDark
-                                    : (isDark ? AppColors.surfaceDark : Colors.white),
+                                    : (isDark
+                                          ? AppColors.surfaceDark
+                                          : Colors.white),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
                                       ? AppColors.primaryDark
-                                      : (isDark ? AppColors.borderDark : AppColors.border),
+                                      : (isDark
+                                            ? AppColors.borderDark
+                                            : AppColors.border),
                                   width: 1,
                                 ),
                               ),
@@ -67,7 +73,9 @@ class MyInvestmentsView extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? Colors.white
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
+                                      : (isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textPrimary),
                                 ),
                               ),
                             ),
@@ -86,7 +94,8 @@ class MyInvestmentsView extends StatelessWidget {
                   if (list.isEmpty) {
                     return EmptyStateWidget(
                       icon: Icons.savings_outlined,
-                      title: 'No ${invCtrl.myInvestmentsFilter.value} Investments',
+                      title:
+                          'No ${invCtrl.myInvestmentsFilter.value} Investments',
                       message: 'You have no investments recorded under this category.',
                       buttonText: 'Explore Projects',
                       onButtonPressed: () => Get.toNamed(AppRoutes.projects),
@@ -94,7 +103,10 @@ class MyInvestmentsView extends StatelessWidget {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       final investment = list[index];

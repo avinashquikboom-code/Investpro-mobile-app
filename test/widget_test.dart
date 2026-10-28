@@ -7,17 +7,15 @@ import 'package:investpro/app/widgets/status_badge.dart';
 void main() {
   testWidgets('AppLogo renders properly', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: AppLogo(showText: true),
-        ),
-      ),
+      const MaterialApp(home: Scaffold(body: AppLogo(showText: true))),
     );
 
     expect(find.text('InvestPro'), findsOneWidget);
   });
 
-  testWidgets('CustomButton renders text and triggers callback', (WidgetTester tester) async {
+  testWidgets('CustomButton renders text and triggers callback', (
+    WidgetTester tester,
+  ) async {
     bool tapped = false;
 
     await tester.pumpWidget(
@@ -40,12 +38,12 @@ void main() {
     expect(tapped, isTrue);
   });
 
-  testWidgets('StatusBadge displays status label and styles', (WidgetTester tester) async {
+  testWidgets('StatusBadge displays status label and styles', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(
-          body: StatusBadge(status: 'Active', showDot: true),
-        ),
+        home: Scaffold(body: StatusBadge(status: 'Active', showDot: true)),
       ),
     );
 

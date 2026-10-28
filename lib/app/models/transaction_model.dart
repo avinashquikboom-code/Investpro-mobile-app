@@ -1,9 +1,4 @@
-enum TransactionType {
-  investment,
-  returnReceived,
-  withdrawal,
-  deposit,
-}
+enum TransactionType { investment, returnReceived, withdrawal, deposit }
 
 class TransactionModel {
   final String id;
@@ -59,7 +54,9 @@ class TransactionModel {
       status: json['status'] as String? ?? 'Completed',
       projectId: json['projectId'] as String?,
       projectName: json['projectName'] as String?,
-      referenceId: json['referenceId'] as String? ?? 'TXN-${DateTime.now().millisecondsSinceEpoch}',
+      referenceId:
+          json['referenceId'] as String? ??
+          'TXN-${DateTime.now().millisecondsSinceEpoch}',
     );
   }
 }

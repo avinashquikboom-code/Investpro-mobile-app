@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class AppLogo extends StatelessWidget {
@@ -34,9 +35,7 @@ class AppLogo extends StatelessWidget {
             child: SizedBox(
               width: 100,
               height: 100,
-              child: CustomPaint(
-                painter: _InvestProLogoPainter(color: color),
-              ),
+              child: CustomPaint(painter: _InvestProLogoPainter(color: color)),
             ),
           ),
         ),

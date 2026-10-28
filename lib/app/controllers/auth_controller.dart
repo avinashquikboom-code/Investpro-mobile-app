@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../models/user_model.dart';
 import 'navigation_controller.dart';
 import '../routes/app_routes.dart';
@@ -21,7 +22,6 @@ class AuthController extends GetxController {
   final RxBool rememberMe = true.obs;
   final RxBool isPasswordVisible = false.obs;
   final RxBool isLoading = false.obs;
-  final RxString selectedRole = 'Investor'.obs; // Investor or Admin
 
   @override
   void onInit() {
@@ -39,21 +39,25 @@ class AuthController extends GetxController {
     _storage.setRememberMe(rememberMe.value);
   }
 
-  void setRole(String role) {
-    selectedRole.value = role;
-  }
-
   Future<bool> login(String identity, String password) async {
     if (isLoading.value) return false;
     final identityError = Validators.validateEmailOrMobile(identity);
     if (identityError != null) {
-      Get.snackbar('Validation Error', identityError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        identityError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final passwordError = Validators.validatePassword(password);
     if (passwordError != null) {
-      Get.snackbar('Validation Error', passwordError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        passwordError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
@@ -64,6 +68,20 @@ class AuthController extends GetxController {
         try {
           final res = await _api.login(identity, password);
           if (res != null) {
+            final userRole = (res['user']?['role'] ?? '')
+                .toString()
+                .toUpperCase();
+            if (userRole == 'ADMIN' || userRole == 'SUPER_ADMIN') {
+              await _api.logout().catchError((_) {});
+              await _storage.clearSession();
+              Get.snackbar(
+                'Access Restricted',
+                'Admin accounts cannot log into the mobile app. Please use the Admin Web Portal.',
+                snackPosition: SnackPosition.BOTTOM,
+              );
+              return false;
+            }
+
             isLoggedIn.value = true;
             await _storage.setRememberMe(rememberMe.value);
             await _storage.setLoggedIn(rememberMe.value);
@@ -87,11 +105,21 @@ class AuthController extends GetxController {
             return true;
           }
         } catch (apiError) {
-          debugPrint('[AuthController] Backend login failed: $apiError, checking local fallback');
+          debugPrint(
+            '[AuthController] Backend login failed: $apiError, checking local fallback',
+          );
         }
       }
 
       // 2. Demo offline fallback for smooth local testing
+      if (identity.toLowerCase().trim().startsWith('admin@')) {
+        Get.snackbar(
+          'Access Restricted',
+          'Admin accounts cannot log into the mobile app. Please use the Admin Web Portal.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
       await Future.delayed(const Duration(milliseconds: 600));
 
       isLoggedIn.value = true;
@@ -107,7 +135,11 @@ class AuthController extends GetxController {
       Get.offAllNamed(AppRoutes.home);
       return true;
     } catch (e) {
-      Get.snackbar('Login error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Login error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     } finally {
       isLoading.value = false;
@@ -123,25 +155,41 @@ class AuthController extends GetxController {
     if (isLoading.value) return false;
     final nameError = Validators.validateName(fullName);
     if (nameError != null) {
-      Get.snackbar('Validation Error', nameError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        nameError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final emailError = Validators.validateEmail(email);
     if (emailError != null) {
-      Get.snackbar('Validation Error', emailError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        emailError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final mobileError = Validators.validateMobile(mobileNumber);
     if (mobileError != null) {
-      Get.snackbar('Validation Error', mobileError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        mobileError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final passwordError = Validators.validatePassword(password);
     if (passwordError != null) {
-      Get.snackbar('Validation Error', passwordError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        passwordError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
@@ -178,7 +226,9 @@ class AuthController extends GetxController {
             return true;
           }
         } catch (apiError) {
-          debugPrint('[AuthController] Backend register failed: $apiError, falling back to local');
+          debugPrint(
+            '[AuthController] Backend register failed: $apiError, falling back to local',
+          );
         }
       }
 
@@ -215,7 +265,11 @@ class AuthController extends GetxController {
       Get.offAllNamed(AppRoutes.home);
       return true;
     } catch (e) {
-      Get.snackbar('Registration error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Registration error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     } finally {
       isLoading.value = false;
@@ -253,7 +307,10 @@ class AuthController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF71847D))),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF71847D)),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(

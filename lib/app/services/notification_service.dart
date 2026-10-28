@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+
 import '../models/notification_model.dart';
 import 'api_service.dart';
 import 'local_storage_service.dart';
@@ -25,7 +26,11 @@ class NotificationService extends GetxService {
       final list = await _api.getNotifications();
       if (list != null && list.isNotEmpty) {
         final parsed = list
-            .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => NotificationModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList();
         notifications.value = parsed;
         _saveToStorage();
@@ -37,7 +42,10 @@ class NotificationService extends GetxService {
     final raw = _storage.readList(AppConstants.keyNotificationsData);
     if (raw != null && raw.isNotEmpty) {
       notifications.value = raw
-          .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (e) =>
+                NotificationModel.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList();
     } else {
       _seedInitialNotifications();
@@ -101,7 +109,9 @@ class NotificationService extends GetxService {
   }
 
   void markAllAsRead() {
-    notifications.value = notifications.map((n) => n.copyWith(isRead: true)).toList();
+    notifications.value = notifications
+        .map((n) => n.copyWith(isRead: true))
+        .toList();
     _saveToStorage();
     _api?.markAllNotificationsRead().catchError((_) => false);
   }
@@ -134,4 +144,3 @@ class NotificationService extends GetxService {
     );
   }
 }
-

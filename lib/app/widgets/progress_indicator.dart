@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class CustomProgressBar extends StatelessWidget {
@@ -25,7 +26,9 @@ class CustomProgressBar extends StatelessWidget {
       child: LinearProgressIndicator(
         value: normalized,
         minHeight: height,
-        backgroundColor: backgroundColor ?? (isDark ? AppColors.borderDark : const Color(0xFFE8F2EC)),
+        backgroundColor:
+            backgroundColor ??
+            (isDark ? AppColors.borderDark : const Color(0xFFE8F2EC)),
         valueColor: AlwaysStoppedAnimation<Color>(color ?? AppColors.accent),
       ),
     );
@@ -97,7 +100,9 @@ class TimelineStepWidget extends StatelessWidget {
                       width: 2,
                       color: isCompleted
                           ? AppColors.primary
-                          : (isDark ? AppColors.borderDark : const Color(0xFFE0EBE5)),
+                          : (isDark
+                                ? AppColors.borderDark
+                                : const Color(0xFFE0EBE5)),
                     ),
                   ),
               ],
@@ -116,7 +121,9 @@ class TimelineStepWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -124,7 +131,9 @@ class TimelineStepWidget extends StatelessWidget {
                     date,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],

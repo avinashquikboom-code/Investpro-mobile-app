@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../models/user_model.dart';
 import '../services/demo_repository.dart';
 import '../utils/validators.dart';
@@ -29,47 +30,62 @@ class ProfileController extends GetxController {
   }
 
   Future<bool> saveProfile() async {
-    if(isSaving.value) return false;
+    if (isSaving.value) return false;
     final nameError = Validators.validateName(nameController.text);
     if (nameError != null) {
-      Get.snackbar('Validation Error', nameError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        nameError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final emailError = Validators.validateEmail(emailController.text);
     if (emailError != null) {
-      Get.snackbar('Validation Error', emailError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        emailError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     final phoneError = Validators.validateMobile(phoneController.text);
     if (phoneError != null) {
-      Get.snackbar('Validation Error', phoneError, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Validation Error',
+        phoneError,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     isSaving.value = true;
     try {
-    await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 600));
 
+      await _repo.updateProfile(
+        fullName: nameController.text.trim(),
+        email: emailController.text.trim(),
+        mobileNumber: phoneController.text.trim(),
+      );
 
-    await _repo.updateProfile(
-      fullName: nameController.text.trim(),
-      email: emailController.text.trim(),
-      mobileNumber: phoneController.text.trim(),
-    );
-
-    Get.back();
-    Get.snackbar(
-      'Profile Updated',
-      'Your profile information has been saved successfully.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFFE8F8F0),
-      colorText: const Color(0xFF006B3C),
-    );
-    return true;
-    } catch(e) { Get.snackbar('Could not save profile',e.toString()); return false; }
-    finally { isSaving.value = false; }
+      Get.back();
+      Get.snackbar(
+        'Profile Updated',
+        'Your profile information has been saved successfully.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFE8F8F0),
+        colorText: const Color(0xFF006B3C),
+      );
+      return true;
+    } catch (e) {
+      Get.snackbar('Could not save profile', e.toString());
+      return false;
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/profile_controller.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
@@ -69,7 +70,10 @@ class EditProfileView extends StatelessWidget {
                   controller: profileCtrl.nameController,
                   label: 'fullName'.tr,
                   hintText: 'enterFullName'.tr,
-                  prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.person_outline_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 18),
 
@@ -79,7 +83,10 @@ class EditProfileView extends StatelessWidget {
                   label: 'email'.tr,
                   hintText: 'enterEmail'.tr,
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.mail_outline_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 18),
 
@@ -89,7 +96,10 @@ class EditProfileView extends StatelessWidget {
                   label: 'mobileNumber'.tr,
                   hintText: 'enterMobileNumber'.tr,
                   keyboardType: TextInputType.phone,
-                  prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.phone_outlined,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 36),
 

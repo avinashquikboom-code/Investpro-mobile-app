@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/investment_controller.dart';
 import '../../controllers/project_controller.dart';
 import '../../routes/app_routes.dart';
@@ -22,10 +23,7 @@ class ProjectsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(
-        title: 'projects'.tr,
-        showBackButton: !isTab,
-      ),
+      appBar: CustomAppBar(title: 'projects'.tr, showBackButton: !isTab),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
           context: context,
@@ -34,30 +32,41 @@ class ProjectsView extends StatelessWidget {
             children: [
               // Filter Tabs (All Projects, Active, Completed)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Obx(() {
                   final filters = ['All Projects', 'Active', 'Completed'];
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: filters.map((filter) {
-                        final isSelected = projCtrl.selectedFilter.value == filter;
+                        final isSelected =
+                            projCtrl.selectedFilter.value == filter;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: GestureDetector(
                             onTap: () => projCtrl.setFilter(filter),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primaryDark
-                                    : (isDark ? AppColors.surfaceDark : Colors.white),
+                                    : (isDark
+                                          ? AppColors.surfaceDark
+                                          : Colors.white),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
                                       ? AppColors.primaryDark
-                                      : (isDark ? AppColors.borderDark : AppColors.border),
+                                      : (isDark
+                                            ? AppColors.borderDark
+                                            : AppColors.border),
                                   width: 1,
                                 ),
                               ),
@@ -68,7 +77,9 @@ class ProjectsView extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? Colors.white
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
+                                      : (isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textPrimary),
                                 ),
                               ),
                             ),
@@ -95,7 +106,10 @@ class ProjectsView extends StatelessWidget {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       final project = list[index];

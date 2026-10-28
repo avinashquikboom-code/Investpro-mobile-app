@@ -12,7 +12,9 @@ class InvestmentModel {
   final double maturityAmount;
   final DateTime startDate;
   final DateTime maturityDate;
-  double get progressPercent => InvestmentCalculator.progress(startDate,durationMonths,DateTime.now()) * 100;
+  double get progressPercent =>
+      InvestmentCalculator.progress(startDate, durationMonths, DateTime.now()) *
+      100;
   final String status; // 'Active', 'Completed', 'Withdrawn'
   final String paymentMethod;
 

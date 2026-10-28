@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+
 import '../models/transaction_model.dart';
 import '../services/demo_repository.dart';
 
@@ -7,16 +8,20 @@ class TransactionController extends GetxController {
 
   TransactionController(this._repo);
 
-  final RxString selectedFilter = 'All'.obs; // 'All', 'Investment', 'Return', 'Withdrawal'
+  final RxString selectedFilter =
+      'All'.obs; // 'All', 'Investment', 'Return', 'Withdrawal'
   final Rxn<TransactionModel> selectedTransaction = Rxn<TransactionModel>();
 
   List<TransactionModel> get filteredTransactions {
-    final list = _repo.transactions.toList()..sort((a,b) => b.date.compareTo(a.date));
+    final list = _repo.transactions.toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
     switch (selectedFilter.value) {
       case 'Investment':
         return list.where((t) => t.type == TransactionType.investment).toList();
       case 'Return':
-        return list.where((t) => t.type == TransactionType.returnReceived).toList();
+        return list
+            .where((t) => t.type == TransactionType.returnReceived)
+            .toList();
       case 'Withdrawal':
         return list.where((t) => t.type == TransactionType.withdrawal).toList();
       default:

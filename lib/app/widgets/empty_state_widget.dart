@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import 'custom_button.dart';
 
@@ -35,11 +36,7 @@ class EmptyStateWidget extends StatelessWidget {
                 color: isDark ? AppColors.surfaceDark : const Color(0xFFE8F8F0),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 34,
-                color: AppColors.primary,
-              ),
+              child: Icon(icon, size: 34, color: AppColors.primary),
             ),
             const SizedBox(height: 18),
             Text(
@@ -47,7 +44,9 @@ class EmptyStateWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -56,7 +55,9 @@ class EmptyStateWidget extends StatelessWidget {
               message,
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),

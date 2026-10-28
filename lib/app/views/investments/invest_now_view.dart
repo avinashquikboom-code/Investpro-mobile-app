@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../constants/app_constants.dart';
 import '../../controllers/investment_controller.dart';
 import '../../theme/app_colors.dart';
@@ -87,7 +88,9 @@ class InvestNowView extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -95,7 +98,9 @@ class InvestNowView extends StatelessWidget {
                                 '${project.returnRatePercent.toInt()}% Return  |  ${project.durationMonths} Months',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -112,7 +117,9 @@ class InvestNowView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -138,8 +145,14 @@ class InvestNowView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                      suffixIcon: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 0,
+                        minHeight: 0,
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.account_balance_wallet_outlined,
+                        color: AppColors.primary,
+                      ),
                       filled: true,
                       fillColor: isDark ? AppColors.surfaceDark : Colors.white,
                     ),
@@ -151,7 +164,8 @@ class InvestNowView extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: AppConstants.quickInvestAmounts.map((amt) {
-                        final isSelected = invCtrl.investmentAmount.value == amt;
+                        final isSelected =
+                            invCtrl.investmentAmount.value == amt;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
@@ -162,16 +176,22 @@ class InvestNowView extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 color: isSelected
                                     ? Colors.white
-                                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                                    : (isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimary),
                               ),
                             ),
                             selected: isSelected,
                             selectedColor: AppColors.primaryDark,
-                            backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+                            backgroundColor: isDark
+                                ? AppColors.surfaceDark
+                                : Colors.white,
                             side: BorderSide(
                               color: isSelected
                                   ? AppColors.primaryDark
-                                  : (isDark ? AppColors.borderDark : AppColors.border),
+                                  : (isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.border),
                             ),
                             onSelected: (_) => invCtrl.selectQuickAmount(amt),
                           ),
@@ -196,15 +216,20 @@ class InvestNowView extends StatelessWidget {
                       children: [
                         _buildSummaryRow(
                           context: context,
-                          label: 'Expected Return (${project.returnRatePercent.toInt()}%)',
-                          value: CurrencyFormatter.format(calc.expectedTotalReturn),
+                          label:
+                              'Expected Return (${project.returnRatePercent.toInt()}%)',
+                          value: CurrencyFormatter.format(
+                            calc.expectedTotalReturn,
+                          ),
                           valueColor: AppColors.primary,
                         ),
                         const Divider(height: 22, color: AppColors.border),
                         _buildSummaryRow(
                           context: context,
                           label: 'maturityAmount'.tr,
-                          value: CurrencyFormatter.format(calc.projectedMaturityAmount),
+                          value: CurrencyFormatter.format(
+                            calc.projectedMaturityAmount,
+                          ),
                           isBold: true,
                         ),
                         const Divider(height: 22, color: AppColors.border),
@@ -221,18 +246,30 @@ class InvestNowView extends StatelessWidget {
                   // Primary Button: Proceed to Pay
                   CustomButton(
                     text: 'proceedToPay'.tr,
-                    onPressed: invCtrl.amountError == null ? invCtrl.proceedToPaymentConfirmation : null,
+                    onPressed: invCtrl.amountError == null
+                        ? invCtrl.proceedToPaymentConfirmation
+                        : null,
                   ),
                   const SizedBox(height: 14),
 
-                  if(invCtrl.amountError != null) Text(invCtrl.amountError!, style: const TextStyle(color: AppColors.error)),
-                  const Text('Full-term projections only. Returns are not guaranteed. Demo payment only.'),
+                  if (invCtrl.amountError != null)
+                    Text(
+                      invCtrl.amountError!,
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                  const Text(
+                    'Full-term projections only. Returns are not guaranteed. Demo payment only.',
+                  ),
                   // Security Footer
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.lock_outline_rounded, size: 16, color: AppColors.primary),
+                        const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'secureEncryptedPayment'.tr,
@@ -271,7 +308,9 @@ class InvestNowView extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
           ),
         ),
         Text(
@@ -279,7 +318,9 @@ class InvestNowView extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            color:
+                valueColor ??
+                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
           ),
         ),
       ],

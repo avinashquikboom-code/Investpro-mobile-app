@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class PortfolioSummaryCard extends StatelessWidget {
@@ -54,14 +55,21 @@ class PortfolioSummaryCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 14),
+                    const Icon(
+                      Icons.arrow_upward_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       growth,
@@ -79,10 +87,7 @@ class PortfolioSummaryCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'Across $activeProjectsCount active projects',
-            style: const TextStyle(
-              color: Color(0xFFD4EBE0),
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Color(0xFFD4EBE0), fontSize: 12),
           ),
         ],
       ),
@@ -94,11 +99,7 @@ class StatItemCard extends StatelessWidget {
   final String title;
   final String value;
 
-  const StatItemCard({
-    super.key,
-    required this.title,
-    required this.value,
-  });
+  const StatItemCard({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +129,9 @@ class StatItemCard extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 11,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -141,7 +144,9 @@ class StatItemCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,

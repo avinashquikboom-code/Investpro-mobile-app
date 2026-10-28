@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
 import '../../controllers/theme_controller.dart';
@@ -11,7 +12,10 @@ import '../../widgets/custom_app_bar.dart';
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
 
-  void _showLanguageDialog(BuildContext context, SettingsController controller) {
+  void _showLanguageDialog(
+    BuildContext context,
+    SettingsController controller,
+  ) {
     Get.defaultDialog(
       title: 'language'.tr,
       titleStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -25,12 +29,18 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildLanguageOption(SettingsController controller, String code, String name) {
+  Widget _buildLanguageOption(
+    SettingsController controller,
+    String code,
+    String name,
+  ) {
     return Obx(() {
       final isSelected = controller.selectedLanguage.value == code;
       return ListTile(
         title: Text(name),
-        trailing: isSelected ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+        trailing: isSelected
+            ? const Icon(Icons.check_rounded, color: AppColors.primary)
+            : null,
         onTap: () {
           controller.setLanguage(code);
           Get.back();
@@ -45,21 +55,43 @@ class SettingsView extends StatelessWidget {
       titleStyle: const TextStyle(fontWeight: FontWeight.bold),
       content: Column(
         children: [
-          _buildThemeOption(controller, 'light', 'light'.tr, Icons.light_mode_outlined),
-          _buildThemeOption(controller, 'dark', 'dark'.tr, Icons.dark_mode_outlined),
-          _buildThemeOption(controller, 'system', 'system'.tr, Icons.settings_brightness_outlined),
+          _buildThemeOption(
+            controller,
+            'light',
+            'light'.tr,
+            Icons.light_mode_outlined,
+          ),
+          _buildThemeOption(
+            controller,
+            'dark',
+            'dark'.tr,
+            Icons.dark_mode_outlined,
+          ),
+          _buildThemeOption(
+            controller,
+            'system',
+            'system'.tr,
+            Icons.settings_brightness_outlined,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildThemeOption(ThemeController controller, String mode, String label, IconData icon) {
+  Widget _buildThemeOption(
+    ThemeController controller,
+    String mode,
+    String label,
+    IconData icon,
+  ) {
     return Obx(() {
       final isSelected = controller.themeModeString.value == mode;
       return ListTile(
         leading: Icon(icon, color: isSelected ? AppColors.primary : null),
         title: Text(label),
-        trailing: isSelected ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+        trailing: isSelected
+            ? const Icon(Icons.check_rounded, color: AppColors.primary)
+            : null,
         onTap: () {
           controller.setThemeMode(mode);
           Get.back();
@@ -97,16 +129,24 @@ class SettingsView extends StatelessWidget {
                 children: [
                   // Profile Settings
                   ListTile(
-                    leading: const Icon(Icons.person_outline_rounded, color: AppColors.primary),
+                    leading: const Icon(
+                      Icons.person_outline_rounded,
+                      color: AppColors.primary,
+                    ),
                     title: Text(
                       'profileSettings'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                     onTap: () => Get.toNamed(AppRoutes.editProfile),
                   ),
                   _buildDivider(isDark),
@@ -114,24 +154,37 @@ class SettingsView extends StatelessWidget {
                   // Language
                   Obx(() {
                     return ListTile(
-                      leading: const Icon(Icons.language_rounded, color: AppColors.primary),
+                      leading: const Icon(
+                        Icons.language_rounded,
+                        color: AppColors.primary,
+                      ),
                       title: Text(
                         'language'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            settingsCtrl.getLanguageName(settingsCtrl.selectedLanguage.value),
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            settingsCtrl.getLanguageName(
+                              settingsCtrl.selectedLanguage.value,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.textSecondary,
+                          ),
                         ],
                       ),
                       onTap: () => _showLanguageDialog(context, settingsCtrl),
@@ -142,24 +195,36 @@ class SettingsView extends StatelessWidget {
                   // Theme Appearance
                   Obx(() {
                     return ListTile(
-                      leading: const Icon(Icons.palette_outlined, color: AppColors.primary),
+                      leading: const Icon(
+                        Icons.palette_outlined,
+                        color: AppColors.primary,
+                      ),
                       title: Text(
                         'themeMode'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            themeCtrl.themeModeString.value.capitalizeFirst ?? 'System',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            themeCtrl.themeModeString.value.capitalizeFirst ??
+                                'System',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.textSecondary,
+                          ),
                         ],
                       ),
                       onTap: () => _showThemeDialog(context, themeCtrl),
@@ -170,13 +235,18 @@ class SettingsView extends StatelessWidget {
                   // Notifications Toggle
                   Obx(() {
                     return SwitchListTile(
-                      secondary: const Icon(Icons.notifications_none_rounded, color: AppColors.primary),
+                      secondary: const Icon(
+                        Icons.notifications_none_rounded,
+                        color: AppColors.primary,
+                      ),
                       title: Text(
                         'notifications'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                       ),
                       activeThumbColor: AppColors.primary,
@@ -189,18 +259,25 @@ class SettingsView extends StatelessWidget {
                   // Biometric Login Toggle
                   Obx(() {
                     return SwitchListTile(
-                      secondary: const Icon(Icons.fingerprint_rounded, color: AppColors.primary),
+                      secondary: const Icon(
+                        Icons.fingerprint_rounded,
+                        color: AppColors.primary,
+                      ),
                       title: Text(
                         'biometricLogin'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                       ),
                       activeThumbColor: AppColors.primary,
                       value: settingsCtrl.biometricsEnabled.value,
-                      subtitle: const Text('Unavailable • device authentication is not configured'),
+                      subtitle: const Text(
+                        'Unavailable • device authentication is not configured',
+                      ),
                       onChanged: null,
                     );
                   }),
@@ -208,29 +285,42 @@ class SettingsView extends StatelessWidget {
 
                   // Change Password
                   ListTile(
-                    leading: const Icon(Icons.vpn_key_outlined, color: AppColors.primary),
+                    leading: const Icon(
+                      Icons.vpn_key_outlined,
+                      color: AppColors.primary,
+                    ),
                     title: Text(
                       'changePassword'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                     onTap: settingsCtrl.showChangePasswordDialog,
                   ),
                   _buildDivider(isDark),
 
                   // App Version
                   ListTile(
-                    leading: const Icon(Icons.info_outline_rounded, color: AppColors.primary),
+                    leading: const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.primary,
+                    ),
                     title: Text(
                       'appVersion'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     trailing: const Text(
@@ -246,7 +336,10 @@ class SettingsView extends StatelessWidget {
 
                   // Logout
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+                    leading: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.error,
+                    ),
                     title: Text(
                       'logout'.tr,
                       style: const TextStyle(

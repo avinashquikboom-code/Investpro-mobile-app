@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
@@ -11,7 +12,8 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView> with SingleTickerProviderStateMixin {
+class _SplashViewState extends State<SplashView>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _scaleAnimation;
@@ -24,14 +26,12 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 1200),
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
-    _scaleAnimation = Tween<double>(begin: 0.90, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.90,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
     _navigateNext();
@@ -93,9 +93,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
               filterQuality: FilterQuality.high,
               errorBuilder: (context, error, stackTrace) {
                 // Graceful fallback painter if asset is unavailable
-                return CustomPaint(
-                  painter: _SplashPlantLandscapePainter(),
-                );
+                return CustomPaint(painter: _SplashPlantLandscapePainter());
               },
             ),
           ),
@@ -185,9 +183,7 @@ class _Fallback3DLogo extends StatelessWidget {
     return SizedBox(
       width: 96,
       height: 104,
-      child: CustomPaint(
-        painter: _InvestPro3DLogoPainter(),
-      ),
+      child: CustomPaint(painter: _InvestPro3DLogoPainter()),
     );
   }
 }

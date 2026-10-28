@@ -31,9 +31,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
@@ -46,10 +44,17 @@ Future<void> main() async {
   final apiService = await ApiService().init();
   Get.put<ApiService>(apiService, permanent: true);
 
-  final notificationService = await NotificationService(storageService, apiService).init();
+  final notificationService = await NotificationService(
+    storageService,
+    apiService,
+  ).init();
   Get.put<NotificationService>(notificationService, permanent: true);
 
-  final demoRepo = await DemoRepository(storageService, notificationService, apiService).init();
+  final demoRepo = await DemoRepository(
+    storageService,
+    notificationService,
+    apiService,
+  ).init();
   Get.put<DemoRepository>(demoRepo, permanent: true);
 
   final firebaseNotifService = await FirebaseNotificationService(
@@ -60,28 +65,54 @@ Future<void> main() async {
   Get.put<FirebaseNotificationService>(firebaseNotifService, permanent: true);
 
   // 2. Register Controllers via Get.put() (No GetX Bindings per instructions)
-  final themeController = Get.put<ThemeController>(ThemeController(storageService), permanent: true);
-  Get.put<AuthController>(AuthController(storageService, demoRepo, apiService), permanent: true);
+  final themeController = Get.put<ThemeController>(
+    ThemeController(storageService),
+    permanent: true,
+  );
+  Get.put<AuthController>(
+    AuthController(storageService, demoRepo, apiService),
+    permanent: true,
+  );
   Get.put<NavigationController>(NavigationController(), permanent: true);
-  Get.put<HomeController>(HomeController(demoRepo, notificationService), permanent: true);
+  Get.put<HomeController>(
+    HomeController(demoRepo, notificationService),
+    permanent: true,
+  );
   Get.put<ProjectController>(ProjectController(demoRepo), permanent: true);
-  Get.put<InvestmentController>(InvestmentController(demoRepo), permanent: true);
+  Get.put<InvestmentController>(
+    InvestmentController(demoRepo),
+    permanent: true,
+  );
   Get.put<ReturnsController>(ReturnsController(demoRepo), permanent: true);
-  Get.put<WithdrawalController>(WithdrawalController(demoRepo), permanent: true);
-  Get.put<TransactionController>(TransactionController(demoRepo), permanent: true);
+  Get.put<WithdrawalController>(
+    WithdrawalController(demoRepo),
+    permanent: true,
+  );
+  Get.put<TransactionController>(
+    TransactionController(demoRepo),
+    permanent: true,
+  );
   Get.put<ProfileController>(ProfileController(demoRepo), permanent: true);
-  Get.put<NotificationController>(NotificationController(notificationService), permanent: true);
-  Get.put<SettingsController>(SettingsController(storageService), permanent: true);
+  Get.put<NotificationController>(
+    NotificationController(notificationService),
+    permanent: true,
+  );
+  Get.put<SettingsController>(
+    SettingsController(storageService),
+    permanent: true,
+  );
 
   // Language Locale Init
   final savedLang = storageService.language;
   final parts = savedLang.split('_');
   final initialLocale = Locale(parts[0], parts.length > 1 ? parts[1] : null);
 
-  runApp(InvestProApp(
-    themeController: themeController,
-    initialLocale: initialLocale,
-  ));
+  runApp(
+    InvestProApp(
+      themeController: themeController,
+      initialLocale: initialLocale,
+    ),
+  );
 }
 
 class InvestProApp extends StatelessWidget {

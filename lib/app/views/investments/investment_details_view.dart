@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../services/investment_calculator.dart';
 import '../../controllers/returns_controller.dart';
 import '../../utils/date_formatter.dart';
@@ -43,8 +44,11 @@ class InvestmentDetailsView extends StatelessWidget {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            final investment = invCtrl.selectedInvestment.value ??
-                (invCtrl.filteredInvestments.isNotEmpty ? invCtrl.filteredInvestments.first : null);
+            final investment =
+                invCtrl.selectedInvestment.value ??
+                (invCtrl.filteredInvestments.isNotEmpty
+                    ? invCtrl.filteredInvestments.first
+                    : null);
 
             if (investment == null) {
               return const Center(child: Text('No investment selected'));
@@ -91,7 +95,9 @@ class InvestmentDetailsView extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -99,7 +105,9 @@ class InvestmentDetailsView extends StatelessWidget {
                                 '${investment.returnRatePercent.toInt()}% Return  |  ${investment.durationMonths} Months',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -117,7 +125,9 @@ class InvestmentDetailsView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -136,20 +146,26 @@ class InvestmentDetailsView extends StatelessWidget {
                         _buildSummaryRow(
                           context: context,
                           label: 'amountInvested'.tr,
-                          value: CurrencyFormatter.format(investment.investedAmount),
+                          value: CurrencyFormatter.format(
+                            investment.investedAmount,
+                          ),
                         ),
                         const Divider(height: 22, color: AppColors.border),
                         _buildSummaryRow(
                           context: context,
                           label: 'expectedReturnTotal'.tr,
-                          value: CurrencyFormatter.format(investment.expectedReturn),
+                          value: CurrencyFormatter.format(
+                            investment.expectedReturn,
+                          ),
                           valueColor: AppColors.primary,
                         ),
                         const Divider(height: 22, color: AppColors.border),
                         _buildSummaryRow(
                           context: context,
                           label: 'maturityAmount'.tr,
-                          value: CurrencyFormatter.format(investment.maturityAmount),
+                          value: CurrencyFormatter.format(
+                            investment.maturityAmount,
+                          ),
                           isBold: true,
                         ),
                       ],
@@ -163,7 +179,9 @@ class InvestmentDetailsView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -177,12 +195,41 @@ class InvestmentDetailsView extends StatelessWidget {
                         width: 1,
                       ),
                     ),
-                    child: Column(children: List.generate(5,(n) {
-                      const titles = ['Investment Start','Development Phase','Product Launch','Return Period','Maturity Date'];
-                      final offsets = [0, (investment.durationMonths/4).round(), (investment.durationMonths/2).round(), investment.durationMonths-1, investment.durationMonths];
-                      final date = InvestmentCalculator.addMonths(investment.startDate, offsets[n]);
-                      return TimelineStepWidget(title:titles[n],date:DateFormatter.formatDate(date),isCompleted:!date.isAfter(DateTime.now()),isActive:date.isAfter(DateTime.now()) && (n == 0 || !InvestmentCalculator.addMonths(investment.startDate,offsets[n-1]).isAfter(DateTime.now())),isLast:n == 4);
-                    })),
+                    child: Column(
+                      children: List.generate(5, (n) {
+                        const titles = [
+                          'Investment Start',
+                          'Development Phase',
+                          'Product Launch',
+                          'Return Period',
+                          'Maturity Date',
+                        ];
+                        final offsets = [
+                          0,
+                          (investment.durationMonths / 4).round(),
+                          (investment.durationMonths / 2).round(),
+                          investment.durationMonths - 1,
+                          investment.durationMonths,
+                        ];
+                        final date = InvestmentCalculator.addMonths(
+                          investment.startDate,
+                          offsets[n],
+                        );
+                        return TimelineStepWidget(
+                          title: titles[n],
+                          date: DateFormatter.formatDate(date),
+                          isCompleted: !date.isAfter(DateTime.now()),
+                          isActive:
+                              date.isAfter(DateTime.now()) &&
+                              (n == 0 ||
+                                  !InvestmentCalculator.addMonths(
+                                    investment.startDate,
+                                    offsets[n - 1],
+                                  ).isAfter(DateTime.now())),
+                          isLast: n == 4,
+                        );
+                      }),
+                    ),
                   ),
                   const SizedBox(height: 28),
 
@@ -190,7 +237,11 @@ class InvestmentDetailsView extends StatelessWidget {
                   CustomButton(
                     text: 'View Return Schedule',
                     isOutlined: true,
-                    onPressed: () { Get.find<ReturnsController>().investmentFilter.value = investment.id; Get.toNamed(AppRoutes.returns); },
+                    onPressed: () {
+                      Get.find<ReturnsController>().investmentFilter.value =
+                          investment.id;
+                      Get.toNamed(AppRoutes.returns);
+                    },
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -218,7 +269,9 @@ class InvestmentDetailsView extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
           ),
         ),
         Text(
@@ -226,7 +279,9 @@ class InvestmentDetailsView extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            color:
+                valueColor ??
+                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
           ),
         ),
       ],

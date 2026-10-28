@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../controllers/auth_controller.dart';
+
 import 'package:get/get.dart';
+
 import '../views/auth/forgot_password_view.dart';
 import '../views/auth/login_view.dart';
 import '../views/auth/register_view.dart';
@@ -143,5 +146,8 @@ class AppPages {
 
 class DemoSessionGuard extends GetMiddleware {
   @override
-  RouteSettings? redirect(String? route) => Get.find<AuthController>().isLoggedIn.value ? null : const RouteSettings(name: AppRoutes.login);
+  RouteSettings? redirect(String? route) =>
+      Get.find<AuthController>().isLoggedIn.value
+      ? null
+      : const RouteSettings(name: AppRoutes.login);
 }

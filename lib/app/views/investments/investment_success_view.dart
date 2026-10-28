@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/investment_controller.dart';
 import '../../controllers/navigation_controller.dart';
 import '../../routes/app_routes.dart';
@@ -16,8 +17,11 @@ class InvestmentSuccessView extends StatelessWidget {
     final invCtrl = Get.find<InvestmentController>();
     final navCtrl = Get.find<NavigationController>();
 
-    final investment = invCtrl.lastSuccessfulInvestment.value ??
-        (invCtrl.filteredInvestments.isNotEmpty ? invCtrl.filteredInvestments.first : null);
+    final investment =
+        invCtrl.lastSuccessfulInvestment.value ??
+        (invCtrl.filteredInvestments.isNotEmpty
+            ? invCtrl.filteredInvestments.first
+            : null);
 
     return PopScope(
       canPop: false,
@@ -30,15 +34,16 @@ class InvestmentSuccessView extends StatelessWidget {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: AppColors.splashGradient,
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.splashGradient),
           child: SafeArea(
             child: ResponsiveHelper.responsiveContainer(
               context: context,
               maxWidth: 500,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -106,16 +111,24 @@ class InvestmentSuccessView extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            _buildSummaryItem('projectName'.tr, investment.projectName, isHighlight: true),
+                            _buildSummaryItem(
+                              'projectName'.tr,
+                              investment.projectName,
+                              isHighlight: true,
+                            ),
                             const Divider(height: 20, color: AppColors.border),
                             _buildSummaryItem(
                               'amountInvested'.tr,
-                              CurrencyFormatter.format(investment.investedAmount),
+                              CurrencyFormatter.format(
+                                investment.investedAmount,
+                              ),
                             ),
                             const Divider(height: 20, color: AppColors.border),
                             _buildSummaryItem(
                               'expectedReturnTotal'.tr,
-                              CurrencyFormatter.format(investment.expectedReturn),
+                              CurrencyFormatter.format(
+                                investment.expectedReturn,
+                              ),
                               valueColor: AppColors.primary,
                             ),
                             const Divider(height: 20, color: AppColors.border),
@@ -181,10 +194,7 @@ class InvestmentSuccessView extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         const SizedBox(width: 8),
         Flexible(
@@ -193,7 +203,9 @@ class InvestmentSuccessView extends StatelessWidget {
             textAlign: TextAlign.end,
             style: TextStyle(
               fontSize: isHighlight ? 14 : 13,
-              fontWeight: isHighlight || isCode ? FontWeight.w700 : FontWeight.w600,
+              fontWeight: isHighlight || isCode
+                  ? FontWeight.w700
+                  : FontWeight.w600,
               color: valueColor ?? AppColors.textPrimary,
               fontFamily: isCode ? 'monospace' : null,
             ),

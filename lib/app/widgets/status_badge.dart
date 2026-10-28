@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
   final bool showDot;
 
-  const StatusBadge({
-    super.key,
-    required this.status,
-    this.showDot = false,
-  });
+  const StatusBadge({super.key, required this.status, this.showDot = false});
 
   @override
   Widget build(BuildContext context) {

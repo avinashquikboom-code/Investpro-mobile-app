@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/withdrawal_controller.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
@@ -12,13 +13,21 @@ import '../../widgets/transaction_tile.dart';
 class WithdrawalView extends StatelessWidget {
   const WithdrawalView({super.key});
 
-  void _showWithdrawModal(BuildContext context, WithdrawalController controller) {
+  void _showWithdrawModal(
+    BuildContext context,
+    WithdrawalController controller,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     controller.bankSelected.value = false;
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.fromLTRB(24,24,24,24 + MediaQuery.viewInsetsOf(Get.context!).bottom),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          24 + MediaQuery.viewInsetsOf(Get.context!).bottom,
+        ),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -34,7 +43,9 @@ class WithdrawalView extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.borderDark : const Color(0xFFD4E0D9),
+                      color: isDark
+                          ? AppColors.borderDark
+                          : const Color(0xFFD4E0D9),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -45,13 +56,18 @@ class WithdrawalView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Available to withdraw: ${CurrencyFormatter.format(controller.availableBalance)}',
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 20),
 
@@ -63,7 +79,14 @@ class WithdrawalView extends StatelessWidget {
                   keyboardType: TextInputType.number,
                   prefixIcon: const Padding(
                     padding: EdgeInsets.only(left: 14, right: 8),
-                    child: Text('₹', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    child: Text(
+                      '₹',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -72,7 +95,9 @@ class WithdrawalView extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF3F8F5),
+                    color: isDark
+                        ? AppColors.surfaceDarkElevated
+                        : const Color(0xFFF3F8F5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isDark ? AppColors.borderDark : AppColors.border,
@@ -81,7 +106,10 @@ class WithdrawalView extends StatelessWidget {
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.account_balance_rounded, color: AppColors.primary),
+                      Icon(
+                        Icons.account_balance_rounded,
+                        color: AppColors.primary,
+                      ),
                       SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -89,23 +117,42 @@ class WithdrawalView extends StatelessWidget {
                           children: [
                             Text(
                               'Demo Bank •••• 4829',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             SizedBox(height: 2),
                             Text(
                               'Demo account • not verified',
-                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20),
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.success,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                Obx(() => CheckboxListTile(title: const Text('Use this demo bank account'), subtitle: const Text('No real transfer will occur.'), value: controller.bankSelected.value, onChanged: controller.isSubmitting.value ? null : (v) => controller.bankSelected.value = v ?? false)),
+                Obx(
+                  () => CheckboxListTile(
+                    title: const Text('Use this demo bank account'),
+                    subtitle: const Text('No real transfer will occur.'),
+                    value: controller.bankSelected.value,
+                    onChanged: controller.isSubmitting.value
+                        ? null
+                        : (v) => controller.bankSelected.value = v ?? false,
+                  ),
+                ),
                 // Submit Button
                 Obx(() {
                   return CustomButton(
@@ -171,17 +218,23 @@ class WithdrawalView extends StatelessWidget {
                             'availableBalance'.tr,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Obx(() {
                             return Text(
-                              CurrencyFormatter.format(withCtrl.availableBalance),
+                              CurrencyFormatter.format(
+                                withCtrl.availableBalance,
+                              ),
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
                               ),
                             );
                           }),
@@ -191,11 +244,14 @@ class WithdrawalView extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () => _showWithdrawModal(context, withCtrl),
                         style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(0,48),
+                          minimumSize: const Size(0, 48),
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 22,
+                            vertical: 10,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -224,30 +280,40 @@ class WithdrawalView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Obx(() {
                       return Row(
                         children: filterTabs.map((filter) {
-                          final isSelected = withCtrl.selectedFilter.value == filter;
+                          final isSelected =
+                              withCtrl.selectedFilter.value == filter;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: GestureDetector(
                               onTap: () => withCtrl.setFilter(filter),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColors.primaryDark
-                                      : (isDark ? AppColors.surfaceDark : Colors.white),
+                                      : (isDark
+                                            ? AppColors.surfaceDark
+                                            : Colors.white),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: isSelected
                                         ? AppColors.primaryDark
-                                        : (isDark ? AppColors.borderDark : AppColors.border),
+                                        : (isDark
+                                              ? AppColors.borderDark
+                                              : AppColors.border),
                                     width: 1,
                                   ),
                                 ),
@@ -258,7 +324,9 @@ class WithdrawalView extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     color: isSelected
                                         ? Colors.white
-                                        : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
+                                        : (isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textPrimary),
                                   ),
                                 ),
                               ),
@@ -276,10 +344,15 @@ class WithdrawalView extends StatelessWidget {
                 child: Obx(() {
                   final list = withCtrl.filteredTransactions;
                   if (list.isEmpty) {
-                    return const Center(child: Text('No transactions recorded'));
+                    return const Center(
+                      child: Text('No transactions recorded'),
+                    );
                   }
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 6,
+                    ),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       return TransactionTile(transaction: list[index]);

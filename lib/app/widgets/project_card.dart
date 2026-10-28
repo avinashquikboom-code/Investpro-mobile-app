@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/project_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
@@ -85,7 +86,9 @@ class ProjectCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -96,7 +99,9 @@ class ProjectCard extends StatelessWidget {
                           '${CurrencyFormatter.format(project.targetAmount)}  |  ${project.durationMonths} Months',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -113,7 +118,9 @@ class ProjectCard extends StatelessWidget {
                           '${project.returnRatePercent.toInt()}% Return  |  ${project.durationMonths} Months',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 2),

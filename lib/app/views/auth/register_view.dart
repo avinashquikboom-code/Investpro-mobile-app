@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
@@ -16,7 +17,9 @@ class RegisterView extends StatefulWidget {
 
 class _RegisterViewState extends State<RegisterView> {
   final _fullNameController = TextEditingController(text: 'Rohit Sharma');
-  final _emailController = TextEditingController(text: 'rohit.sharma@example.com');
+  final _emailController = TextEditingController(
+    text: 'rohit.sharma@example.com',
+  );
   final _mobileController = TextEditingController(text: '9876543210');
   final _passwordController = TextEditingController(text: 'invest123');
 
@@ -63,7 +66,9 @@ class _RegisterViewState extends State<RegisterView> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -71,92 +76,22 @@ class _RegisterViewState extends State<RegisterView> {
                   'createAccountSubtitle'.tr,
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Investor / Admin Segmented Switch
-                Obx(() {
-                  final isInvestor = authCtrl.selectedRole.value == 'Investor';
-                  return Container(
-                    height: 48,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : const Color(0xFFF1F6F3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => authCtrl.setRole('Investor'),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isInvestor ? AppColors.primaryDark : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                'investor'.tr,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isInvestor
-                                      ? Colors.white
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              authCtrl.setRole('Admin');
-                              Get.snackbar(
-                                'Demo Note',
-                                'Admin role is a client-side preview for demonstration only.',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: !isInvestor ? AppColors.primaryDark : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                'admin'.tr,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: !isInvestor
-                                      ? Colors.white
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                const SizedBox(height: 22),
+                const SizedBox(height: 28),
 
                 // Full Name
                 CustomTextField(
                   controller: _fullNameController,
                   label: 'fullName'.tr,
                   hintText: 'enterFullName'.tr,
-                  prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.person_outline_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -166,7 +101,10 @@ class _RegisterViewState extends State<RegisterView> {
                   label: 'email'.tr,
                   hintText: 'enterEmail'.tr,
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.mail_outline_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -176,7 +114,10 @@ class _RegisterViewState extends State<RegisterView> {
                   label: 'mobileNumber'.tr,
                   hintText: 'enterMobileNumber'.tr,
                   keyboardType: TextInputType.phone,
-                  prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(
+                    Icons.phone_outlined,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -187,7 +128,10 @@ class _RegisterViewState extends State<RegisterView> {
                     label: 'password'.tr,
                     hintText: 'enterPassword'.tr,
                     obscureText: !authCtrl.isPasswordVisible.value,
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         authCtrl.isPasswordVisible.value
@@ -202,8 +146,7 @@ class _RegisterViewState extends State<RegisterView> {
                 }),
                 const SizedBox(height: 28),
 
-                const Padding(padding: EdgeInsets.symmetric(vertical:12), child: Text('Local demo account. Admin selection grants no administrator privileges.')),
-                  // Register Button
+                // Register Button
                 Obx(() {
                   return CustomButton(
                     text: 'register'.tr,
@@ -229,7 +172,9 @@ class _RegisterViewState extends State<RegisterView> {
                         text: '${'alreadyHaveAccount'.tr.split('?').first}? ',
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
                         ),
                         children: [
                           TextSpan(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/transaction_controller.dart';
 import '../../models/transaction_model.dart';
 import '../../theme/app_colors.dart';
@@ -33,7 +34,9 @@ class TransactionHistoryView extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.borderDark : const Color(0xFFD4E0D9),
+                    color: isDark
+                        ? AppColors.borderDark
+                        : const Color(0xFFD4E0D9),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -47,20 +50,33 @@ class TransactionHistoryView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   StatusBadge(status: txn.status),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildDetailItem('Amount', CurrencyFormatter.format(txn.amount), isBold: true),
+              _buildDetailItem(
+                'Amount',
+                CurrencyFormatter.format(txn.amount),
+                isBold: true,
+              ),
               const Divider(height: 20, color: AppColors.border),
-              _buildDetailItem('Date & Time', DateFormatter.formatDateTime(txn.date)),
+              _buildDetailItem(
+                'Date & Time',
+                DateFormatter.formatDateTime(txn.date),
+              ),
               const Divider(height: 20, color: AppColors.border),
               _buildDetailItem('Category', txn.subtitle),
               const Divider(height: 20, color: AppColors.border),
-              _buildDetailItem('Transaction Reference', txn.referenceId, isCode: true),
+              _buildDetailItem(
+                'Transaction Reference',
+                txn.referenceId,
+                isCode: true,
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -76,11 +92,19 @@ class TransactionHistoryView extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(String label, String value, {bool isBold = false, bool isCode = false}) {
+  Widget _buildDetailItem(
+    String label,
+    String value, {
+    bool isBold = false,
+    bool isCode = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -111,29 +135,40 @@ class TransactionHistoryView extends StatelessWidget {
             children: [
               // Filter Tabs (All, Investment, Return, Withdrawal)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Obx(() {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: filterTabs.map((filter) {
-                        final isSelected = txnCtrl.selectedFilter.value == filter;
+                        final isSelected =
+                            txnCtrl.selectedFilter.value == filter;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: GestureDetector(
                             onTap: () => txnCtrl.setFilter(filter),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primaryDark
-                                    : (isDark ? AppColors.surfaceDark : Colors.white),
+                                    : (isDark
+                                          ? AppColors.surfaceDark
+                                          : Colors.white),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
                                       ? AppColors.primaryDark
-                                      : (isDark ? AppColors.borderDark : AppColors.border),
+                                      : (isDark
+                                            ? AppColors.borderDark
+                                            : AppColors.border),
                                   width: 1,
                                 ),
                               ),
@@ -144,7 +179,9 @@ class TransactionHistoryView extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? Colors.white
-                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
+                                      : (isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textPrimary),
                                 ),
                               ),
                             ),
@@ -165,7 +202,10 @@ class TransactionHistoryView extends StatelessWidget {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       final txn = list[index];

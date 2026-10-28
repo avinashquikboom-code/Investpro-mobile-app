@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/home_controller.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/navigation_controller.dart';
@@ -62,7 +63,10 @@ class HomeView extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.white.withValues(alpha: 0.15),
-                                  border: Border.all(color: AppColors.accent, width: 2),
+                                  border: Border.all(
+                                    color: AppColors.accent,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.person_rounded,
@@ -88,7 +92,9 @@ class HomeView extends StatelessWidget {
                                   Text(
                                     'welcomeToApp'.tr,
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -115,8 +121,10 @@ class HomeView extends StatelessWidget {
                                     size: 22,
                                   ),
                                   Obx(() {
-                                    final count = homeCtrl.unreadNotificationCount;
-                                    if (count <= 0) return const SizedBox.shrink();
+                                    final count =
+                                        homeCtrl.unreadNotificationCount;
+                                    if (count <= 0)
+                                      return const SizedBox.shrink();
                                     return Positioned(
                                       top: 8,
                                       right: 8,
@@ -142,7 +150,8 @@ class HomeView extends StatelessWidget {
                       Obx(() {
                         return PortfolioSummaryCard(
                           totalValue: homeCtrl.totalPortfolioValue,
-                          growth: '+${homeCtrl.growthPercent.toStringAsFixed(1)}%',
+                          growth:
+                              '+${homeCtrl.growthPercent.toStringAsFixed(1)}%',
                           activeProjectsCount: homeCtrl.totalActiveProjects,
                         );
                       }),
@@ -164,12 +173,16 @@ class HomeView extends StatelessWidget {
                           children: [
                             StatItemCard(
                               title: 'totalInvested'.tr,
-                              value: CurrencyFormatter.format(homeCtrl.totalInvested),
+                              value: CurrencyFormatter.format(
+                                homeCtrl.totalInvested,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             StatItemCard(
                               title: 'totalReturns'.tr,
-                              value: CurrencyFormatter.format(homeCtrl.totalReturns),
+                              value: CurrencyFormatter.format(
+                                homeCtrl.totalReturns,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             StatItemCard(
@@ -190,11 +203,14 @@ class HomeView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => navCtrl.changeTab(1), // Go to Projects Tab
+                            onTap: () =>
+                                navCtrl.changeTab(1), // Go to Projects Tab
                             child: Text(
                               'viewAll'.tr,
                               style: const TextStyle(
@@ -212,7 +228,9 @@ class HomeView extends StatelessWidget {
                       Obx(() {
                         final list = homeCtrl.featuredProjects;
                         if (list.isEmpty) {
-                          return const Center(child: Text('No projects available'));
+                          return const Center(
+                            child: Text('No projects available'),
+                          );
                         }
                         return ListView.builder(
                           shrinkWrap: true,
@@ -225,7 +243,8 @@ class HomeView extends StatelessWidget {
                               isDashboardVariant: true,
                               onTap: () {
                                 projCtrl.selectProject(project);
-                                final invCtrl = Get.find<InvestmentController>();
+                                final invCtrl =
+                                    Get.find<InvestmentController>();
                                 invCtrl.setProject(project);
                                 Get.toNamed(AppRoutes.projectDetails);
                               },

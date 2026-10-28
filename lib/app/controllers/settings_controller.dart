@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../services/local_storage_service.dart';
 
 class SettingsController extends GetxController {
@@ -54,7 +55,10 @@ class SettingsController extends GetxController {
 
   void toggleBiometrics(bool val) {
     biometricsEnabled.value = false;
-    Get.snackbar('Biometric login unavailable', 'Device authentication is not configured in this demo.');
+    Get.snackbar(
+      'Biometric login unavailable',
+      'Device authentication is not configured in this demo.',
+    );
   }
 
   Future<void> showChangePasswordDialog() async {
@@ -85,7 +89,9 @@ class SettingsController extends GetxController {
             TextField(
               controller: confirmPass,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirm New Password'),
+              decoration: const InputDecoration(
+                labelText: 'Confirm New Password',
+              ),
             ),
           ],
         ),
@@ -95,14 +101,22 @@ class SettingsController extends GetxController {
       confirmTextColor: Colors.white,
       buttonColor: const Color(0xFF006B3C),
       onConfirm: () {
-        if (newPass.text.length < 8 || !RegExp(r'[A-Za-z]').hasMatch(newPass.text) || !RegExp(r'[0-9]').hasMatch(newPass.text)) {
-          Get.snackbar('Error', 'Use 8+ characters with letters and numbers.',
-              snackPosition: SnackPosition.BOTTOM);
+        if (newPass.text.length < 8 ||
+            !RegExp(r'[A-Za-z]').hasMatch(newPass.text) ||
+            !RegExp(r'[0-9]').hasMatch(newPass.text)) {
+          Get.snackbar(
+            'Error',
+            'Use 8+ characters with letters and numbers.',
+            snackPosition: SnackPosition.BOTTOM,
+          );
           return;
         }
         if (newPass.text != confirmPass.text) {
-          Get.snackbar('Error', 'New passwords do not match.',
-              snackPosition: SnackPosition.BOTTOM);
+          Get.snackbar(
+            'Error',
+            'New passwords do not match.',
+            snackPosition: SnackPosition.BOTTOM,
+          );
           return;
         }
         Get.back();
@@ -115,6 +129,8 @@ class SettingsController extends GetxController {
         );
       },
     );
-    oldPass.dispose(); newPass.dispose(); confirmPass.dispose();
+    oldPass.dispose();
+    newPass.dispose();
+    confirmPass.dispose();
   }
 }

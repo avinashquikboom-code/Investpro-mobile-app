@@ -1,4 +1,5 @@
 import '../services/investment_calculator.dart';
+
 class ProjectModel {
   final String id;
   final String name;
@@ -40,7 +41,11 @@ class ProjectModel {
   }
 
   double calculateExpectedReturn(double amount) {
-    return InvestmentCalculator.calculate(principal: amount, returnRatePercent: returnRatePercent, durationMonths: durationMonths).expectedTotalReturn;
+    return InvestmentCalculator.calculate(
+      principal: amount,
+      returnRatePercent: returnRatePercent,
+      durationMonths: durationMonths,
+    ).expectedTotalReturn;
   }
 
   double calculateMonthlyReturn(double amount) {
