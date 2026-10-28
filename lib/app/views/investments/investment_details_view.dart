@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../services/investment_calculator.dart';
+import '../../controllers/returns_controller.dart';
+import '../../utils/date_formatter.dart';
 import '../../controllers/investment_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
@@ -174,30 +177,12 @@ class InvestmentDetailsView extends StatelessWidget {
                         width: 1,
                       ),
                     ),
-                    child: const Column(
-                      children: [
-                        TimelineStepWidget(
-                          title: 'Investment Start',
-                          date: 'Oct 2025',
-                          isCompleted: true,
-                        ),
-                        TimelineStepWidget(
-                          title: 'Development Phase',
-                          date: 'Nov 2025 – Feb 2026',
-                          isCompleted: true,
-                        ),
-                        TimelineStepWidget(
-                          title: 'Product Launch',
-                          date: 'Mar 2026',
-                          isActive: true,
-                        ),
-                        TimelineStepWidget(
-                          title: 'Return Period',
-                          date: 'Apr 2026 – Mar 2027',
-                          isLast: true,
-                        ),
-                      ],
-                    ),
+                    child: Column(children: List.generate(5,(n) {
+                      const titles = ['Investment Start','Development Phase','Product Launch','Return Period','Maturity Date'];
+                      final offsets = [0, (investment.durationMonths/4).round(), (investment.durationMonths/2).round(), investment.durationMonths-1, investment.durationMonths];
+                      final date = InvestmentCalculator.addMonths(investment.startDate, offsets[n]);
+                      return TimelineStepWidget(title:titles[n],date:DateFormatter.formatDate(date),isCompleted:!date.isAfter(DateTime.now()),isActive:date.isAfter(DateTime.now()) && (n == 0 || !InvestmentCalculator.addMonths(investment.startDate,offsets[n-1]).isAfter(DateTime.now())),isLast:n == 4);
+                    })),
                   ),
                   const SizedBox(height: 28),
 
@@ -205,7 +190,7 @@ class InvestmentDetailsView extends StatelessWidget {
                   CustomButton(
                     text: 'View Return Schedule',
                     isOutlined: true,
-                    onPressed: () => Get.toNamed(AppRoutes.returns),
+                    onPressed: () { Get.find<ReturnsController>().investmentFilter.value = investment.id; Get.toNamed(AppRoutes.returns); },
                   ),
                   const SizedBox(height: 20),
                 ],

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import '../controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import '../views/auth/login_view.dart';
 import '../views/auth/register_view.dart';
@@ -41,79 +43,99 @@ class AppPages {
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.home,
       page: () => const MainNavigationShell(),
       transition: Transition.fadeIn,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.projects,
       page: () => const ProjectsView(isTab: false),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.projectDetails,
       page: () => const ProjectDetailsView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.investNow,
       page: () => const InvestNowView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.paymentConfirmation,
       page: () => const PaymentConfirmationView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.investmentSuccess,
       page: () => const InvestmentSuccessView(),
       transition: Transition.fadeIn,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.myInvestments,
       page: () => const MyInvestmentsView(isTab: false),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.investmentDetails,
       page: () => const InvestmentDetailsView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.returns,
       page: () => const ReturnsView(isTab: false),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.withdrawals,
       page: () => const WithdrawalView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.transactions,
       page: () => const TransactionHistoryView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.profile,
       page: () => const ProfileView(isTab: false),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.editProfile,
       page: () => const EditProfileView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.notifications,
       page: () => const NotificationsView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      middlewares: [DemoSessionGuard()],
       name: AppRoutes.settings,
       page: () => const SettingsView(),
       transition: Transition.rightToLeft,
     ),
   ];
+}
+
+class DemoSessionGuard extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) => Get.find<AuthController>().isLoggedIn.value ? null : const RouteSettings(name: AppRoutes.login);
 }

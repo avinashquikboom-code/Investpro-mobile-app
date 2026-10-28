@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../services/demo_repository.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/project_controller.dart';
 import '../../routes/app_routes.dart';
@@ -42,8 +43,9 @@ class ProjectDetailsView extends StatelessWidget {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            final project = projCtrl.selectedProject.value ??
+            final selected = projCtrl.selectedProject.value ??
                 (projCtrl.filteredProjects.isNotEmpty ? projCtrl.filteredProjects.first : null);
+            final project = selected == null ? null : Get.find<DemoRepository>().liveProject(selected);
 
             if (project == null) {
               return const Center(child: Text('No project selected'));
@@ -289,10 +291,10 @@ class ProjectDetailsView extends StatelessWidget {
                   // Primary Button: Invest Now
                   CustomButton(
                     text: 'investNow'.tr,
-                    onPressed: () {
+                    onPressed: project.status == 'Active' && project.targetAmount - project.raisedAmount >= 5000 ? () {
                       invCtrl.setProject(project);
                       Get.toNamed(AppRoutes.investNow);
-                    },
+                    } : null,
                   ),
                   const SizedBox(height: 12),
 

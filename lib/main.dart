@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,6 +25,7 @@ import 'app/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent));
 

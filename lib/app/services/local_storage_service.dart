@@ -53,11 +53,11 @@ class LocalStorageService implements LocalStore {
       write(AppConstants.keyAvailableBalance, amount);
 
   // Generic JSON List storage
-  List<dynamic>? readList(String key) => _box.read<List<dynamic>>(key);
+  List<dynamic>? readList(String key) => read(key) as List<dynamic>?;
   Future<void> writeList(String key, List<dynamic> list) => write(key, list);
 
   // User Data JSON
-  Map<String, dynamic>? readMap(String key) => _box.read<Map<String, dynamic>>(key);
+  Map<String, dynamic>? readMap(String key) => read(key) as Map<String, dynamic>?;
   Future<void> writeMap(String key, Map<String, dynamic> map) => write(key, map);
 
   // Clear Session

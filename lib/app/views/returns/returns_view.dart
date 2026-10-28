@@ -112,6 +112,7 @@ class ReturnsView extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
 
+                      Obx(() => returnsCtrl.investmentFilter.value == null ? const SizedBox.shrink() : TextButton(onPressed: () => returnsCtrl.investmentFilter.value = null,child:const Text('Show all investment returns'))),
                       // Filter Pills: Monthly, Quarterly, Yearly
                       Obx(() {
                         return Wrap(

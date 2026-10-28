@@ -24,9 +24,11 @@ class HomeController extends GetxController {
 
   Future<void> refreshDashboard() async {
     isRefreshing.value = true;
+    try {
     await Future.delayed(const Duration(milliseconds: 600));
     await _repo.loadData();
     _notificationService.loadNotifications();
-    isRefreshing.value = false;
+    } catch(e) { Get.snackbar('Refresh failed',e.toString()); }
+    finally { isRefreshing.value = false; }
   }
 }
