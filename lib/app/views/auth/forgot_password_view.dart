@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
+import '../../widgets/app_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -144,22 +145,16 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-          ),
-          onPressed: () {
-            if (_currentStep == 1) {
-              setState(() => _currentStep = 0);
-            } else {
-              Get.back();
-            }
-          },
-        ),
+      appBar: AppAppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        showBackButton: true,
+        onBackPressed: () {
+          if (_currentStep == 1) {
+            setState(() => _currentStep = 0);
+          } else {
+            Navigator.maybePop(context);
+          }
+        },
       ),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(

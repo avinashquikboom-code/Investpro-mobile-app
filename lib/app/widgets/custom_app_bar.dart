@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../theme/app_colors.dart';
+import 'app_app_bar.dart';
 
+export 'app_app_bar.dart';
+export 'app_back_button.dart';
+
+/// Legacy alias and wrapper around [AppAppBar] for backward compatibility.
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
@@ -26,36 +29,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop =
-        showBackButton && (Navigator.canPop(context) || onBackPressed != null);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTitleColor = isDark
-        ? AppColors.textPrimaryDark
-        : AppColors.textPrimary;
-
-    return AppBar(
-      backgroundColor: backgroundColor ?? Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: true,
-      leading: canPop
-          ? IconButton(
-              icon: Icon(
-                Icons.arrow_back_rounded,
-                color: titleColor ?? defaultTitleColor,
-              ),
-              onPressed: onBackPressed ?? () => Get.back(),
-            )
-          : null,
-      title: Text(
-        title,
-        style: TextStyle(
-          color: titleColor ?? defaultTitleColor,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return AppAppBar(
+      title: title,
+      showBackButton: showBackButton,
+      onBackPressed: onBackPressed,
       actions: actions,
+      backgroundColor: backgroundColor,
+      foregroundColor: titleColor,
+      centerTitle: true,
     );
   }
 }

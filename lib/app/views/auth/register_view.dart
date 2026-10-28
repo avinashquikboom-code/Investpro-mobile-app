@@ -5,6 +5,7 @@ import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
+import '../../widgets/app_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -39,16 +40,9 @@ class _RegisterViewState extends State<RegisterView> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-          ),
-          onPressed: () => Get.back(),
-        ),
+      appBar: const AppAppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        showBackButton: true,
       ),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
