@@ -143,7 +143,7 @@ class _LoginViewState extends State<LoginView> {
                         ],
                       ),
                       TextButton(
-                        onPressed: () => authCtrl.forgotPassword(_identityController.text),
+                        onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,

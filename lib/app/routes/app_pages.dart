@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 import 'package:get/get.dart';
+import '../views/auth/forgot_password_view.dart';
 import '../views/auth/login_view.dart';
 import '../views/auth/register_view.dart';
 import '../views/home/main_navigation_shell.dart';
@@ -40,6 +41,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterView(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.forgotPassword,
+      page: () => const ForgotPasswordView(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
