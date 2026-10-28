@@ -10,7 +10,7 @@ class AppColors {
 
   // Accent & Backgrounds
   static const Color accent = Color(0xFF35C76F);
-  static const Color background = Color(0xFFF8FCFA);
+  static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
 
   // Dark Theme Palette
