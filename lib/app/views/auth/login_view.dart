@@ -27,10 +27,7 @@ class _LoginViewState extends State<LoginView> {
     final storage = Get.find<LocalStorageService>();
     if (storage.rememberMe && storage.userEmail != null) {
       _identityController.text = storage.userEmail!;
-    } else {
-      _identityController.text = 'rohit.sharma@example.com';
     }
-    _passwordController.text = 'invest123';
   }
 
   @override
