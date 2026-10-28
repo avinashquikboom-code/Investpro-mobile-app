@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/settings_controller.dart';
-import '../../controllers/theme_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
@@ -49,61 +48,9 @@ class SettingsView extends StatelessWidget {
     });
   }
 
-  void _showThemeDialog(BuildContext context, ThemeController controller) {
-    Get.defaultDialog(
-      title: 'themeMode'.tr,
-      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
-      content: Column(
-        children: [
-          _buildThemeOption(
-            controller,
-            'light',
-            'light'.tr,
-            Icons.light_mode_outlined,
-          ),
-          _buildThemeOption(
-            controller,
-            'dark',
-            'dark'.tr,
-            Icons.dark_mode_outlined,
-          ),
-          _buildThemeOption(
-            controller,
-            'system',
-            'system'.tr,
-            Icons.settings_brightness_outlined,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThemeOption(
-    ThemeController controller,
-    String mode,
-    String label,
-    IconData icon,
-  ) {
-    return Obx(() {
-      final isSelected = controller.themeModeString.value == mode;
-      return ListTile(
-        leading: Icon(icon, color: isSelected ? AppColors.primary : null),
-        title: Text(label),
-        trailing: isSelected
-            ? const Icon(Icons.check_rounded, color: AppColors.primary)
-            : null,
-        onTap: () {
-          controller.setThemeMode(mode);
-          Get.back();
-        },
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final settingsCtrl = Get.find<SettingsController>();
-    final themeCtrl = Get.find<ThemeController>();
     final authCtrl = Get.find<AuthController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -188,46 +135,6 @@ class SettingsView extends StatelessWidget {
                         ],
                       ),
                       onTap: () => _showLanguageDialog(context, settingsCtrl),
-                    );
-                  }),
-                  _buildDivider(isDark),
-
-                  // Theme Appearance
-                  Obx(() {
-                    return ListTile(
-                      leading: const Icon(
-                        Icons.palette_outlined,
-                        color: AppColors.primary,
-                      ),
-                      title: Text(
-                        'themeMode'.tr,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            themeCtrl.themeModeString.value.capitalizeFirst ??
-                                'System',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
-                      ),
-                      onTap: () => _showThemeDialog(context, themeCtrl),
                     );
                   }),
                   _buildDivider(isDark),

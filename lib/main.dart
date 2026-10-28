@@ -127,19 +127,16 @@ class InvestProApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return GetMaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: themeController.currentThemeMode,
-        translations: AppTranslations(),
-        locale: initialLocale,
-        fallbackLocale: const Locale('en', 'US'),
-        initialRoute: AppPages.initial,
-        getPages: AppPages.routes,
-      );
-    });
+    return GetMaterialApp(
+      title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
+      translations: AppTranslations(),
+      locale: initialLocale,
+      fallbackLocale: const Locale('en', 'US'),
+      initialRoute: AppPages.initial,
+      getPages: AppPages.routes,
+    );
   }
 }
