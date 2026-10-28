@@ -221,10 +221,12 @@ class InvestNowView extends StatelessWidget {
                   // Primary Button: Proceed to Pay
                   CustomButton(
                     text: 'proceedToPay'.tr,
-                    onPressed: invCtrl.proceedToPaymentConfirmation,
+                    onPressed: invCtrl.amountError == null ? invCtrl.proceedToPaymentConfirmation : null,
                   ),
                   const SizedBox(height: 14),
 
+                  if(invCtrl.amountError != null) Text(invCtrl.amountError!, style: const TextStyle(color: AppColors.error)),
+                  const Text('Full-term projections only. Returns are not guaranteed. Demo payment only.'),
                   // Security Footer
                   Center(
                     child: Row(

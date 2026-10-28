@@ -202,7 +202,8 @@ class _RegisterViewState extends State<RegisterView> {
                 }),
                 const SizedBox(height: 28),
 
-                // Register Button
+                const Padding(padding: EdgeInsets.symmetric(vertical:12), child: Text('Local demo account. Admin selection grants no administrator privileges.')),
+                  // Register Button
                 Obx(() {
                   return CustomButton(
                     text: 'register'.tr,

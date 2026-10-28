@@ -200,7 +200,8 @@ class SettingsView extends StatelessWidget {
                       ),
                       activeThumbColor: AppColors.primary,
                       value: settingsCtrl.biometricsEnabled.value,
-                      onChanged: settingsCtrl.toggleBiometrics,
+                      subtitle: const Text('Unavailable • device authentication is not configured'),
+                      onChanged: null,
                     );
                   }),
                   _buildDivider(isDark),

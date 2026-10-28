@@ -15,9 +15,10 @@ class WithdrawalView extends StatelessWidget {
   void _showWithdrawModal(BuildContext context, WithdrawalController controller) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    controller.bankSelected.value = false;
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24,24,24,24 + MediaQuery.viewInsetsOf(Get.context!).bottom),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -87,12 +88,12 @@ class WithdrawalView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'HDFC Bank •••• 4829',
+                              'Demo Bank •••• 4829',
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'Primary Verified Account',
+                              'Demo account • not verified',
                               style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                             ),
                           ],
@@ -104,6 +105,7 @@ class WithdrawalView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
+                Obx(() => CheckboxListTile(title: const Text('Use this demo bank account'), subtitle: const Text('No real transfer will occur.'), value: controller.bankSelected.value, onChanged: controller.isSubmitting.value ? null : (v) => controller.bankSelected.value = v ?? false)),
                 // Submit Button
                 Obx(() {
                   return CustomButton(

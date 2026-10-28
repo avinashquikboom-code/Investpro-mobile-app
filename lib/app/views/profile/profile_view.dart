@@ -47,7 +47,7 @@ class ProfileView extends StatelessWidget {
                           const Icon(Icons.verified_rounded, size: 16, color: AppColors.success),
                           const SizedBox(width: 4),
                           Text(
-                            user.isBankVerified ? 'Verified' : 'Pending',
+                            'Demo only • unverified',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

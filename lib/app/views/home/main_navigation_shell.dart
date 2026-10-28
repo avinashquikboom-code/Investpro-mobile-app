@@ -23,7 +23,7 @@ class MainNavigationShell extends StatelessWidget {
       const ProfileView(isTab: true),
     ];
 
-    return Scaffold(
+    return Obx(() => PopScope(canPop: navCtrl.currentIndex.value == 0, onPopInvokedWithResult: (didPop, result) { if(!didPop) navCtrl.goToHome(); }, child: Scaffold(
       body: Obx(() {
         return IndexedStack(
           index: navCtrl.currentIndex.value,
@@ -31,6 +31,6 @@ class MainNavigationShell extends StatelessWidget {
         );
       }),
       bottomNavigationBar: const CustomBottomNavBar(),
-    );
+    )));
   }
 }

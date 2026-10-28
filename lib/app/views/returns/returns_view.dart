@@ -114,7 +114,8 @@ class ReturnsView extends StatelessWidget {
 
                       // Filter Pills: Monthly, Quarterly, Yearly
                       Obx(() {
-                        return Row(
+                        return Wrap(
+                          runSpacing: 8,
                           children: periodTabs.map((period) {
                             final isSelected = returnsCtrl.selectedPeriod.value == period;
                             return Padding(
@@ -168,7 +169,7 @@ class ReturnsView extends StatelessWidget {
 
                         return Column(
                           children: list.map((item) {
-                            return Container(
+                            return GestureDetector(onTap: () => returnsCtrl.inspect(item), child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               decoration: BoxDecoration(
@@ -201,7 +202,7 @@ class ReturnsView extends StatelessWidget {
                                   StatusBadge(status: item.status),
                                 ],
                               ),
-                            );
+                            ));
                           }).toList(),
                         );
                       }),

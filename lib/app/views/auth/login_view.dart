@@ -165,6 +165,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 26),
 
+                  const Padding(padding: EdgeInsets.symmetric(vertical:12), child: Text('LOCAL DEMO: use any valid email/mobile and a password with 8+ characters, letters and numbers. No real authentication.')),
                   // Login Button
                   Obx(() {
                     return CustomButton(

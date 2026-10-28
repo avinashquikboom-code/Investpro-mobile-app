@@ -55,7 +55,7 @@ class EditProfileView extends StatelessWidget {
                         border: Border.all(color: Colors.white, width: 2),
                       ),
                       child: const Icon(
-                        Icons.camera_alt_rounded,
+                        Icons.person_rounded,
                         color: Colors.white,
                         size: 14,
                       ),

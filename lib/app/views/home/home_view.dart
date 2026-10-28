@@ -142,7 +142,7 @@ class HomeView extends StatelessWidget {
                       Obx(() {
                         return PortfolioSummaryCard(
                           totalValue: homeCtrl.totalPortfolioValue,
-                          growth: '+12%',
+                          growth: '+${homeCtrl.growthPercent.toStringAsFixed(1)}%',
                           activeProjectsCount: homeCtrl.totalActiveProjects,
                         );
                       }),

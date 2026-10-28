@@ -16,10 +16,10 @@ class PaymentConfirmationView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final paymentMethods = [
-      {'name': 'UPI (Google Pay / PhonePe / Paytm)', 'icon': Icons.qr_code_rounded},
-      {'name': 'Net Banking (All Indian Banks)', 'icon': Icons.account_balance_rounded},
-      {'name': 'Debit / Credit Card (Visa / Mastercard / RuPay)', 'icon': Icons.credit_card_rounded},
-      {'name': 'InvestPro Wallet Balance', 'icon': Icons.wallet_rounded},
+      {'name': 'Demo UPI', 'icon': Icons.qr_code_rounded},
+      {'name': 'Demo Net Banking', 'icon': Icons.account_balance_rounded},
+      {'name': 'Demo Card', 'icon': Icons.credit_card_rounded},
+      {'name': 'Demo Wallet', 'icon': Icons.wallet_rounded},
     ];
 
     return Scaffold(
@@ -165,6 +165,9 @@ class PaymentConfirmationView extends StatelessWidget {
                   }),
                   const SizedBox(height: 16),
 
+                  const Text('DEMO PAYMENT • No real money is charged or card details collected.'),
+                  SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Simulate payment failure'), value: invCtrl.simulateFailure.value, onChanged: invCtrl.isProcessingPayment.value ? null : (v) => invCtrl.simulateFailure.value = v),
+                  if(invCtrl.paymentError.isNotEmpty) Text(invCtrl.paymentError.value, style: const TextStyle(color: AppColors.error)),
                   // Terms & Conditions Checkbox
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +179,7 @@ class PaymentConfirmationView extends StatelessWidget {
                           value: invCtrl.agreeToTerms.value,
                           activeColor: AppColors.primary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          onChanged: invCtrl.toggleTerms,
+                          onChanged: invCtrl.isProcessingPayment.value ? null : invCtrl.toggleTerms,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -198,7 +201,7 @@ class PaymentConfirmationView extends StatelessWidget {
                   CustomButton(
                     text: '${'confirmAndPay'.tr}  ${CurrencyFormatter.format(calc.principal)}',
                     isLoading: invCtrl.isProcessingPayment.value,
-                    onPressed: invCtrl.confirmAndPay,
+                    onPressed: invCtrl.agreeToTerms.value && invCtrl.amountError == null ? invCtrl.confirmAndPay : null,
                   ),
                   const SizedBox(height: 20),
                 ],
