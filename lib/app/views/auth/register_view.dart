@@ -1,0 +1,254 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
+import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
+import '../../utils/responsive_helper.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
+
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  final _fullNameController = TextEditingController(text: 'Rohit Sharma');
+  final _emailController = TextEditingController(text: 'rohit.sharma@example.com');
+  final _mobileController = TextEditingController(text: '9876543210');
+  final _passwordController = TextEditingController(text: 'invest123');
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _mobileController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authCtrl = Get.find<AuthController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+          onPressed: () => Get.back(),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: ResponsiveHelper.responsiveContainer(
+          context: context,
+          maxWidth: 480,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Heading
+                Text(
+                  'createAccount'.tr,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'createAccountSubtitle'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Investor / Admin Segmented Switch
+                Obx(() {
+                  final isInvestor = authCtrl.selectedRole.value == 'Investor';
+                  return Container(
+                    height: 48,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : const Color(0xFFF1F6F3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => authCtrl.setRole('Investor'),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isInvestor ? AppColors.primaryDark : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'investor'.tr,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isInvestor
+                                      ? Colors.white
+                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              authCtrl.setRole('Admin');
+                              Get.snackbar(
+                                'Demo Note',
+                                'Admin role is a client-side preview for demonstration only.',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: !isInvestor ? AppColors.primaryDark : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'admin'.tr,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: !isInvestor
+                                      ? Colors.white
+                                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 22),
+
+                // Full Name
+                CustomTextField(
+                  controller: _fullNameController,
+                  label: 'fullName'.tr,
+                  hintText: 'enterFullName'.tr,
+                  prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+
+                // Email
+                CustomTextField(
+                  controller: _emailController,
+                  label: 'email'.tr,
+                  hintText: 'enterEmail'.tr,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+
+                // Mobile Number
+                CustomTextField(
+                  controller: _mobileController,
+                  label: 'mobileNumber'.tr,
+                  hintText: 'enterMobileNumber'.tr,
+                  keyboardType: TextInputType.phone,
+                  prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                Obx(() {
+                  return CustomTextField(
+                    controller: _passwordController,
+                    label: 'password'.tr,
+                    hintText: 'enterPassword'.tr,
+                    obscureText: !authCtrl.isPasswordVisible.value,
+                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        authCtrl.isPasswordVisible.value
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: authCtrl.togglePasswordVisibility,
+                    ),
+                  );
+                }),
+                const SizedBox(height: 28),
+
+                // Register Button
+                Obx(() {
+                  return CustomButton(
+                    text: 'register'.tr,
+                    isLoading: authCtrl.isLoading.value,
+                    onPressed: () {
+                      authCtrl.register(
+                        fullName: _fullNameController.text.trim(),
+                        email: _emailController.text.trim(),
+                        mobileNumber: _mobileController.text.trim(),
+                        password: _passwordController.text,
+                      );
+                    },
+                  );
+                }),
+                const SizedBox(height: 18),
+
+                // Already have an account? Login
+                Center(
+                  child: TextButton(
+                    onPressed: () => Get.offNamed(AppRoutes.login),
+                    child: RichText(
+                      text: TextSpan(
+                        text: '${'alreadyHaveAccount'.tr.split('?').first}? ',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'login'.tr,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
