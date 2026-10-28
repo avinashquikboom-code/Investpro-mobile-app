@@ -321,8 +321,9 @@ class FirebaseNotificationService extends GetxService {
     final upper = typeStr.toUpperCase();
     if (upper.contains('INVESTMENT')) return NotificationType.investmentSuccess;
     if (upper.contains('RETURN')) return NotificationType.returnReceived;
-    if (upper.contains('WITHDRAWAL'))
+    if (upper.contains('WITHDRAWAL')) {
       return NotificationType.withdrawalApproved;
+    }
     if (upper.contains('PROJECT_UPDATE')) return NotificationType.projectUpdate;
     return NotificationType.newProject;
   }

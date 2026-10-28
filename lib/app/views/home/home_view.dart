@@ -123,8 +123,9 @@ class HomeView extends StatelessWidget {
                                   Obx(() {
                                     final count =
                                         homeCtrl.unreadNotificationCount;
-                                    if (count <= 0)
+                                    if (count <= 0) {
                                       return const SizedBox.shrink();
+                                    }
                                     return Positioned(
                                       top: 8,
                                       right: 8,

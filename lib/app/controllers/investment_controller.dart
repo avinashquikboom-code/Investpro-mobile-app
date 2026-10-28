@@ -151,8 +151,9 @@ class InvestmentController extends GetxController {
   }
 
   Future<bool> confirmAndPay() async {
-    if (isProcessingPayment.value || lastSuccessfulInvestment.value != null)
+    if (isProcessingPayment.value || lastSuccessfulInvestment.value != null) {
       return false;
+    }
     if (!agreeToTerms.value || amountError != null) {
       paymentError.value =
           amountError ?? 'Accept the demo investment terms to continue.';
@@ -162,10 +163,11 @@ class InvestmentController extends GetxController {
     paymentError.value = '';
     try {
       await Future<void>.delayed(const Duration(milliseconds: 700));
-      if (simulateFailure.value)
+      if (simulateFailure.value) {
         throw StateError(
           'Simulated payment declined. Disable failure simulation and retry.',
         );
+      }
       final i = await _repo.createInvestment(
         project: currentProject.value!,
         amount: investmentAmount.value,

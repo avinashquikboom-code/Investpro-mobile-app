@@ -400,8 +400,9 @@ class DemoRepository extends GetxService {
   }
 
   Future<void> _commit(void Function(Map<String, dynamic>) update) async {
-    if (_writing)
+    if (_writing) {
       throw StateError('Another update is in progress. Please retry.');
+    }
     _writing = true;
     try {
       final next = jsonDecode(jsonEncode(_snapshot())) as Map<String, dynamic>;
