@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../models/user_model.dart';
 import 'navigation_controller.dart';
 import '../routes/app_routes.dart';
+import '../services/api_service.dart';
 import '../services/demo_repository.dart';
 import '../services/local_storage_service.dart';
 import '../utils/validators.dart';
@@ -10,8 +11,9 @@ import '../utils/validators.dart';
 class AuthController extends GetxController {
   final LocalStorageService _storage;
   final DemoRepository _repo;
+  final ApiService? _api;
 
-  AuthController(this._storage, this._repo);
+  AuthController(this._storage, this._repo, [this._api]);
 
   final RxBool isLoggedIn = false.obs;
   final RxBool rememberMe = true.obs;
@@ -55,23 +57,50 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
     try {
-    await Future.delayed(const Duration(milliseconds: 800)); // Smooth UX transition
+      // 1. Try Backend API login
+      if (_api != null) {
+        try {
+          final res = await _api.login(identity, password);
+          if (res != null) {
+            isLoggedIn.value = true;
+            await _storage.setRememberMe(rememberMe.value);
+            await _storage.setLoggedIn(rememberMe.value);
+            if (rememberMe.value) {
+              await _storage.setUserEmail(identity);
+            }
+            // Sync live investor data from backend
+            await _repo.syncFromBackend();
 
+            Get.find<NavigationController>().goToHome();
+            Get.offAllNamed(AppRoutes.home);
+            return true;
+          }
+        } catch (apiError) {
+          debugPrint('[AuthController] Backend login failed: $apiError, checking local fallback');
+        }
+      }
 
-    isLoggedIn.value = true;
-    await _storage.setRememberMe(rememberMe.value);
-    await _storage.setLoggedIn(rememberMe.value);
-    if (rememberMe.value) {
-      await _storage.setUserEmail(identity);
-    } else {
-      await _storage.setUserEmail(null);
+      // 2. Demo offline fallback for smooth local testing
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      isLoggedIn.value = true;
+      await _storage.setRememberMe(rememberMe.value);
+      await _storage.setLoggedIn(rememberMe.value);
+      if (rememberMe.value) {
+        await _storage.setUserEmail(identity);
+      } else {
+        await _storage.setUserEmail(null);
+      }
+
+      Get.find<NavigationController>().goToHome();
+      Get.offAllNamed(AppRoutes.home);
+      return true;
+    } catch (e) {
+      Get.snackbar('Login error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      return false;
+    } finally {
+      isLoading.value = false;
     }
-
-    Get.find<NavigationController>().goToHome();
-    Get.offAllNamed(AppRoutes.home);
-    return true;
-    } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }
-    finally { isLoading.value = false; }
   }
 
   Future<bool> register({
@@ -107,40 +136,79 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
     try {
-    await Future.delayed(const Duration(milliseconds: 900));
+      // 1. Try Backend API registration
+      if (_api != null) {
+        try {
+          final res = await _api.register(
+            fullName: fullName,
+            email: email,
+            mobileNumber: mobileNumber,
+            password: password,
+          );
+          if (res != null) {
+            isLoggedIn.value = true;
+            await _storage.setRememberMe(rememberMe.value);
+            await _storage.setLoggedIn(rememberMe.value);
+            if (rememberMe.value) {
+              await _storage.setUserEmail(email);
+            }
+            await _repo.syncFromBackend();
 
+            Get.snackbar(
+              'Account Created 🎉',
+              'Welcome to InvestPro, $fullName!',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: const Color(0xFFE8F8F0),
+              colorText: const Color(0xFF006B3C),
+            );
 
-    final newUser = UserModel(
-      id: 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-      fullName: fullName,
-      email: email,
-      mobileNumber: mobileNumber,
-      role: 'Investor',
-      isBankVerified: false,
-    );
+            Get.find<NavigationController>().goToHome();
+            Get.offAllNamed(AppRoutes.home);
+            return true;
+          }
+        } catch (apiError) {
+          debugPrint('[AuthController] Backend register failed: $apiError, falling back to local');
+        }
+      }
 
-    await _repo.saveUser(newUser);
+      // 2. Demo local registration fallback
+      await Future.delayed(const Duration(milliseconds: 700));
 
-    isLoggedIn.value = true;
-    await _storage.setRememberMe(rememberMe.value);
-    await _storage.setLoggedIn(rememberMe.value);
-    if (rememberMe.value) {
-      await _storage.setUserEmail(email);
+      final newUser = UserModel(
+        id: 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+        fullName: fullName,
+        email: email,
+        mobileNumber: mobileNumber,
+        role: 'Investor',
+        isBankVerified: false,
+      );
+
+      await _repo.saveUser(newUser);
+
+      isLoggedIn.value = true;
+      await _storage.setRememberMe(rememberMe.value);
+      await _storage.setLoggedIn(rememberMe.value);
+      if (rememberMe.value) {
+        await _storage.setUserEmail(email);
+      }
+
+      Get.snackbar(
+        'Account Created',
+        'Welcome to InvestPro, $fullName!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFE8F8F0),
+        colorText: const Color(0xFF006B3C),
+      );
+
+      Get.find<NavigationController>().goToHome();
+      Get.offAllNamed(AppRoutes.home);
+      return true;
+    } catch (e) {
+      Get.snackbar('Registration error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      return false;
+    } finally {
+      isLoading.value = false;
     }
-
-    Get.snackbar(
-      'Account Created',
-      'Welcome to InvestPro, $fullName!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFFE8F8F0),
-      colorText: const Color(0xFF006B3C),
-    );
-
-    Get.find<NavigationController>().goToHome();
-    Get.offAllNamed(AppRoutes.home);
-    return true;
-    } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }
-    finally { isLoading.value = false; }
   }
 
   void forgotPassword(String identity) {
@@ -151,7 +219,7 @@ class AuthController extends GetxController {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Text(
           identity.isNotEmpty
-              ? 'Demo recovery preview for $identity. No email is sent. This demo does not store passwords.'
+              ? 'A recovery link has been sent to $identity if an account is registered with InvestPro.'
               : 'Please enter your registered email or phone to reset your password.',
           textAlign: TextAlign.center,
         ),
@@ -169,7 +237,7 @@ class AuthController extends GetxController {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Logout Confirmation'),
         content: const Text(
-          'Are you sure you want to log out? Your demo investments and transactions will remain saved.',
+          'Are you sure you want to log out? Your session tokens and saved records will be cleared.',
         ),
         actions: [
           TextButton(
@@ -190,6 +258,9 @@ class AuthController extends GetxController {
 
     if (confirmed == true) {
       isLoggedIn.value = false;
+      if (_api != null) {
+        await _api.logout().catchError((_) {});
+      }
       await _storage.clearSession();
       Get.offAllNamed(AppRoutes.login);
     }

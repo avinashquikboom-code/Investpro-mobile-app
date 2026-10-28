@@ -18,6 +18,7 @@ import 'app/controllers/theme_controller.dart';
 import 'app/controllers/transaction_controller.dart';
 import 'app/controllers/withdrawal_controller.dart';
 import 'app/routes/app_pages.dart';
+import 'app/services/api_service.dart';
 import 'app/services/demo_repository.dart';
 import 'app/services/local_storage_service.dart';
 import 'app/services/notification_service.dart';
@@ -27,21 +28,26 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
+  );
 
   // 1. Initialize Storage & Core Services
   final storageService = await LocalStorageService().init();
   Get.put<LocalStorageService>(storageService, permanent: true);
 
+  final apiService = await ApiService().init();
+  Get.put<ApiService>(apiService, permanent: true);
+
   final notificationService = await NotificationService(storageService).init();
   Get.put<NotificationService>(notificationService, permanent: true);
 
-  final demoRepo = await DemoRepository(storageService, notificationService).init();
+  final demoRepo = await DemoRepository(storageService, notificationService, apiService).init();
   Get.put<DemoRepository>(demoRepo, permanent: true);
 
   // 2. Register Controllers via Get.put() (No GetX Bindings per instructions)
   final themeController = Get.put<ThemeController>(ThemeController(storageService), permanent: true);
-  Get.put<AuthController>(AuthController(storageService, demoRepo), permanent: true);
+  Get.put<AuthController>(AuthController(storageService, demoRepo, apiService), permanent: true);
   Get.put<NavigationController>(NavigationController(), permanent: true);
   Get.put<HomeController>(HomeController(demoRepo, notificationService), permanent: true);
   Get.put<ProjectController>(ProjectController(demoRepo), permanent: true);
