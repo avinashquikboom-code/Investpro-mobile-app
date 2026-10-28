@@ -36,7 +36,7 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
     }
@@ -64,7 +64,8 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter an investment amount';
     }
-    final amount = double.tryParse(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final minor = Validators.amount(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final amount = minor == null ? null : minor / 100;
     if (amount == null || amount <= 0) {
       return 'Enter a valid amount';
     }
@@ -81,7 +82,8 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter a withdrawal amount';
     }
-    final amount = double.tryParse(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final minor = Validators.amount(value.replaceAll('₹', '').replaceAll(',', '').trim());
+    final amount = minor == null ? null : minor / 100;
     if (amount == null || amount <= 0) {
       return 'Enter a valid amount';
     }

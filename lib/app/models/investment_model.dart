@@ -1,3 +1,5 @@
+import '../services/investment_calculator.dart';
+
 class InvestmentModel {
   final String id;
   final String projectId;
@@ -10,7 +12,7 @@ class InvestmentModel {
   final double maturityAmount;
   final DateTime startDate;
   final DateTime maturityDate;
-  final double progressPercent;
+  double get progressPercent => InvestmentCalculator.progress(startDate,durationMonths,DateTime.now()) * 100;
   final String status; // 'Active', 'Completed', 'Withdrawn'
   final String paymentMethod;
 
@@ -26,7 +28,7 @@ class InvestmentModel {
     required this.maturityAmount,
     required this.startDate,
     required this.maturityDate,
-    required this.progressPercent,
+    required double progressPercent,
     this.status = 'Active',
     this.paymentMethod = 'UPI',
   });

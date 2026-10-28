@@ -21,7 +21,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    isLoggedIn.value = _storage.isLoggedIn;
+    isLoggedIn.value = _storage.isLoggedIn && _storage.rememberMe;
     rememberMe.value = _storage.rememberMe;
   }
 
@@ -39,6 +39,7 @@ class AuthController extends GetxController {
   }
 
   Future<bool> login(String identity, String password) async {
+    if (isLoading.value) return false;
     final identityError = Validators.validateEmailOrMobile(identity);
     if (identityError != null) {
       Get.snackbar('Validation Error', identityError, snackPosition: SnackPosition.BOTTOM);
@@ -52,11 +53,13 @@ class AuthController extends GetxController {
     }
 
     isLoading.value = true;
+    try {
     await Future.delayed(const Duration(milliseconds: 800)); // Smooth UX transition
-    isLoading.value = false;
+
 
     isLoggedIn.value = true;
-    await _storage.setLoggedIn(true);
+    await _storage.setRememberMe(rememberMe.value);
+    await _storage.setLoggedIn(rememberMe.value);
     if (rememberMe.value) {
       await _storage.setUserEmail(identity);
     } else {
@@ -65,6 +68,8 @@ class AuthController extends GetxController {
 
     Get.offAllNamed(AppRoutes.home);
     return true;
+    } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }
+    finally { isLoading.value = false; }
   }
 
   Future<bool> register({
@@ -73,6 +78,7 @@ class AuthController extends GetxController {
     required String mobileNumber,
     required String password,
   }) async {
+    if (isLoading.value) return false;
     final nameError = Validators.validateName(fullName);
     if (nameError != null) {
       Get.snackbar('Validation Error', nameError, snackPosition: SnackPosition.BOTTOM);
@@ -98,22 +104,24 @@ class AuthController extends GetxController {
     }
 
     isLoading.value = true;
+    try {
     await Future.delayed(const Duration(milliseconds: 900));
-    isLoading.value = false;
+
 
     final newUser = UserModel(
       id: 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
       fullName: fullName,
       email: email,
       mobileNumber: mobileNumber,
-      role: selectedRole.value,
+      role: 'Investor',
+      isBankVerified: false,
     );
 
-    _repo.currentUser.value = newUser;
-    _storage.writeMap('user_data', newUser.toJson());
+    await _repo.saveUser(newUser);
 
     isLoggedIn.value = true;
-    await _storage.setLoggedIn(true);
+    await _storage.setRememberMe(rememberMe.value);
+    await _storage.setLoggedIn(rememberMe.value);
     if (rememberMe.value) {
       await _storage.setUserEmail(email);
     }
@@ -128,6 +136,8 @@ class AuthController extends GetxController {
 
     Get.offAllNamed(AppRoutes.home);
     return true;
+    } catch(e) { Get.snackbar('Demo session error', e.toString(), snackPosition: SnackPosition.BOTTOM); return false; }
+    finally { isLoading.value = false; }
   }
 
   void forgotPassword(String identity) {
@@ -138,7 +148,7 @@ class AuthController extends GetxController {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Text(
           identity.isNotEmpty
-              ? 'Password reset instructions have been sent to $identity.'
+              ? 'Demo recovery preview for $identity. No email is sent. This demo does not store passwords.'
               : 'Please enter your registered email or phone to reset your password.',
           textAlign: TextAlign.center,
         ),

@@ -11,6 +11,7 @@ class WithdrawalController extends GetxController {
 
   final RxString selectedFilter = 'All'.obs; // 'All', 'Withdrawals', 'Deposits'
   final TextEditingController amountController = TextEditingController();
+  final bankSelected = false.obs;
   final RxBool isSubmitting = false.obs;
 
   double get availableBalance => _repo.availableBalance.value;
@@ -32,6 +33,8 @@ class WithdrawalController extends GetxController {
   }
 
   Future<bool> submitWithdrawal() async {
+    if(isSubmitting.value) return false;
+    if(!bankSelected.value) { Get.snackbar('Demo bank required','Select the demo bank account.'); return false; }
     final error = Validators.validateWithdrawalAmount(amountController.text, availableBalance);
     if (error != null) {
       Get.snackbar('Invalid Amount', error, snackPosition: SnackPosition.BOTTOM);
@@ -44,10 +47,11 @@ class WithdrawalController extends GetxController {
         0.0;
 
     isSubmitting.value = true;
+    try {
     await Future.delayed(const Duration(milliseconds: 900));
-    isSubmitting.value = false;
 
-    final success = _repo.requestWithdrawal(amount: amount);
+
+    final success = await _repo.requestWithdrawal(amount: amount, bankSelected: bankSelected.value);
     if (success) {
       amountController.clear();
       Get.back(); // Close dialog/bottom sheet
@@ -63,6 +67,8 @@ class WithdrawalController extends GetxController {
       Get.snackbar('Error', 'Unable to process withdrawal request.', snackPosition: SnackPosition.BOTTOM);
       return false;
     }
+    } catch(e) { Get.snackbar('Request failed',e.toString()); return false; }
+    finally { isSubmitting.value = false; }
   }
 
   @override

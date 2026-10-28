@@ -15,8 +15,17 @@ class InvestmentController extends GetxController {
   // Form & Calculations State
   final RxDouble investmentAmount = 5000.0.obs;
   final TextEditingController amountTextController = TextEditingController(text: '5000');
-  final RxString selectedPaymentMethod = 'UPI (Google Pay / PhonePe)'.obs;
-  final RxBool agreeToTerms = true.obs;
+  final RxString selectedPaymentMethod = 'Demo UPI'.obs;
+  final RxBool agreeToTerms = false.obs;
+  final simulateFailure = false.obs;
+  final paymentError = ''.obs;
+  String _requestId = '';
+  String? get amountError {
+    final format = Validators.validateInvestmentAmount(amountTextController.text);
+    if(format != null) return format;
+    final project = currentProject.value;
+    return project == null ? 'Select a project' : _repo.investmentError(project, investmentAmount.value);
+  }
   final RxBool isProcessingPayment = false.obs;
 
   // Selected Records
@@ -48,7 +57,13 @@ class InvestmentController extends GetxController {
   }
 
   void setProject(ProjectModel project) {
+    if (isProcessingPayment.value) return;
     currentProject.value = project;
+    lastSuccessfulInvestment.value = null;
+    agreeToTerms.value = false;
+    paymentError.value = '';
+    _requestId = _repo.newReference('DEMO');
+    selectQuickAmount(10000);
   }
 
   void selectQuickAmount(double amount) {
@@ -98,7 +113,7 @@ class InvestmentController extends GetxController {
   }
 
   Future<void> proceedToPaymentConfirmation() async {
-    final error = Validators.validateInvestmentAmount(amountTextController.text);
+    final error = amountError;
     if (error != null) {
       Get.snackbar('Invalid Amount', error, snackPosition: SnackPosition.BOTTOM);
       return;
@@ -111,28 +126,21 @@ class InvestmentController extends GetxController {
   }
 
   Future<bool> confirmAndPay() async {
-    if (!agreeToTerms.value) {
-      Get.snackbar('Terms Required', 'Please accept the investment terms to proceed.',
-          snackPosition: SnackPosition.BOTTOM);
+    if(isProcessingPayment.value || lastSuccessfulInvestment.value != null) return false;
+    if(!agreeToTerms.value || amountError != null) {
+      paymentError.value = amountError ?? 'Accept the demo investment terms to continue.';
       return false;
     }
-
     isProcessingPayment.value = true;
-    await Future.delayed(const Duration(milliseconds: 1400)); // Simulate gateway
-    isProcessingPayment.value = false;
-
-    final proj = currentProject.value;
-    if (proj == null) return false;
-
-    // Create investment record in repository
-    final newInv = _repo.createInvestment(
-      project: proj,
-      amount: investmentAmount.value,
-      paymentMethod: selectedPaymentMethod.value,
-    );
-
-    lastSuccessfulInvestment.value = newInv;
-    Get.offNamed(AppRoutes.investmentSuccess);
-    return true;
+    paymentError.value = '';
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      if(simulateFailure.value) throw StateError('Simulated payment declined. Disable failure simulation and retry.');
+      final i = await _repo.createInvestment(project: currentProject.value!, amount: investmentAmount.value, paymentMethod: selectedPaymentMethod.value, requestId: _requestId);
+      lastSuccessfulInvestment.value = i;
+      Get.offNamedUntil(AppRoutes.investmentSuccess, (route) => route.settings.name == AppRoutes.home);
+      return true;
+    } catch(e) { paymentError.value = e.toString(); return false; }
+    finally { isProcessingPayment.value = false; }
   }
 }

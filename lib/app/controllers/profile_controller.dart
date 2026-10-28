@@ -29,6 +29,7 @@ class ProfileController extends GetxController {
   }
 
   Future<bool> saveProfile() async {
+    if(isSaving.value) return false;
     final nameError = Validators.validateName(nameController.text);
     if (nameError != null) {
       Get.snackbar('Validation Error', nameError, snackPosition: SnackPosition.BOTTOM);
@@ -48,10 +49,11 @@ class ProfileController extends GetxController {
     }
 
     isSaving.value = true;
+    try {
     await Future.delayed(const Duration(milliseconds: 600));
-    isSaving.value = false;
 
-    _repo.updateProfile(
+
+    await _repo.updateProfile(
       fullName: nameController.text.trim(),
       email: emailController.text.trim(),
       mobileNumber: phoneController.text.trim(),
@@ -66,6 +68,8 @@ class ProfileController extends GetxController {
       colorText: const Color(0xFF006B3C),
     );
     return true;
+    } catch(e) { Get.snackbar('Could not save profile',e.toString()); return false; }
+    finally { isSaving.value = false; }
   }
 
   @override

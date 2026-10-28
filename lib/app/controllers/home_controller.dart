@@ -15,6 +15,7 @@ class HomeController extends GetxController {
   UserModel get user => _repo.currentUser.value;
   double get totalPortfolioValue => _repo.totalPortfolioValue;
   double get totalInvested => _repo.totalInvested;
+  double get growthPercent => _repo.growthPercent;
   double get totalReturns => _repo.totalReturns;
   int get totalActiveProjects => _repo.totalActiveProjects;
   int get unreadNotificationCount => _notificationService.unreadCount;
@@ -24,7 +25,7 @@ class HomeController extends GetxController {
   Future<void> refreshDashboard() async {
     isRefreshing.value = true;
     await Future.delayed(const Duration(milliseconds: 600));
-    _repo.loadData();
+    await _repo.loadData();
     _notificationService.loadNotifications();
     isRefreshing.value = false;
   }

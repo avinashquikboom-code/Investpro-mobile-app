@@ -22,8 +22,8 @@ class AppConstants {
   static const String keyAvailableBalance = 'available_balance';
 
   // Financial Limits
-  static const double minInvestmentAmount = 1000.0;
-  static const double maxInvestmentAmount = 1000000.0;
+  static const double minInvestmentAmount = 5000.0;
+  static const double maxInvestmentAmount = 100000.0;
   static const double minWithdrawalAmount = 500.0;
 
   // Preset Chips

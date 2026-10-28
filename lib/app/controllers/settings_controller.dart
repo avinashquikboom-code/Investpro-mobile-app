@@ -16,7 +16,7 @@ class SettingsController extends GetxController {
     super.onInit();
     selectedLanguage.value = _storage.language;
     notificationsEnabled.value = _storage.notificationsEnabled;
-    biometricsEnabled.value = _storage.biometricsEnabled;
+    biometricsEnabled.value = false;
   }
 
   void setLanguage(String langCode) {
@@ -53,24 +53,17 @@ class SettingsController extends GetxController {
   }
 
   void toggleBiometrics(bool val) {
-    biometricsEnabled.value = val;
-    _storage.setBiometricsEnabled(val);
-    Get.snackbar(
-      val ? 'Biometrics Enabled' : 'Biometrics Disabled',
-      val
-          ? 'Fingerprint / Face ID authentication is active for demo.'
-          : 'Biometric login has been deactivated.',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    biometricsEnabled.value = false;
+    Get.snackbar('Biometric login unavailable', 'Device authentication is not configured in this demo.');
   }
 
-  void showChangePasswordDialog() {
+  Future<void> showChangePasswordDialog() async {
     final oldPass = TextEditingController();
     final newPass = TextEditingController();
     final confirmPass = TextEditingController();
 
-    Get.defaultDialog(
-      title: 'Change Password',
+    await Get.defaultDialog(
+      title: 'Demo Password Validation',
       titleStyle: const TextStyle(fontWeight: FontWeight.bold),
       content: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -102,8 +95,8 @@ class SettingsController extends GetxController {
       confirmTextColor: Colors.white,
       buttonColor: const Color(0xFF006B3C),
       onConfirm: () {
-        if (newPass.text.length < 6) {
-          Get.snackbar('Error', 'Password must be at least 6 characters.',
+        if (newPass.text.length < 8 || !RegExp(r'[A-Za-z]').hasMatch(newPass.text) || !RegExp(r'[0-9]').hasMatch(newPass.text)) {
+          Get.snackbar('Error', 'Use 8+ characters with letters and numbers.',
               snackPosition: SnackPosition.BOTTOM);
           return;
         }
@@ -114,13 +107,14 @@ class SettingsController extends GetxController {
         }
         Get.back();
         Get.snackbar(
-          'Password Changed',
-          'Your password has been changed successfully.',
+          'Demo password validation',
+          'Password format accepted. No password is stored or changed in this local demo.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: const Color(0xFFE8F8F0),
           colorText: const Color(0xFF006B3C),
         );
       },
     );
+    oldPass.dispose(); newPass.dispose(); confirmPass.dispose();
   }
 }

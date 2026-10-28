@@ -11,7 +11,7 @@ class TransactionController extends GetxController {
   final Rxn<TransactionModel> selectedTransaction = Rxn<TransactionModel>();
 
   List<TransactionModel> get filteredTransactions {
-    final list = _repo.transactions;
+    final list = _repo.transactions.toList()..sort((a,b) => b.date.compareTo(a.date));
     switch (selectedFilter.value) {
       case 'Investment':
         return list.where((t) => t.type == TransactionType.investment).toList();

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import '../constants/app_constants.dart';
 import '../models/investment_model.dart';
@@ -6,108 +7,150 @@ import '../models/project_model.dart';
 import '../models/return_model.dart';
 import '../models/transaction_model.dart';
 import '../models/user_model.dart';
+import '../models/withdrawal_model.dart';
 import 'investment_calculator.dart';
 import 'local_storage_service.dart';
 import 'notification_service.dart';
 
+/// Local demo ledger. Money is converted to integer paise for all arithmetic.
+/// A single persisted snapshot commits related financial records together.
 class DemoRepository extends GetxService {
   final LocalStorageService _storage;
   final NotificationService _notificationService;
-
   DemoRepository(this._storage, this._notificationService);
-
-  // Reactive State
-  final Rx<UserModel> currentUser = const UserModel(
-    id: 'INV001',
-    fullName: 'Rohit Sharma',
-    email: 'rohit.sharma@example.com',
-    mobileNumber: '+91 98765 43210',
-    role: 'Investor',
-    bankName: 'HDFC Bank',
-    accountNumber: '•••• 4829',
-    ifscCode: 'HDFC0001234',
-    isBankVerified: true,
-  ).obs;
-
-  final RxList<ProjectModel> projects = <ProjectModel>[].obs;
-  final RxList<InvestmentModel> investments = <InvestmentModel>[].obs;
-  final RxList<TransactionModel> transactions = <TransactionModel>[].obs;
-  final RxList<ReturnPayoutModel> returns = <ReturnPayoutModel>[].obs;
-  final RxDouble availableBalance = 12480.0.obs;
-
-  // Computed Portfolio Values
-  double get totalInvested => investments
-      .where((inv) => inv.status == 'Active')
-      .fold(0.0, (sum, inv) => sum + inv.investedAmount);
-
-  double get totalReturns => returns
-      .where((r) => r.status == 'Received')
-      .fold(0.0, (sum, r) => sum + r.amount);
-
-  double get totalPortfolioValue => totalInvested + totalReturns;
-
-  int get totalActiveProjects => investments
-      .where((inv) => inv.status == 'Active')
-      .map((inv) => inv.projectId)
-      .toSet()
-      .length;
-
-  Future<DemoRepository> init() async {
-    loadData();
-    return this;
+  final currentUser = const UserModel(id: 'INV001', fullName: 'Rohit Sharma', email: 'rohit.sharma@example.com', mobileNumber: '9876543210', isBankVerified: false).obs;
+  final projects = <ProjectModel>[].obs;
+  final investments = <InvestmentModel>[].obs;
+  final transactions = <TransactionModel>[].obs;
+  final returns = <ReturnPayoutModel>[].obs;
+  final withdrawals = <WithdrawalModel>[].obs;
+  final availableBalance = 0.0.obs;
+  bool _writing = false;
+  int _sequence = 0;
+  String newReference(String prefix) => '$prefix-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}';
+  static int minor(double amount) => (amount * 100).round();
+  double get totalInvested => investments.where((i) => i.status == 'Active').fold<int>(0, (s,i) => s + minor(i.investedAmount)) / 100;
+  double get totalReturns => returns.where((r) => r.status == 'Received').fold<int>(0, (s,r) => s + minor(r.amount)) / 100;
+  double get totalPortfolioValue => (minor(totalInvested) + minor(availableBalance.value)) / 100;
+  int get totalActiveProjects => investments.where((i) => i.status == 'Active').map((i) => i.projectId).toSet().length;
+  double get growthPercent => totalInvested == 0 ? 0 : totalReturns / totalInvested * 100;
+  ProjectModel liveProject(ProjectModel project) => projects.firstWhere((p) => p.id == project.id);
+  String? investmentError(ProjectModel project, double amount) {
+    if (!amount.isFinite || amount <= 0 || minor(amount) < minor(AppConstants.minInvestmentAmount) || minor(amount) > minor(AppConstants.maxInvestmentAmount)) return 'Enter an amount between ₹5,000 and ₹1,00,000';
+    final p = liveProject(project);
+    if (p.status != 'Active') return 'This project is closed for investment';
+    if (minor(amount) > minor(p.targetAmount) - minor(p.raisedAmount)) return 'Amount exceeds remaining project funding';
+    return null;
   }
-
-  void loadData() {
-    // 1. User
-    final userMap = _storage.readMap(AppConstants.keyUserData);
-    if (userMap != null) {
-      currentUser.value = UserModel.fromJson(userMap);
-    }
-
-    // 2. Available Balance
-    availableBalance.value = _storage.availableBalance;
-
-    // 3. Projects
-    final rawProjects = _storage.readList(AppConstants.keyProjectsData);
-    if (rawProjects != null && rawProjects.isNotEmpty) {
-      projects.value = rawProjects
-          .map((e) => ProjectModel.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    } else {
-      _seedProjects();
-    }
-
-    // 4. Investments
-    final rawInvestments = _storage.readList(AppConstants.keyInvestmentsData);
-    if (rawInvestments != null && rawInvestments.isNotEmpty) {
-      investments.value = rawInvestments
-          .map((e) => InvestmentModel.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    } else {
-      _seedInvestments();
-    }
-
-    // 5. Transactions
-    final rawTxns = _storage.readList(AppConstants.keyTransactionsData);
-    if (rawTxns != null && rawTxns.isNotEmpty) {
-      transactions.value = rawTxns
-          .map((e) => TransactionModel.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    } else {
-      _seedTransactions();
-    }
-
-    // 6. Returns
-    final rawReturns = _storage.readList(AppConstants.keyReturnsData);
-    if (rawReturns != null && rawReturns.isNotEmpty) {
-      returns.value = rawReturns
-          .map((e) => ReturnPayoutModel.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList();
-    } else {
-      _seedReturns();
-    }
+  Future<DemoRepository> init() async { await loadData(); return this; }
+  Future<void> loadData() async {
+    final snapshot = _storage.readMap('ledger_v2');
+    if (snapshot != null) { _apply(snapshot); return; }
+    _seedProjects();
+    final previous = _storage.readList(AppConstants.keyInvestmentsData);
+    if (previous != null) {
+      // Preserve records from the original demo rather than replacing user work.
+      investments.assignAll(previous.map((v) => InvestmentModel.fromJson(Map<String,dynamic>.from(v))));
+      final savedProjects = _storage.readList(AppConstants.keyProjectsData);
+      if (savedProjects != null) projects.assignAll(savedProjects.map((v) => ProjectModel.fromJson(Map<String,dynamic>.from(v))));
+      final profile = _storage.readMap(AppConstants.keyUserData);
+      if(profile != null) currentUser.value = UserModel.fromJson(profile);
+      transactions.assignAll((_storage.readList(AppConstants.keyTransactionsData) ?? []).map((v) => TransactionModel.fromJson(Map<String,dynamic>.from(v))));
+      returns.assignAll((_storage.readList(AppConstants.keyReturnsData) ?? []).map((v) => ReturnPayoutModel.fromJson(Map<String,dynamic>.from(v))));
+      // Complete incomplete schedules, retaining explicitly received records.
+      for(final i in investments) {
+        final existing = returns.where((r) => r.investmentId == i.id).toList();
+        if(existing.isEmpty) returns.addAll(_schedule(i));
+      }
+    } else { _seedLedger(); }
+    _recalculateBalance();
+    await _storage.writeMap('ledger_v2', _snapshot());
   }
-
+  void _recalculateBalance() {
+    final credits = transactions.where((t) => t.type == TransactionType.deposit || t.type == TransactionType.returnReceived).where((t) => t.status == 'Completed').fold<int>(0,(s,t) => s + minor(t.amount));
+    final debits = transactions.where((t) => t.type == TransactionType.withdrawal && (t.status == 'Processing' || t.status == 'Completed')).fold<int>(0,(s,t) => s + minor(t.amount));
+    availableBalance.value = (credits - debits) / 100;
+  }
+  Map<String,dynamic> _snapshot() => {'user': currentUser.value.toJson(), 'projects': projects.map((v) => v.toJson()).toList(), 'investments': investments.map((v) => v.toJson()).toList(), 'transactions': transactions.map((v) => v.toJson()).toList(), 'returns': returns.map((v) => v.toJson()).toList(), 'withdrawals': withdrawals.map((v) => v.toJson()).toList()};
+  void _apply(Map<String,dynamic> j) {
+    currentUser.value = UserModel.fromJson(Map<String,dynamic>.from(j['user']));
+    projects.assignAll((j['projects'] as List).map((v) => ProjectModel.fromJson(Map<String,dynamic>.from(v))));
+    investments.assignAll((j['investments'] as List).map((v) => InvestmentModel.fromJson(Map<String,dynamic>.from(v))));
+    transactions.assignAll((j['transactions'] as List).map((v) => TransactionModel.fromJson(Map<String,dynamic>.from(v))));
+    returns.assignAll((j['returns'] as List).map((v) => ReturnPayoutModel.fromJson(Map<String,dynamic>.from(v))));
+    withdrawals.assignAll((j['withdrawals'] as List).map((v) => WithdrawalModel.fromJson(Map<String,dynamic>.from(v))));
+    _recalculateBalance();
+  }
+  Future<void> _commit(void Function(Map<String,dynamic>) update) async {
+    if(_writing) throw StateError('Another update is in progress. Please retry.');
+    _writing = true;
+    try {
+      final next = jsonDecode(jsonEncode(_snapshot())) as Map<String,dynamic>;
+      update(next);
+      await _storage.writeMap('ledger_v2', next);
+      _apply(next);
+    } finally { _writing = false; }
+  }
+  InvestmentModel _record(String id, ProjectModel p, double amount, DateTime date, {String status = 'Active', String method = 'Demo UPI'}) {
+    final c = InvestmentCalculator.calculate(principal: amount, returnRatePercent: p.returnRatePercent, durationMonths: p.durationMonths);
+    return InvestmentModel(id: id, projectId: p.id, projectName: p.name, iconType: p.iconType, investedAmount: c.principal, returnRatePercent: p.returnRatePercent, durationMonths: p.durationMonths, expectedReturn: c.expectedTotalReturn, maturityAmount: c.projectedMaturityAmount, startDate: date, maturityDate: InvestmentCalculator.addMonths(date,p.durationMonths), progressPercent: 0, status: status, paymentMethod: method);
+  }
+  List<ReturnPayoutModel> _schedule(InvestmentModel i, {bool received = false}) {
+    final total = minor(i.expectedReturn), count = i.durationMonths;
+    return List.generate(count, (n) {
+      final date = InvestmentCalculator.addMonths(i.startDate,n+1);
+      return ReturnPayoutModel(id: '${i.id}-R$n', investmentId: i.id, projectName: i.projectName, monthYear: '${date.month}/${date.year}', payoutDate: date, amount: (total ~/ count + (n < total % count ? 1 : 0)) / 100, status: received ? 'Received' : 'Pending');
+    });
+  }
+  void _seedLedger() {
+    final now = DateTime.now();
+    final initial = [
+      _record('DEMO-01',projects[0],30000,InvestmentCalculator.addMonths(now,-4)),
+      _record('DEMO-02',projects[1],25000,InvestmentCalculator.addMonths(now,-3)),
+      _record('DEMO-03',projects[2],15000,InvestmentCalculator.addMonths(now,-2)),
+      _record('DEMO-HISTORY',projects[1],100000,InvestmentCalculator.addMonths(now,-18),status: 'Withdrawn'),
+    ];
+    investments.assignAll(initial);
+    returns.assignAll(initial.expand((i) => _schedule(i,received: i.status == 'Withdrawn')));
+    transactions.assignAll([
+      ...initial.map((i) => TransactionModel(id: '${i.id}-T', type: TransactionType.investment, title: 'Investment', subtitle: i.projectName, amount: i.investedAmount, date: i.startDate, referenceId: i.id, projectId: i.projectId, projectName: i.projectName)),
+      ...returns.where((r) => r.status == 'Received').map((r) => TransactionModel(id: r.id, type: TransactionType.returnReceived, title: 'Return Received', subtitle: r.projectName, amount: r.amount, date: r.payoutDate, referenceId: r.id, projectName: r.projectName)),
+    ]);
+    // Historical principal was returned outside the demo wallet. Only its
+    // explicitly received return distributions remain available here.
+  }
+  Future<InvestmentModel> createInvestment({required ProjectModel project, required double amount, required String paymentMethod, String? requestId}) async {
+    final reference = requestId ?? newReference('DEMO');
+    final existing = investments.where((i) => i.id == reference).firstOrNull;
+    if(existing != null) return existing;
+    final error = investmentError(project, amount);
+    if(error != null) throw ArgumentError(error);
+    final p = liveProject(project);
+    final i = _record(reference,p,amount,DateTime.now(),method: paymentMethod);
+    await _commit((j) {
+      (j['investments'] as List).insert(0,i.toJson());
+      final list = j['projects'] as List;
+      final index = list.indexWhere((v) => v['id'] == p.id);
+      list[index] = p.copyWith(raisedAmount: (minor(p.raisedAmount)+minor(amount))/100).toJson();
+      (j['returns'] as List).addAll(_schedule(i).map((r) => r.toJson()));
+      (j['transactions'] as List).insert(0,TransactionModel(id: '$reference-T',type: TransactionType.investment,title: 'Investment',subtitle: p.name,amount: amount,date: i.startDate,referenceId: reference,projectId:p.id,projectName:p.name).toJson());
+    });
+    _notificationService.addNotification(type: NotificationType.investmentSuccess,title: 'Investment Successful',description: 'Demo investment in ${p.name} recorded. Reference: $reference',relatedId: reference);
+    return i;
+  }
+  Future<bool> requestWithdrawal({required double amount, bool bankSelected = false}) async {
+    if(!bankSelected || !amount.isFinite || minor(amount) < minor(AppConstants.minWithdrawalAmount) || minor(amount) > minor(availableBalance.value)) return false;
+    final now = DateTime.now(), reference = newReference('DEMO-WD');
+    final w = WithdrawalModel(id: reference, amount: amount, bankName: 'Demo Bank',accountNumber: '•••• 4829',requestDate:now,referenceId:reference);
+    await _commit((j) {
+      (j['withdrawals'] as List).insert(0,w.toJson());
+      (j['transactions'] as List).insert(0,TransactionModel(id: reference,type:TransactionType.withdrawal,title:'Withdrawal',subtitle:'Demo Bank •••• 4829',amount:amount,date:now,status:'Processing',referenceId:reference).toJson());
+    });
+    _notificationService.addNotification(type:NotificationType.withdrawalApproved,title:'Withdrawal Request Submitted',description:'Your demo withdrawal is Processing. No real transfer will occur.',relatedId:reference);
+    return true;
+  }
+  Future<void> updateProfile({required String fullName,required String email,required String mobileNumber}) => saveUser(currentUser.value.copyWith(fullName:fullName,email:email,mobileNumber:mobileNumber));
+  Future<void> saveUser(UserModel user) => _commit((j) => j['user'] = user.toJson());
   void _seedProjects() {
     projects.value = [
       ProjectModel(
@@ -115,8 +158,8 @@ class DemoRepository extends GetxService {
         name: 'Software Development Platform',
         category: 'Technology',
         iconType: 'code',
-        targetAmount: 50000.0,
-        raisedAmount: 25000.0,
+        targetAmount: 500000.0,
+        raisedAmount: 250000.0,
         returnRatePercent: 18.0,
         durationMonths: 12,
         status: 'Active',
@@ -130,8 +173,8 @@ class DemoRepository extends GetxService {
         name: 'Mobile App (SaaS Product)',
         category: 'Mobile Software',
         iconType: 'mobile',
-        targetAmount: 50000.0,
-        raisedAmount: 30000.0,
+        targetAmount: 500000.0,
+        raisedAmount: 300000.0,
         returnRatePercent: 15.0,
         durationMonths: 10,
         status: 'Active',
@@ -145,8 +188,8 @@ class DemoRepository extends GetxService {
         name: 'AI Automation Tool',
         category: 'Artificial Intelligence',
         iconType: 'gear',
-        targetAmount: 50000.0,
-        raisedAmount: 17500.0,
+        targetAmount: 500000.0,
+        raisedAmount: 175000.0,
         returnRatePercent: 12.0,
         durationMonths: 8,
         status: 'Active',
@@ -156,356 +199,8 @@ class DemoRepository extends GetxService {
         createdAt: DateTime(2026, 1, 10),
       ),
     ];
-    _saveProjects();
+
   }
 
-  void _seedInvestments() {
-    investments.value = [
-      InvestmentModel(
-        id: 'INV-2025-1015-01',
-        projectId: 'proj_01',
-        projectName: 'Software Development Platform',
-        iconType: 'code',
-        investedAmount: 50000.0,
-        returnRatePercent: 18.0,
-        durationMonths: 12,
-        expectedReturn: 9000.0,
-        maturityAmount: 59000.0,
-        startDate: DateTime(2025, 10, 15),
-        maturityDate: DateTime(2026, 10, 15),
-        progressPercent: 50.0,
-        status: 'Active',
-      ),
-      InvestmentModel(
-        id: 'INV-2025-1120-02',
-        projectId: 'proj_02',
-        projectName: 'Mobile App (SaaS Product)',
-        iconType: 'mobile',
-        investedAmount: 15000.0,
-        returnRatePercent: 15.0,
-        durationMonths: 10,
-        expectedReturn: 4500.0,
-        maturityAmount: 19500.0,
-        startDate: DateTime(2025, 11, 20),
-        maturityDate: DateTime(2026, 9, 20),
-        progressPercent: 60.0,
-        status: 'Active',
-      ),
-      InvestmentModel(
-        id: 'INV-2026-0110-03',
-        projectId: 'proj_03',
-        projectName: 'AI Automation Tool',
-        iconType: 'gear',
-        investedAmount: 5000.0,
-        returnRatePercent: 12.0,
-        durationMonths: 8,
-        expectedReturn: 1500.0,
-        maturityAmount: 6500.0,
-        startDate: DateTime(2026, 1, 10),
-        maturityDate: DateTime(2026, 9, 10),
-        progressPercent: 35.0,
-        status: 'Active',
-      ),
-    ];
-    _saveInvestments();
-  }
 
-  void _seedTransactions() {
-    transactions.value = [
-      TransactionModel(
-        id: 'TXN-101',
-        type: TransactionType.investment,
-        title: 'Investment',
-        subtitle: 'Software Development Platform',
-        amount: 50000.0,
-        date: DateTime(2026, 4, 12),
-        status: 'Completed',
-        projectName: 'Software Development Platform',
-        referenceId: 'TXN-20260412-01',
-      ),
-      TransactionModel(
-        id: 'TXN-102',
-        type: TransactionType.returnReceived,
-        title: 'Return Received',
-        subtitle: 'Monthly Return',
-        amount: 1500.0,
-        date: DateTime(2026, 4, 6),
-        status: 'Completed',
-        referenceId: 'TXN-20260406-02',
-      ),
-      TransactionModel(
-        id: 'TXN-103',
-        type: TransactionType.withdrawal,
-        title: 'Withdrawal',
-        subtitle: 'Bank Account •••• 4829',
-        amount: 5000.0,
-        date: DateTime(2026, 3, 28),
-        status: 'Completed',
-        referenceId: 'TXN-20260328-03',
-      ),
-      TransactionModel(
-        id: 'TXN-104',
-        type: TransactionType.deposit,
-        title: 'Deposit',
-        subtitle: 'Wallet Top-up',
-        amount: 10000.0,
-        date: DateTime(2026, 4, 5),
-        status: 'Completed',
-        referenceId: 'TXN-20260405-04',
-      ),
-      TransactionModel(
-        id: 'TXN-105',
-        type: TransactionType.investment,
-        title: 'Investment',
-        subtitle: 'Mobile App (SaaS Product)',
-        amount: 30000.0,
-        date: DateTime(2026, 3, 20),
-        status: 'Completed',
-        projectName: 'Mobile App (SaaS Product)',
-        referenceId: 'TXN-20260320-05',
-      ),
-      TransactionModel(
-        id: 'TXN-106',
-        type: TransactionType.withdrawal,
-        title: 'Withdrawal',
-        subtitle: 'Processing',
-        amount: 5000.0,
-        date: DateTime(2026, 4, 12),
-        status: 'Processing',
-        referenceId: 'TXN-20260412-06',
-      ),
-      TransactionModel(
-        id: 'TXN-107',
-        type: TransactionType.returnReceived,
-        title: 'Return Received',
-        subtitle: 'Monthly Return',
-        amount: 1500.0,
-        date: DateTime(2026, 3, 6),
-        status: 'Completed',
-        referenceId: 'TXN-20260306-07',
-      ),
-    ];
-    _saveTransactions();
-  }
-
-  void _seedReturns() {
-    returns.value = [
-      ReturnPayoutModel(
-        id: 'RET-01',
-        investmentId: 'INV-2025-1015-01',
-        projectName: 'Software Development Platform',
-        monthYear: 'Apr 2026',
-        payoutDate: DateTime(2026, 4, 5),
-        amount: 1500.0,
-        status: 'Received',
-        periodType: 'Monthly',
-      ),
-      ReturnPayoutModel(
-        id: 'RET-02',
-        investmentId: 'INV-2025-1015-01',
-        projectName: 'Software Development Platform',
-        monthYear: 'May 2026',
-        payoutDate: DateTime(2026, 5, 5),
-        amount: 1500.0,
-        status: 'Received',
-        periodType: 'Monthly',
-      ),
-      ReturnPayoutModel(
-        id: 'RET-03',
-        investmentId: 'INV-2025-1015-01',
-        projectName: 'Software Development Platform',
-        monthYear: 'Jun 2026',
-        payoutDate: DateTime(2026, 6, 5),
-        amount: 1500.0,
-        status: 'Pending',
-        periodType: 'Monthly',
-      ),
-      ReturnPayoutModel(
-        id: 'RET-04',
-        investmentId: 'INV-2025-1015-01',
-        projectName: 'Software Development Platform',
-        monthYear: 'Jul 2026',
-        payoutDate: DateTime(2026, 7, 5),
-        amount: 1500.0,
-        status: 'Pending',
-        periodType: 'Monthly',
-      ),
-      ReturnPayoutModel(
-        id: 'RET-05',
-        investmentId: 'INV-2025-1015-01',
-        projectName: 'Software Development Platform',
-        monthYear: 'Aug 2026',
-        payoutDate: DateTime(2026, 8, 5),
-        amount: 1500.0,
-        status: 'Pending',
-        periodType: 'Monthly',
-      ),
-    ];
-    _saveReturns();
-  }
-
-  // --- Actions ---
-
-  /// Places a new investment
-  InvestmentModel createInvestment({
-    required ProjectModel project,
-    required double amount,
-    required String paymentMethod,
-  }) {
-    final calc = InvestmentCalculator.calculate(
-      principal: amount,
-      returnRatePercent: project.returnRatePercent,
-      durationMonths: project.durationMonths,
-    );
-
-    final now = DateTime.now();
-    final maturity = DateTime(now.year, now.month + project.durationMonths, now.day);
-    final refId = 'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecond}';
-
-    final investment = InvestmentModel(
-      id: refId,
-      projectId: project.id,
-      projectName: project.name,
-      iconType: project.iconType,
-      investedAmount: amount,
-      returnRatePercent: project.returnRatePercent,
-      durationMonths: project.durationMonths,
-      expectedReturn: calc.expectedTotalReturn,
-      maturityAmount: calc.projectedMaturityAmount,
-      startDate: now,
-      maturityDate: maturity,
-      progressPercent: 5.0,
-      status: 'Active',
-      paymentMethod: paymentMethod,
-    );
-
-    // 1. Add to investments
-    investments.insert(0, investment);
-    _saveInvestments();
-
-    // 2. Update project raised amount
-    final pIdx = projects.indexWhere((p) => p.id == project.id);
-    if (pIdx != -1) {
-      final updatedProject = projects[pIdx].copyWith(
-        raisedAmount: projects[pIdx].raisedAmount + amount,
-      );
-      projects[pIdx] = updatedProject;
-      _saveProjects();
-    }
-
-    // 3. Create investment transaction
-    final txn = TransactionModel(
-      id: 'TXN-${now.millisecondsSinceEpoch}',
-      type: TransactionType.investment,
-      title: 'Investment',
-      subtitle: project.name,
-      amount: amount,
-      date: now,
-      status: 'Completed',
-      projectId: project.id,
-      projectName: project.name,
-      referenceId: refId,
-    );
-    transactions.insert(0, txn);
-    _saveTransactions();
-
-    // 4. Create future return schedule
-    final monthlyReturn = calc.monthlyProjectedReturn;
-    for (int i = 1; i <= (project.durationMonths > 5 ? 5 : project.durationMonths); i++) {
-      final payoutDate = DateTime(now.year, now.month + i, 5);
-      final monthName = _monthName(payoutDate.month);
-      returns.add(
-        ReturnPayoutModel(
-          id: 'RET-${now.millisecondsSinceEpoch}-$i',
-          investmentId: refId,
-          projectName: project.name,
-          monthYear: '$monthName ${payoutDate.year}',
-          payoutDate: payoutDate,
-          amount: monthlyReturn,
-          status: 'Pending',
-          periodType: 'Monthly',
-        ),
-      );
-    }
-    _saveReturns();
-
-    // 5. Add notification
-    _notificationService.addNotification(
-      type: NotificationType.investmentSuccess,
-      title: 'Investment Successful',
-      description: 'Your investment of ₹ ${amount.toInt()} in ${project.name} has been placed.',
-      relatedId: refId,
-    );
-
-    return investment;
-  }
-
-  /// Submits a demo withdrawal request
-  bool requestWithdrawal({required double amount}) {
-    if (amount <= 0 || amount > availableBalance.value) return false;
-
-    availableBalance.value -= amount;
-    _storage.setAvailableBalance(availableBalance.value);
-
-    final now = DateTime.now();
-    final refId = 'WTH-${now.millisecondsSinceEpoch}';
-
-    final txn = TransactionModel(
-      id: 'TXN-${now.millisecondsSinceEpoch}',
-      type: TransactionType.withdrawal,
-      title: 'Withdrawal',
-      subtitle: '${currentUser.value.bankName} (${currentUser.value.accountNumber})',
-      amount: amount,
-      date: now,
-      status: 'Processing',
-      referenceId: refId,
-    );
-
-    transactions.insert(0, txn);
-    _saveTransactions();
-
-    _notificationService.addNotification(
-      type: NotificationType.withdrawalApproved,
-      title: 'Withdrawal Request Submitted',
-      description: 'Withdrawal request of ₹ ${amount.toInt()} is under processing.',
-      relatedId: refId,
-    );
-
-    return true;
-  }
-
-  /// Updates user profile
-  void updateProfile({
-    required String fullName,
-    required String email,
-    required String mobileNumber,
-  }) {
-    currentUser.value = currentUser.value.copyWith(
-      fullName: fullName,
-      email: email,
-      mobileNumber: mobileNumber,
-    );
-    _storage.writeMap(AppConstants.keyUserData, currentUser.value.toJson());
-  }
-
-  void _saveProjects() {
-    _storage.writeList(AppConstants.keyProjectsData, projects.map((p) => p.toJson()).toList());
-  }
-
-  void _saveInvestments() {
-    _storage.writeList(AppConstants.keyInvestmentsData, investments.map((i) => i.toJson()).toList());
-  }
-
-  void _saveTransactions() {
-    _storage.writeList(AppConstants.keyTransactionsData, transactions.map((t) => t.toJson()).toList());
-  }
-
-  void _saveReturns() {
-    _storage.writeList(AppConstants.keyReturnsData, returns.map((r) => r.toJson()).toList());
-  }
-
-  String _monthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[(month - 1) % 12];
-  }
 }
