@@ -6,6 +6,7 @@ class AppLogo extends StatelessWidget {
   final bool isWhite;
   final bool showText;
   final double fontSize;
+  final double? spacing;
 
   const AppLogo({
     super.key,
@@ -13,29 +14,39 @@ class AppLogo extends StatelessWidget {
     this.isWhite = false,
     this.showText = true,
     this.fontSize = 24,
+    this.spacing,
   });
 
   @override
   Widget build(BuildContext context) {
     final color = isWhite ? Colors.white : AppColors.primary;
+    final effectiveSpacing = spacing ?? (size * 0.16).clamp(6.0, 16.0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
           width: size,
           height: size,
-          child: CustomPaint(
-            painter: _InvestProLogoPainter(color: color),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: CustomPaint(
+                painter: _InvestProLogoPainter(color: color),
+              ),
+            ),
           ),
         ),
         if (showText) ...[
-          const SizedBox(height: 10),
+          SizedBox(height: effectiveSpacing),
           Text(
             'InvestPro',
             style: TextStyle(
               fontSize: fontSize,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: color,
               letterSpacing: -0.5,
             ),
@@ -49,7 +60,7 @@ class AppLogo extends StatelessWidget {
 class _InvestProLogoPainter extends CustomPainter {
   final Color color;
 
-  _InvestProLogoPainter({required this.color});
+  const _InvestProLogoPainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -58,46 +69,43 @@ class _InvestProLogoPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    final barWidth = size.width * 0.19;
-    final r = Radius.circular(barWidth * 0.5);
-    final bottomY = size.height * 0.94;
+    canvas.save();
+    // Scale standard 100x100 logo coordinate space to actual canvas size
+    canvas.scale(size.width / 100.0, size.height / 100.0);
 
-    // Bar 1 (Short Rounded Capsule)
-    final bar1Height = size.height * 0.38;
-    final rrect1 = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.12, bottomY - bar1Height, barWidth, bar1Height),
-      r,
+    const cornerRadius = Radius.circular(9.5);
+
+    // Bar 1 (Short Rounded Capsule) - X: 12..31, Y: 56..94
+    final bar1 = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(12, 56, 19, 38),
+      cornerRadius,
     );
-    canvas.drawRRect(rrect1, paint);
+    canvas.drawRRect(bar1, paint);
 
-    // Bar 2 (Medium Rounded Capsule)
-    final bar2Height = size.height * 0.56;
-    final rrect2 = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.39, bottomY - bar2Height, barWidth, bar2Height),
-      r,
+    // Bar 2 (Medium Rounded Capsule) - X: 39..58, Y: 38..94
+    final bar2 = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(39, 38, 19, 56),
+      cornerRadius,
     );
-    canvas.drawRRect(rrect2, paint);
+    canvas.drawRRect(bar2, paint);
 
-    // Bar 3 (Tall Rounded Capsule with Arrowhead)
-    final path = Path();
-    final apexX = size.width * 0.755;
-    final apexY = size.height * 0.06;
-    final wingY = size.height * 0.19;
-
-    path.moveTo(apexX, apexY);
-    path.lineTo(size.width * 0.625, wingY);
-    path.lineTo(size.width * 0.66, wingY);
-    path.lineTo(size.width * 0.66, bottomY - barWidth * 0.5);
-    path.arcToPoint(
-      Offset(size.width * 0.85, bottomY - barWidth * 0.5),
-      radius: r,
-      clockwise: false,
+    // Bar 3 Body (Tall Capsule with rounded bottom) - X: 66..85, Y: 19.5..94
+    final bar3 = RRect.fromRectAndCorners(
+      const Rect.fromLTWH(66, 19.5, 19, 74.5),
+      bottomLeft: cornerRadius,
+      bottomRight: cornerRadius,
     );
-    path.lineTo(size.width * 0.85, wingY);
-    path.lineTo(size.width * 0.885, wingY);
-    path.close();
+    canvas.drawRRect(bar3, paint);
 
-    canvas.drawPath(path, paint);
+    // Bar 3 Arrowhead on top - Apex: (75.5, 6), Left: (62.5, 20.5), Right: (88.5, 20.5)
+    final arrow = Path()
+      ..moveTo(75.5, 6)
+      ..lineTo(62.5, 20.5)
+      ..lineTo(88.5, 20.5)
+      ..close();
+    canvas.drawPath(arrow, paint);
+
+    canvas.restore();
   }
 
   @override
