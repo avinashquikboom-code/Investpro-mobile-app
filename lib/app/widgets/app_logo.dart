@@ -55,46 +55,46 @@ class _InvestProLogoPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
-      ..style = PaintingStyle.fill;
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
 
-    final barWidth = size.width * 0.18;
-    final r = Radius.circular(barWidth * 0.4);
+    final barWidth = size.width * 0.19;
+    final r = Radius.circular(barWidth * 0.5);
+    final bottomY = size.height * 0.94;
 
-    // Bar 1 (Short)
+    // Bar 1 (Short Rounded Capsule)
     final bar1Height = size.height * 0.38;
     final rrect1 = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.12, size.height - bar1Height, barWidth, bar1Height),
+      Rect.fromLTWH(size.width * 0.12, bottomY - bar1Height, barWidth, bar1Height),
       r,
     );
     canvas.drawRRect(rrect1, paint);
 
-    // Bar 2 (Medium)
-    final bar2Height = size.height * 0.58;
+    // Bar 2 (Medium Rounded Capsule)
+    final bar2Height = size.height * 0.56;
     final rrect2 = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.40, size.height - bar2Height, barWidth, bar2Height),
+      Rect.fromLTWH(size.width * 0.39, bottomY - bar2Height, barWidth, bar2Height),
       r,
     );
     canvas.drawRRect(rrect2, paint);
 
-    // Bar 3 (Tall)
-    final bar3Height = size.height * 0.80;
-    final rrect3 = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.68, size.height - bar3Height, barWidth, bar3Height),
-      r,
-    );
-    canvas.drawRRect(rrect3, paint);
-
-    // Upward arrow over the 3rd bar
+    // Bar 3 (Tall Rounded Capsule with Arrowhead)
     final path = Path();
-    final arrowTopX = size.width * 0.77;
-    final arrowTopY = size.height * 0.05;
-    path.moveTo(arrowTopX, arrowTopY);
-    path.lineTo(arrowTopX - size.width * 0.12, arrowTopY + size.height * 0.12);
-    path.lineTo(arrowTopX - size.width * 0.04, arrowTopY + size.height * 0.12);
-    path.lineTo(arrowTopX - size.width * 0.04, arrowTopY + size.height * 0.18);
-    path.lineTo(arrowTopX + size.width * 0.04, arrowTopY + size.height * 0.18);
-    path.lineTo(arrowTopX + size.width * 0.04, arrowTopY + size.height * 0.12);
-    path.lineTo(arrowTopX + size.width * 0.12, arrowTopY + size.height * 0.12);
+    final apexX = size.width * 0.755;
+    final apexY = size.height * 0.06;
+    final wingY = size.height * 0.19;
+
+    path.moveTo(apexX, apexY);
+    path.lineTo(size.width * 0.625, wingY);
+    path.lineTo(size.width * 0.66, wingY);
+    path.lineTo(size.width * 0.66, bottomY - barWidth * 0.5);
+    path.arcToPoint(
+      Offset(size.width * 0.85, bottomY - barWidth * 0.5),
+      radius: r,
+      clockwise: false,
+    );
+    path.lineTo(size.width * 0.85, wingY);
+    path.lineTo(size.width * 0.885, wingY);
     path.close();
 
     canvas.drawPath(path, paint);
