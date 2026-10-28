@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
-import '../../widgets/app_logo.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -30,7 +29,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
       curve: Curves.easeIn,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.88, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.90, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
@@ -66,14 +65,14 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient matching screenshot
+          // Background Gradient matching exact reference screenshot
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF024626),
-                  Color(0xFF01361D),
-                  Color(0xFF002413),
+                  Color(0xFF005C36),
+                  Color(0xFF004828),
+                  Color(0xFF002E19),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -81,20 +80,29 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
             ),
           ),
 
-          // Sprouting Plant & Layered Hills at the bottom
+          // Sprouting Plant & Layered Rolling Hills at the bottom
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            height: screenSize.height * 0.38,
-            child: CustomPaint(
-              painter: _SplashPlantLandscapePainter(),
+            height: screenSize.height * 0.44,
+            child: Image.asset(
+              'assets/images/splash_plant_hills.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.bottomCenter,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) {
+                // Graceful fallback painter if asset is unavailable
+                return CustomPaint(
+                  painter: _SplashPlantLandscapePainter(),
+                );
+              },
             ),
           ),
 
-          // Upper-Center Branding matching screenshot
+          // Upper-Center Branding matching reference screenshot
           Positioned(
-            top: topPadding + screenSize.height * 0.16,
+            top: topPadding + (screenSize.height * 0.11),
             left: 24,
             right: 24,
             child: FadeTransition(
@@ -105,22 +113,42 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Properly fitting InvestPro logo
-                    const AppLogo(
-                      size: 86,
-                      isWhite: true,
-                      showText: false,
+                    // Glowing 3D InvestPro Chart Logo
+                    Image.asset(
+                      'assets/images/splash_logo_3d.png',
+                      width: 96,
+                      height: 104,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const _Fallback3DLogo();
+                      },
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
-                    // App Title
-                    const Text(
-                      'InvestPro',
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+                    // App Title: "Invest" in White, "Pro" in Lime Green
+                    RichText(
+                      text: const TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Invest',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Pro',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF4ADE80),
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -130,9 +158,9 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
                       'Grow Your Wealth\nWith Trusted Investments',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.90),
+                        color: Colors.white.withValues(alpha: 0.95),
                         fontSize: 16,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w500,
                         height: 1.45,
                         letterSpacing: 0.2,
                       ),
@@ -148,21 +176,91 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   }
 }
 
+/// Fallback vector logo painter in case asset image cannot be loaded
+class _Fallback3DLogo extends StatelessWidget {
+  const _Fallback3DLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 96,
+      height: 104,
+      child: CustomPaint(
+        painter: _InvestPro3DLogoPainter(),
+      ),
+    );
+  }
+}
+
+class _InvestPro3DLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Glowing drop shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawCircle(Offset(w * 0.5, h * 0.6), 34, shadowPaint);
+
+    final gradientPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF8CE35E), Color(0xFF2CB457), Color(0xFF15833B)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, w, h))
+      ..style = PaintingStyle.fill;
+
+    // Bar 1 (Left)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.12, h * 0.52, w * 0.20, h * 0.40),
+        const Radius.circular(10),
+      ),
+      gradientPaint,
+    );
+
+    // Bar 2 (Middle)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.40, h * 0.32, w * 0.20, h * 0.60),
+        const Radius.circular(10),
+      ),
+      gradientPaint,
+    );
+
+    // Bar 3 (Right with arrow)
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.68, h * 0.22, w * 0.20, h * 0.70),
+        const Radius.circular(10),
+      ),
+      gradientPaint,
+    );
+
+    final arrow = Path()
+      ..moveTo(w * 0.78, h * 0.04)
+      ..lineTo(w * 0.62, h * 0.22)
+      ..lineTo(w * 0.94, h * 0.22)
+      ..close();
+    canvas.drawPath(arrow, gradientPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Fallback plant landscape painter
 class _SplashPlantLandscapePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    // --- Soft ambient glow behind plant ---
-    final glowPaint = Paint()
-      ..color = const Color(0xFF35C76F).withValues(alpha: 0.15)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 36);
-    canvas.drawCircle(Offset(w * 0.50, h * 0.45), 65, glowPaint);
-
-    // --- Layer 1: Back Deep Hill Wave ---
+    // Layer 1: Back Hill Wave
     final hillPaint1 = Paint()
-      ..color = const Color(0xFF0C5D33).withValues(alpha: 0.45)
+      ..color = const Color(0xFF0C5D33).withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
     final hill1 = Path()
       ..moveTo(0, h * 0.60)
@@ -173,9 +271,9 @@ class _SplashPlantLandscapePainter extends CustomPainter {
       ..close();
     canvas.drawPath(hill1, hillPaint1);
 
-    // --- Layer 2: Middle Vibrant Wave ---
+    // Layer 2: Middle Vibrant Wave
     final hillPaint2 = Paint()
-      ..color = const Color(0xFF138549).withValues(alpha: 0.55)
+      ..color = const Color(0xFF138549).withValues(alpha: 0.75)
       ..style = PaintingStyle.fill;
     final hill2 = Path()
       ..moveTo(0, h * 0.76)
@@ -185,95 +283,6 @@ class _SplashPlantLandscapePainter extends CustomPainter {
       ..lineTo(0, h)
       ..close();
     canvas.drawPath(hill2, hillPaint2);
-
-    // --- Layer 3: Central Sprout Plant ---
-    // Curved Central Stem
-    final stemPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..strokeCap = StrokeCap.round;
-
-    final stem = Path()
-      ..moveTo(w * 0.48, h * 0.85)
-      ..quadraticBezierTo(w * 0.47, h * 0.50, w * 0.50, h * 0.28);
-    canvas.drawPath(stem, stemPaint);
-
-    // Top Right Leaf (Main vibrant lime leaf)
-    final leafTopPaint = Paint()
-      ..color = const Color(0xFF76C860)
-      ..style = PaintingStyle.fill;
-    final leafTop = Path()
-      ..moveTo(w * 0.495, h * 0.34)
-      ..cubicTo(
-        w * 0.48, h * 0.22,
-        w * 0.58, h * 0.12,
-        w * 0.64, h * 0.13,
-      )
-      ..cubicTo(
-        w * 0.65, h * 0.22,
-        w * 0.56, h * 0.32,
-        w * 0.505, h * 0.27,
-      )
-      ..close();
-    canvas.drawPath(leafTop, leafTopPaint);
-
-    // Leaf top highlight / vein
-    final leafTopVein = Paint()
-      ..color = const Color(0xFF98E87F).withValues(alpha: 0.7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    canvas.drawLine(Offset(w * 0.51, h * 0.31), Offset(w * 0.62, h * 0.15), leafTopVein);
-
-    // Left Arched Leaf
-    final leafLeftPaint = Paint()
-      ..color = const Color(0xFF5AB75C)
-      ..style = PaintingStyle.fill;
-    final leafLeft = Path()
-      ..moveTo(w * 0.48, h * 0.50)
-      ..cubicTo(
-        w * 0.40, h * 0.48,
-        w * 0.33, h * 0.36,
-        w * 0.35, h * 0.30,
-      )
-      ..cubicTo(
-        w * 0.41, h * 0.33,
-        w * 0.46, h * 0.40,
-        w * 0.48, h * 0.44,
-      )
-      ..close();
-    canvas.drawPath(leafLeft, leafLeftPaint);
-
-    // Right Lower Leaf
-    final leafRightPaint = Paint()
-      ..color = const Color(0xFF45A54B)
-      ..style = PaintingStyle.fill;
-    final leafRight = Path()
-      ..moveTo(w * 0.49, h * 0.60)
-      ..cubicTo(
-        w * 0.55, h * 0.56,
-        w * 0.63, h * 0.48,
-        w * 0.62, h * 0.43,
-      )
-      ..cubicTo(
-        w * 0.57, h * 0.47,
-        w * 0.52, h * 0.51,
-        w * 0.49, h * 0.54,
-      )
-      ..close();
-    canvas.drawPath(leafRight, leafRightPaint);
-
-    // --- Layer 4: Foreground Mound over stem base ---
-    final hillPaint3 = Paint()
-      ..color = const Color(0xFF1E9B56).withValues(alpha: 0.70)
-      ..style = PaintingStyle.fill;
-    final hill3 = Path()
-      ..moveTo(0, h * 0.88)
-      ..quadraticBezierTo(w * 0.45, h * 0.80, w, h * 0.86)
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-    canvas.drawPath(hill3, hillPaint3);
   }
 
   @override

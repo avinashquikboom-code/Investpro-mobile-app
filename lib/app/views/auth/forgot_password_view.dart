@@ -434,3 +434,4 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     );
   }
 }
+
