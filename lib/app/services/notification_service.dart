@@ -15,7 +15,22 @@ class NotificationService extends GetxService {
 
   Future<NotificationService> init() async {
     loadNotifications();
+    refreshFromBackend();
     return this;
+  }
+
+  Future<void> refreshFromBackend() async {
+    if (_api == null) return;
+    try {
+      final list = await _api.getNotifications();
+      if (list != null && list.isNotEmpty) {
+        final parsed = list
+            .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        notifications.value = parsed;
+        _saveToStorage();
+      }
+    } catch (_) {}
   }
 
   void loadNotifications() {

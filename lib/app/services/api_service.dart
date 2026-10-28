@@ -380,12 +380,66 @@ class ApiService extends getx.GetxService {
     try {
       final response = await dio.get('/mobile/notifications');
       if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as List<dynamic>;
+        final data = response.data['data'];
+        if (data is Map && data.containsKey('notifications')) {
+          return data['notifications'] as List<dynamic>;
+        } else if (data is List) {
+          return data;
+        }
       }
     } catch (e) {
       debugPrint('[ApiService] getNotifications error: $e');
     }
     return null;
+  }
+
+  Future<int?> getUnreadNotificationCount() async {
+    try {
+      final response = await dio.get('/mobile/notifications/unread-count');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final data = response.data['data'];
+        if (data is Map && data.containsKey('unreadCount')) {
+          return (data['unreadCount'] as num).toInt();
+        }
+      }
+    } catch (e) {
+      debugPrint('[ApiService] getUnreadNotificationCount error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> registerDeviceToken({
+    required String token,
+    String platform = 'android',
+    String? deviceId,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/mobile/device-tokens',
+        data: {
+          'token': token,
+          'platform': platform,
+          'deviceId': ?deviceId,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('[ApiService] registerDeviceToken error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteDeviceToken(String token) async {
+    try {
+      final response = await dio.delete(
+        '/mobile/device-tokens',
+        data: {'token': token},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[ApiService] deleteDeviceToken error: $e');
+      return false;
+    }
   }
 
   Future<bool> markNotificationRead(String id) async {

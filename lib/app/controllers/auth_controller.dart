@@ -6,6 +6,8 @@ import '../routes/app_routes.dart';
 import '../services/api_service.dart';
 import '../services/demo_repository.dart';
 import '../services/local_storage_service.dart';
+import '../services/notification_service.dart';
+import '../services/firebase_notification_service.dart';
 import '../utils/validators.dart';
 
 class AuthController extends GetxController {
@@ -70,6 +72,15 @@ class AuthController extends GetxController {
             }
             // Sync live investor data from backend
             await _repo.syncFromBackend();
+
+            try {
+              if (Get.isRegistered<FirebaseNotificationService>()) {
+                await Get.find<FirebaseNotificationService>().syncToken();
+              }
+              if (Get.isRegistered<NotificationService>()) {
+                await Get.find<NotificationService>().refreshFromBackend();
+              }
+            } catch (_) {}
 
             Get.find<NavigationController>().goToHome();
             Get.offAllNamed(AppRoutes.home);
@@ -258,6 +269,11 @@ class AuthController extends GetxController {
 
     if (confirmed == true) {
       isLoggedIn.value = false;
+      try {
+        if (Get.isRegistered<FirebaseNotificationService>()) {
+          await Get.find<FirebaseNotificationService>().deleteToken();
+        }
+      } catch (_) {}
       if (_api != null) {
         await _api.logout().catchError((_) {});
       }

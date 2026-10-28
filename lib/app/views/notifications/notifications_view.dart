@@ -83,28 +83,40 @@ class NotificationsView extends StatelessWidget {
           child: Obx(() {
             final list = notifCtrl.notifications;
             if (list.isEmpty) {
-              return const Center(
-                child: Text('No notifications yet'),
+              return RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: notifCtrl.refreshNotifications,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 120),
+                    Center(child: Text('No notifications yet')),
+                  ],
+                ),
               );
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                final notif = list[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceDark : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.border,
-                      width: 1,
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: notifCtrl.refreshNotifications,
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final notif = list[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  child: ListTile(
-                    onTap: () => notifCtrl.markAsRead(notif.id),
+                    child: ListTile(
+                      onTap: () => notifCtrl.handleNotificationTap(notif),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                     leading: Container(
                       width: 44,
@@ -167,10 +179,11 @@ class NotificationsView extends StatelessWidget {
                   ),
                 );
               },
-            );
-          }),
-        ),
+            ),
+          );
+        }),
       ),
+    ),
     );
   }
 }

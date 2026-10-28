@@ -13,6 +13,7 @@ class LocalStorageService implements LocalStore {
   dynamic read(String key) => backend != null ? backend!.read(key) : _box.read(key);
   @override
   Future<void> write(String key, dynamic value) => backend != null ? backend!.write(key,value) : _box.write(key,value);
+  Future<void> remove(String key) => write(key, null);
 
   Future<LocalStorageService> init() async {
     if (backend != null) return this;

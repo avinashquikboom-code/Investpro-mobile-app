@@ -24,6 +24,7 @@ import 'app/services/api_service.dart';
 import 'app/services/demo_repository.dart';
 import 'app/services/local_storage_service.dart';
 import 'app/services/notification_service.dart';
+import 'app/services/firebase_notification_service.dart';
 import 'app/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -50,6 +51,13 @@ Future<void> main() async {
 
   final demoRepo = await DemoRepository(storageService, notificationService, apiService).init();
   Get.put<DemoRepository>(demoRepo, permanent: true);
+
+  final firebaseNotifService = await FirebaseNotificationService(
+    storageService,
+    apiService,
+    notificationService,
+  ).init();
+  Get.put<FirebaseNotificationService>(firebaseNotifService, permanent: true);
 
   // 2. Register Controllers via Get.put() (No GetX Bindings per instructions)
   final themeController = Get.put<ThemeController>(ThemeController(storageService), permanent: true);
