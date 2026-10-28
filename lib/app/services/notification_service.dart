@@ -1,13 +1,15 @@
 import 'package:get/get.dart';
 import '../models/notification_model.dart';
+import 'api_service.dart';
 import 'local_storage_service.dart';
 import '../constants/app_constants.dart';
 
 class NotificationService extends GetxService {
   final LocalStorageService _storage;
+  final ApiService? _api;
   RxList<NotificationModel> notifications = <NotificationModel>[].obs;
 
-  NotificationService(this._storage);
+  NotificationService(this._storage, [this._api]);
 
   int get unreadCount => notifications.where((n) => !n.isRead).length;
 
@@ -80,11 +82,13 @@ class NotificationService extends GetxService {
       notifications[idx] = notifications[idx].copyWith(isRead: true);
       _saveToStorage();
     }
+    _api?.markNotificationRead(id).catchError((_) => false);
   }
 
   void markAllAsRead() {
     notifications.value = notifications.map((n) => n.copyWith(isRead: true)).toList();
     _saveToStorage();
+    _api?.markAllNotificationsRead().catchError((_) => false);
   }
 
   void addNotification({

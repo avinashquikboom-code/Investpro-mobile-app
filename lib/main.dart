@@ -39,7 +39,7 @@ Future<void> main() async {
   final apiService = await ApiService().init();
   Get.put<ApiService>(apiService, permanent: true);
 
-  final notificationService = await NotificationService(storageService).init();
+  final notificationService = await NotificationService(storageService, apiService).init();
   Get.put<NotificationService>(notificationService, permanent: true);
 
   final demoRepo = await DemoRepository(storageService, notificationService, apiService).init();

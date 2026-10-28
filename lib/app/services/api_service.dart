@@ -342,6 +342,40 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
+  Future<Map<String, dynamic>?> updateProfile({
+    String? fullName,
+    String? mobileNumber,
+    String? address,
+  }) async {
+    try {
+      final payload = <String, dynamic>{};
+      if (fullName != null) payload['fullName'] = fullName;
+      if (mobileNumber != null) payload['mobileNumber'] = mobileNumber;
+      if (address != null) payload['address'] = address;
+
+      final response = await dio.patch('/mobile/profile', data: payload);
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] updateProfile error: $e');
+      rethrow;
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getInvestmentStats() async {
+    try {
+      final response = await dio.get('/mobile/investments/stats');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] getInvestmentStats error: $e');
+    }
+    return null;
+  }
+
   Future<List<dynamic>?> getNotifications() async {
     try {
       final response = await dio.get('/mobile/notifications');

@@ -562,12 +562,26 @@ class DemoRepository extends GetxService {
     required String fullName,
     required String email,
     required String mobileNumber,
-  }) =>
-      saveUser(currentUser.value.copyWith(
-        fullName: fullName,
-        email: email,
-        mobileNumber: mobileNumber,
-      ));
+  }) async {
+    if (_api != null) {
+      try {
+        final token = await _api.getAccessToken();
+        if (token != null && token.isNotEmpty) {
+          await _api.updateProfile(
+            fullName: fullName,
+            mobileNumber: mobileNumber,
+          );
+        }
+      } catch (e) {
+        debugPrint('[DemoRepository] updateProfile backend error: $e');
+      }
+    }
+    await saveUser(currentUser.value.copyWith(
+      fullName: fullName,
+      email: email,
+      mobileNumber: mobileNumber,
+    ));
+  }
 
   Future<void> saveUser(UserModel user) => _commit((j) => j['user'] = user.toJson());
 
