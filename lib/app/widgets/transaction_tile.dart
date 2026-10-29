@@ -28,6 +28,7 @@ class TransactionTile extends StatelessWidget {
         iconBg = AppColors.successLight;
         isCredit = true;
         break;
+      case TransactionType.refund:
       case TransactionType.deposit:
         icon = Icons.add_rounded;
         iconColor = AppColors.success;
@@ -39,6 +40,7 @@ class TransactionTile extends StatelessWidget {
         iconColor = AppColors.error;
         iconBg = AppColors.errorLight;
         break;
+      case TransactionType.fee:
       case TransactionType.investment:
         icon = Icons.business_center_rounded;
         iconColor = AppColors.primary;
@@ -46,6 +48,7 @@ class TransactionTile extends StatelessWidget {
         break;
     }
 
+    if (transaction.direction.isNotEmpty) isCredit = transaction.direction == 'CREDIT';
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(

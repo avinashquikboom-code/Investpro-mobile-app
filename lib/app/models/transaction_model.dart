@@ -1,4 +1,4 @@
-enum TransactionType { investment, returnReceived, withdrawal, deposit }
+enum TransactionType { investment, returnReceived, withdrawal, deposit, refund, fee }
 
 class TransactionModel {
   final String id;
@@ -7,6 +7,7 @@ class TransactionModel {
   final String subtitle;
   final double amount;
   final DateTime date;
+  final String direction;
   final String status; // 'Completed', 'Processing', 'Failed'
   final String? projectId;
   final String? projectName;
@@ -20,6 +21,7 @@ class TransactionModel {
     required this.amount,
     required this.date,
     this.status = 'Completed',
+    this.direction = '',
     this.projectId,
     this.projectName,
     required this.referenceId,
@@ -34,6 +36,7 @@ class TransactionModel {
       'amount': amount,
       'date': date.toIso8601String(),
       'status': status,
+      'direction': direction,
       'projectId': projectId,
       'projectName': projectName,
       'referenceId': referenceId,
@@ -52,6 +55,7 @@ class TransactionModel {
       amount: (json['amount'] as num).toDouble(),
       date: DateTime.parse(json['date'] as String),
       status: json['status'] as String? ?? 'Completed',
+      direction: json['direction'] as String? ?? '',
       projectId: json['projectId'] as String?,
       projectName: json['projectName'] as String?,
       referenceId:

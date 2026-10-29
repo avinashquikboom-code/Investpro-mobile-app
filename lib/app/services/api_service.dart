@@ -120,6 +120,29 @@ class ApiService extends getx.GetxService {
     return false;
   }
 
+  Future<List<dynamic>> collection(String path, {Map<String, dynamic>? query}) async {
+    final records = <dynamic>[];
+    for (var page = 1; ; page++) {
+      final response = await dio.get(path, queryParameters: {...?query, 'page': page, 'limit': 100});
+      if (response.data['success'] != true || response.data['data'] is! List) throw Exception('Unable to load records');
+      records.addAll(response.data['data'] as List);
+      if (page >= ((response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1)) return records;
+    }
+  }
+  Future<Map<String, dynamic>> object(String path) async {
+    final response = await dio.get(path);
+    if (response.data['success'] != true || response.data['data'] is! Map) throw Exception('Unable to load account data');
+    return Map<String, dynamic>.from(response.data['data'] as Map);
+  }
+  Future<Map<String, dynamic>> paymentOrder(String investmentId) async => Map<String, dynamic>.from((await dio.post('/payments/orders', data: {'investmentId': investmentId})).data['data'] as Map);
+  Future<Map<String, dynamic>> verifyPayment(Map<String, dynamic> data) async => Map<String, dynamic>.from((await dio.post('/payments/verify', data: data)).data['data'] as Map);
+  Future<List<dynamic>> kyc() => collection('/mobile/kyc');
+  Future<void> submitKyc(String type, List<int> bytes, String name) async {
+    await dio.post('/mobile/kyc', data: FormData.fromMap({'documentType': type, 'document': MultipartFile.fromBytes(bytes, filename: name)}));
+  }
+  Future<String> kycDocumentUrl(String id) async => (await object('/mobile/kyc/$id/document'))['url'] as String;
+  Future<void> changePassword(String current, String next) async { await dio.post('/auth/change-password', data: {'currentPassword': current, 'newPassword': next}); }
+
   // --- AUTH APIS ---
 
   Future<Map<String, dynamic>?> login(
@@ -203,17 +226,8 @@ class ApiService extends getx.GetxService {
 
   // --- MOBILE DASHBOARD & DATA ---
 
-  Future<Map<String, dynamic>?> getDashboard() async {
-    try {
-      final response = await dio.get('/mobile/dashboard');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getDashboard error: $e');
-    }
-    return null;
-  }
+  Future<Map<String, dynamic>?> getDashboard() async => object('/mobile/dashboard');
+
 
   Future<List<Map<String, dynamic>>> getProjectCategories() async {
     final response = await dio.get('/mobile/project-categories');
@@ -288,26 +302,19 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<List<dynamic>?> getInvestments() async {
-    try {
-      final response = await dio.get('/mobile/investments');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as List<dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getInvestments error: $e');
-    }
-    return null;
-  }
+  Future<List<dynamic>?> getInvestments() async => collection('/mobile/investments');
+
 
   Future<Map<String, dynamic>?> createInvestment({
     required String projectId,
     required double amount,
+    String? idempotencyKey,
     String paymentMethod = 'BANK_TRANSFER',
   }) async {
     try {
       final response = await dio.post(
         '/mobile/investments',
+        options: Options(headers: {if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey}),
         data: {
           'projectId': projectId,
           'amount': amount,
@@ -326,41 +333,24 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<List<dynamic>?> getReturns() async {
-    try {
-      final response = await dio.get('/mobile/returns');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as List<dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getReturns error: $e');
-    }
-    return null;
-  }
+  Future<List<dynamic>?> getReturns() async => collection('/mobile/returns');
 
-  Future<List<dynamic>?> getWithdrawals() async {
-    try {
-      final response = await dio.get('/mobile/withdrawals');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as List<dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getWithdrawals error: $e');
-    }
-    return null;
-  }
+
+  Future<List<dynamic>?> getWithdrawals() async => collection('/mobile/withdrawals');
+
 
   Future<Map<String, dynamic>?> createWithdrawal({
     required double amount,
     String? bankAccountId,
     String? notes,
+    String? idempotencyKey,
   }) async {
     try {
       final payload = <String, dynamic>{'amount': amount};
       if (bankAccountId != null) payload['bankAccountId'] = bankAccountId;
       if (notes != null) payload['notes'] = notes;
 
-      final response = await dio.post('/mobile/withdrawals', data: payload);
+      final response = await dio.post('/mobile/withdrawals', data: payload, options: Options(headers: {if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey}));
 
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data['success'] == true) {
@@ -373,29 +363,11 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<List<dynamic>?> getTransactions() async {
-    try {
-      final response = await dio.get('/mobile/transactions');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as List<dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getTransactions error: $e');
-    }
-    return null;
-  }
+  Future<List<dynamic>?> getTransactions() async => collection('/mobile/transactions');
 
-  Future<Map<String, dynamic>?> getProfile() async {
-    try {
-      final response = await dio.get('/mobile/profile');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getProfile error: $e');
-    }
-    return null;
-  }
+
+  Future<Map<String, dynamic>?> getProfile() async => object('/mobile/profile');
+
 
   Future<Map<String, dynamic>?> updateProfile({
     String? fullName,

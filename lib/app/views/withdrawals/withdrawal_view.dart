@@ -151,8 +151,8 @@ class WithdrawalView extends StatelessWidget {
 
                   Obx(
                     () => CheckboxListTile(
-                      title: const Text('Use this demo bank account'),
-                      subtitle: const Text('No real transfer will occur.'),
+                      title: const Text('Use my saved bank account'),
+                      subtitle: const Text('A request reserves funds; approval and settlement are separate.'),
                       value: controller.bankSelected.value,
                       onChanged: controller.isSubmitting.value
                           ? null

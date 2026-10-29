@@ -4,6 +4,9 @@ class UserModel {
   final String email;
   final String mobileNumber;
   final String role;
+  final String accountStatus;
+  final String kycStatus;
+  final String? bankAccountId;
   final String? avatarUrl;
   final String bankName;
   final String accountNumber;
@@ -16,11 +19,14 @@ class UserModel {
     required this.email,
     required this.mobileNumber,
     this.role = 'Investor',
+    this.accountStatus = '',
+    this.kycStatus = '',
+    this.bankAccountId,
     this.avatarUrl,
-    this.bankName = 'HDFC Bank',
-    this.accountNumber = '•••• 4829',
-    this.ifscCode = 'HDFC0001234',
-    this.isBankVerified = true,
+    this.bankName = '',
+    this.accountNumber = '',
+    this.ifscCode = '',
+    this.isBankVerified = false,
   });
 
   String get name => fullName;
@@ -31,6 +37,9 @@ class UserModel {
     String? email,
     String? mobileNumber,
     String? role,
+    String? accountStatus,
+    String? kycStatus,
+    String? bankAccountId,
     String? avatarUrl,
     String? bankName,
     String? accountNumber,
@@ -43,6 +52,9 @@ class UserModel {
       email: email ?? this.email,
       mobileNumber: mobileNumber ?? this.mobileNumber,
       role: role ?? this.role,
+      accountStatus: accountStatus ?? this.accountStatus,
+      kycStatus: kycStatus ?? this.kycStatus,
+      bankAccountId: bankAccountId ?? this.bankAccountId,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       bankName: bankName ?? this.bankName,
       accountNumber: accountNumber ?? this.accountNumber,
@@ -58,6 +70,9 @@ class UserModel {
       'email': email,
       'mobileNumber': mobileNumber,
       'role': role,
+      'accountStatus': accountStatus,
+      'kycStatus': kycStatus,
+      'bankAccountId': bankAccountId,
       'avatarUrl': avatarUrl,
       'bankName': bankName,
       'accountNumber': accountNumber,
@@ -68,16 +83,19 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as String? ?? 'INV001',
-      fullName: json['fullName'] as String? ?? 'Rohit Sharma',
-      email: json['email'] as String? ?? 'rohit.sharma@example.com',
-      mobileNumber: json['mobileNumber'] as String? ?? '+91 98765 43210',
+      id: json['id'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      mobileNumber: json['mobileNumber'] as String? ?? '',
       role: json['role'] as String? ?? 'Investor',
+      accountStatus: json['accountStatus'] as String? ?? '',
+      kycStatus: json['kycStatus'] as String? ?? '',
+      bankAccountId: json['bankAccountId'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
-      bankName: json['bankName'] as String? ?? 'HDFC Bank',
-      accountNumber: json['accountNumber'] as String? ?? '•••• 4829',
-      ifscCode: json['ifscCode'] as String? ?? 'HDFC0001234',
-      isBankVerified: json['isBankVerified'] as bool? ?? true,
+      bankName: json['bankName'] as String? ?? '',
+      accountNumber: json['accountNumber'] as String? ?? '',
+      ifscCode: json['ifscCode'] as String? ?? '',
+      isBankVerified: json['isBankVerified'] as bool? ?? false,
     );
   }
 }

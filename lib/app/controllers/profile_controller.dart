@@ -63,7 +63,6 @@ class ProfileController extends GetxController {
 
     isSaving.value = true;
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
 
       await _repo.updateProfile(
         fullName: nameController.text.trim(),

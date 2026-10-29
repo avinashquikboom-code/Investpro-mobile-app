@@ -12,6 +12,7 @@ import '../models/transaction_model.dart';
 import '../models/user_model.dart';
 import '../models/withdrawal_model.dart';
 import 'api_service.dart';
+import 'backend_snapshot.dart';
 import 'investment_calculator.dart';
 import 'local_storage_service.dart';
 import 'notification_service.dart';
@@ -40,6 +41,19 @@ class DemoRepository extends GetxService {
   final returns = <ReturnPayoutModel>[].obs;
   final withdrawals = <WithdrawalModel>[].obs;
   final availableBalance = 0.0.obs;
+  bool get isLive => _api != null;
+  final syncError = ''.obs;
+  final isSyncing = false.obs;
+  final serverTotalInvested = 0.0.obs;
+  final serverTotalReturns = 0.0.obs;
+  Future<void>? _sync;
+  void clearLiveData() {
+    if (!isLive) return;
+    projects.clear(); investments.clear(); withdrawals.clear(); transactions.clear(); returns.clear();
+    availableBalance.value = 0; serverTotalInvested.value = 0; serverTotalReturns.value = 0;
+    currentUser.value = const UserModel(id: '', fullName: '', email: '', mobileNumber: '');
+    syncError.value = '';
+  }
   bool _writing = false;
   int _sequence = 0;
 
@@ -48,13 +62,13 @@ class DemoRepository extends GetxService {
 
   static int minor(double amount) => (amount * 100).round();
 
-  double get totalInvested =>
+  double get totalInvested => isLive ? serverTotalInvested.value :
       investments
           .where((i) => i.status == 'Active')
           .fold<int>(0, (s, i) => s + minor(i.investedAmount)) /
       100;
 
-  double get totalReturns =>
+  double get totalReturns => isLive ? serverTotalReturns.value :
       returns
           .where((r) => r.status == 'Received')
           .fold<int>(0, (s, r) => s + minor(r.amount)) /
@@ -96,15 +110,13 @@ class DemoRepository extends GetxService {
   }
 
   Future<DemoRepository> init() async {
+    if (isLive) { clearLiveData(); return this; }
     await loadData();
-    // Attempt background sync if connected
-    syncFromBackend().catchError((e) {
-      debugPrint('[DemoRepository] initial sync ignored: $e');
-    });
     return this;
   }
 
   Future<void> loadData() async {
+    if (isLive) { await syncFromBackend(); return; }
     final snapshot = _storage.readMap('ledger_v2');
     if (snapshot != null) {
       _apply(snapshot);
@@ -149,169 +161,40 @@ class DemoRepository extends GetxService {
     await _storage.writeMap('ledger_v2', _snapshot());
   }
 
-  Future<void> syncFromBackend() async {
-    if (_api == null) return;
+  Future<void> syncFromBackend() {
+    if (!isLive) return Future<void>.value();
+    return _sync ??= _loadSnapshot().whenComplete(() => _sync = null);
+  }
+  Future<void> _loadSnapshot() async {
+    isSyncing.value = true;
+    syncError.value = '';
     try {
-      final token = await _api.getAccessToken();
-      if (token == null || token.isEmpty) return;
-
-      // 1. Sync Profile
-      final profile = await _api.getProfile();
-      if (profile != null) {
-        final bankAccs = profile['bankAccounts'] as List<dynamic>?;
-        final primaryBank = bankAccs != null && bankAccs.isNotEmpty
-            ? bankAccs[0] as Map<String, dynamic>?
-            : null;
-        final rawAcc = primaryBank?['accountNumber']?.toString();
-        final displayAcc = (rawAcc != null && rawAcc.length >= 4)
-            ? '•••• ${rawAcc.substring(rawAcc.length - 4)}'
-            : currentUser.value.accountNumber;
-
-        currentUser.value = UserModel(
-          id: profile['id'] as String? ?? currentUser.value.id,
-          fullName:
-              profile['fullName'] as String? ?? currentUser.value.fullName,
-          email:
-              profile['user']?['email'] as String? ?? currentUser.value.email,
-          mobileNumber:
-              profile['user']?['mobileNumber'] as String? ??
-              currentUser.value.mobileNumber,
-          role: 'Investor',
-          isBankVerified: profile['isBankVerified'] as bool? ?? true,
-          bankName:
-              primaryBank?['bankName'] as String? ?? currentUser.value.bankName,
-          accountNumber: displayAcc,
-          ifscCode:
-              primaryBank?['ifscCode'] as String? ?? currentUser.value.ifscCode,
-        );
-      }
-
-      // 2. Sync Dashboard & Wallet
-      final dash = await _api.getDashboard();
-      if (dash != null && dash['wallet'] != null) {
-        final w = dash['wallet'];
-        availableBalance.value =
-            (w['availableBalance'] as num?)?.toDouble() ?? 0.0;
-      }
-
-      // 3. Sync Projects
-      final projs = await _api.getProjects();
-      if (projs != null) {
-        final mappedProjs = projs
-            .map(
-              (p) =>
-                  ProjectModel.fromBackend(Map<String, dynamic>.from(p as Map)),
-            )
-            .toList();
-
-        projects.assignAll(mappedProjs);
-      }
-
-      // 4. Sync Investments
-      final invs = await _api.getInvestments();
-      if (invs != null && invs.isNotEmpty) {
-        final mappedInvs = invs.map((i) {
-          final p = i['project'] as Map<String, dynamic>?;
-          final amt = (i['amount'] as num?)?.toDouble() ?? 0.0;
-          final roi = (i['agreedRoi'] as num?)?.toDouble() ?? 15.0;
-          final expReturn =
-              (i['totalExpectedReturns'] as num?)?.toDouble() ?? 0.0;
-          final start = i['createdAt'] != null
-              ? DateTime.parse(i['createdAt'])
-              : DateTime.now();
-          final months = p?['tenureMonths'] as int? ?? 12;
-          final matDate = InvestmentCalculator.addMonths(start, months);
-
-          return InvestmentModel(
-            id: i['id'] as String,
-            projectId: i['projectId'] as String? ?? '',
-            projectName: p?['title'] as String? ?? 'Project Investment',
-            iconType: 'code',
-            investedAmount: amt,
-            returnRatePercent: roi,
-            durationMonths: months,
-            expectedReturn: expReturn,
-            maturityAmount: amt + expReturn,
-            startDate: start,
-            maturityDate: matDate,
-            progressPercent: 0,
-            status: i['status'] == 'ACTIVE' ? 'Active' : 'Completed',
-            paymentMethod: i['paymentMethod'] as String? ?? 'UPI',
-          );
-        }).toList();
-
-        investments.assignAll(mappedInvs);
-      }
-
-      // 5. Sync Withdrawals
-      final wds = await _api.getWithdrawals();
-      if (wds != null && wds.isNotEmpty) {
-        final mappedWds = wds.map((w) {
-          final bank = w['bankAccount'] as Map<String, dynamic>?;
-          final bankAccNumber = bank?['accountNumber']?.toString();
-          final maskedAcc = (bankAccNumber != null && bankAccNumber.length >= 4)
-              ? '•••• ${bankAccNumber.substring(bankAccNumber.length - 4)}'
-              : '•••• 4829';
-
-          return WithdrawalModel(
-            id: w['id'] as String,
-            amount: (w['amount'] as num?)?.toDouble() ?? 0.0,
-            bankName: bank?['bankName'] as String? ?? 'Bank Account',
-            accountNumber: maskedAcc,
-            requestDate: w['requestedAt'] != null
-                ? DateTime.parse(w['requestedAt'])
-                : DateTime.now(),
-            status: w['status'] == 'COMPLETED'
-                ? 'Completed'
-                : w['status'] == 'REJECTED'
-                ? 'Rejected'
-                : 'Processing',
-            referenceId:
-                w['withdrawalReference'] as String? ?? w['id'] as String,
-          );
-        }).toList();
-
-        withdrawals.assignAll(mappedWds);
-      }
-
-      // 6. Sync Transactions
-      final txns = await _api.getTransactions();
-      if (txns != null && txns.isNotEmpty) {
-        final mappedTxns = txns.map((t) {
-          final typeStr = t['type'] as String? ?? '';
-          TransactionType type = TransactionType.investment;
-          if (typeStr.contains('RETURN')) {
-            type = TransactionType.returnReceived;
-          } else if (typeStr.contains('WITHDRAWAL')) {
-            type = TransactionType.withdrawal;
-          } else if (typeStr.contains('DEPOSIT')) {
-            type = TransactionType.deposit;
-          }
-
-          return TransactionModel(
-            id: t['id'] as String,
-            type: type,
-            title: type == TransactionType.investment
-                ? 'Investment'
-                : type == TransactionType.returnReceived
-                ? 'Return Received'
-                : 'Withdrawal',
-            subtitle: t['description'] as String? ?? 'Transaction',
-            amount: (t['amount'] as num?)?.toDouble() ?? 0.0,
-            date: t['createdAt'] != null
-                ? DateTime.parse(t['createdAt'])
-                : DateTime.now(),
-            status: t['status'] == 'COMPLETED' ? 'Completed' : 'Processing',
-            referenceId:
-                t['transactionReference'] as String? ?? t['id'] as String,
-          );
-        }).toList();
-
-        transactions.assignAll(mappedTxns);
-      }
-    } catch (e) {
-      debugPrint('[DemoRepository] syncFromBackend error: $e');
-    }
+      final token = await _api!.getAccessToken();
+      if (token == null || token.isEmpty) { clearLiveData(); return; }
+      final data = await Future.wait<dynamic>([
+        _api.getProfile(), _api.getDashboard(), _api.getEligibleProjects(),
+        _api.getInvestments(), _api.getWithdrawals(), _api.getTransactions(), _api.getReturns(),
+      ]);
+      if (data.any((v) => v == null)) throw StateError('Account data is unavailable');
+      final profile = Map<String, dynamic>.from(data[0] as Map);
+      final portfolio = (data[1] as Map)['portfolio'];
+      if (portfolio is! Map || !portfolio.containsKey('availableBalance') || !portfolio.containsKey('totalInvested')) throw StateError('Portfolio data is unavailable');
+      final user = BackendSnapshot.user(profile);
+      if (user.accountStatus != 'ACTIVE') throw StateError('Account is not active');
+      // Commit one coherent server snapshot; successful empty collections clear stale data.
+      currentUser.value = user;
+      serverTotalInvested.value = BackendSnapshot.number(portfolio['totalInvested']);
+      serverTotalReturns.value = BackendSnapshot.number(portfolio['totalReturns']);
+      availableBalance.value = BackendSnapshot.number(portfolio['availableBalance']);
+      projects.assignAll((data[2] as List).map((v) => ProjectModel.fromBackend(Map<String, dynamic>.from(v as Map))));
+      investments.assignAll((data[3] as List).map((v) => BackendSnapshot.investment(Map<String, dynamic>.from(v as Map))));
+      withdrawals.assignAll((data[4] as List).map((v) => BackendSnapshot.withdrawal(Map<String, dynamic>.from(v as Map))));
+      transactions.assignAll((data[5] as List).map((v) => BackendSnapshot.transaction(Map<String, dynamic>.from(v as Map))));
+      returns.assignAll((data[6] as List).map((v) => BackendSnapshot.payout(Map<String, dynamic>.from(v as Map))));
+    } catch (_) {
+      syncError.value = 'Unable to synchronize your account. Displayed records may be out of date.';
+      rethrow;
+    } finally { isSyncing.value = false; }
   }
 
   void _recalculateBalance() {
@@ -516,44 +399,15 @@ class DemoRepository extends GetxService {
     final error = investmentError(project, amount);
     if (error != null) throw ArgumentError(error);
 
-    // 1. Try Backend API
-    if (_api != null) {
-      try {
-        final token = await _api.getAccessToken();
-        if (token != null && token.isNotEmpty) {
-          final res = await _api.createInvestment(
-            projectId: project.id,
-            amount: amount,
-            paymentMethod: paymentMethod.contains('UPI')
-                ? 'UPI'
-                : 'BANK_TRANSFER',
-          );
-          if (res != null) {
-            await syncFromBackend();
-            _notificationService.addNotification(
-              type: NotificationType.investmentSuccess,
-              title: 'Investment Successful 🎉',
-              description:
-                  'Investment of ₹${amount.toStringAsFixed(0)} in ${project.name} confirmed.',
-              relatedId: res['id'] as String?,
-            );
-            return investments.firstWhere(
-              (inv) => inv.id == res['id'],
-              orElse: () => _record(
-                res['id'] as String,
-                project,
-                amount,
-                DateTime.now(),
-                method: paymentMethod,
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        debugPrint(
-          '[DemoRepository] createInvestment backend sync fallback: $e',
-        );
-      }
+    if (isLive) {
+      final result = await _api!.createInvestment(projectId: project.id, amount: amount,
+        paymentMethod: paymentMethod.contains('UPI') ? 'UPI' : 'CARD', idempotencyKey: reference);
+      if (result == null) throw StateError('The server did not create an investment request');
+      final record = BackendSnapshot.investment(result);
+      investments.removeWhere((v) => v.id == record.id);
+      investments.insert(0, record);
+      syncFromBackend().catchError((_) {});
+      return record;
     }
 
     // 2. Local commit fallback
@@ -605,6 +459,7 @@ class DemoRepository extends GetxService {
   Future<bool> requestWithdrawal({
     required double amount,
     bool bankSelected = false,
+    String? requestId,
   }) async {
     if (!bankSelected ||
         !amount.isFinite ||
@@ -613,29 +468,16 @@ class DemoRepository extends GetxService {
       return false;
     }
 
-    // 1. Try Backend API
-    if (_api != null) {
-      try {
-        final token = await _api.getAccessToken();
-        if (token != null && token.isNotEmpty) {
-          final res = await _api.createWithdrawal(amount: amount);
-          if (res != null) {
-            await syncFromBackend();
-            _notificationService.addNotification(
-              type: NotificationType.withdrawalApproved,
-              title: 'Withdrawal Submitted',
-              description:
-                  'Your withdrawal request of ₹${amount.toStringAsFixed(0)} has been submitted.',
-              relatedId: res['id'] as String?,
-            );
-            return true;
-          }
-        }
-      } catch (e) {
-        debugPrint(
-          '[DemoRepository] requestWithdrawal backend sync fallback: $e',
-        );
-      }
+    if (isLive) {
+      final bankId = currentUser.value.bankAccountId;
+      if (bankId == null) throw StateError('Add a bank account before requesting a withdrawal');
+      final result = await _api!.createWithdrawal(amount: amount, bankAccountId: bankId, idempotencyKey: requestId);
+      if (result == null) throw StateError('The server did not accept the withdrawal request');
+      final record = BackendSnapshot.withdrawal(result);
+      withdrawals.removeWhere((v) => v.id == record.id);
+      withdrawals.insert(0, record);
+      syncFromBackend().catchError((_) {});
+      return true;
     }
 
     // 2. Local commit fallback
@@ -680,18 +522,13 @@ class DemoRepository extends GetxService {
     required String email,
     required String mobileNumber,
   }) async {
-    if (_api != null) {
-      try {
-        final token = await _api.getAccessToken();
-        if (token != null && token.isNotEmpty) {
-          await _api.updateProfile(
-            fullName: fullName,
-            mobileNumber: mobileNumber,
-          );
-        }
-      } catch (e) {
-        debugPrint('[DemoRepository] updateProfile backend error: $e');
-      }
+    if (isLive) {
+      final saved = await _api!.updateProfile(fullName: fullName, mobileNumber: mobileNumber);
+      if (saved == null) throw StateError('Your profile could not be saved');
+      final owner = saved['user'] as Map?;
+      currentUser.value = currentUser.value.copyWith(fullName: saved['fullName'] as String?, mobileNumber: owner?['mobileNumber'] as String?);
+      syncFromBackend().catchError((_) {});
+      return;
     }
     await saveUser(
       currentUser.value.copyWith(

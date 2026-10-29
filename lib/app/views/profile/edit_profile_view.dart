@@ -90,6 +90,7 @@ class EditProfileView extends StatelessWidget {
                   // Email
                   CustomTextField(
                     controller: profileCtrl.emailController,
+                    readOnly: true,
                     label: 'email'.tr,
                     hintText: 'enterEmail'.tr,
                     keyboardType: TextInputType.emailAddress,

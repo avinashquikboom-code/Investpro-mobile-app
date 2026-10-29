@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../models/user_model.dart';
 import 'navigation_controller.dart';
 import '../routes/app_routes.dart';
 import '../services/api_service.dart';
@@ -39,241 +38,58 @@ class AuthController extends GetxController {
     _storage.setRememberMe(rememberMe.value);
   }
 
+  Future<bool> _finish(Map<String, dynamic>? result) async {
+    if (result == null || result['user']?['role'] != 'INVESTOR') {
+      await _api?.logout();
+      throw StateError('An investor account is required');
+    }
+    _repo.clearLiveData();
+    await _repo.syncFromBackend();
+    await _storage.setRememberMe(rememberMe.value);
+    await _storage.setLoggedIn(rememberMe.value);
+    await _storage.setUserEmail(rememberMe.value ? _repo.currentUser.value.email : null);
+    isLoggedIn.value = true;
+    if (Get.isRegistered<FirebaseNotificationService>()) Get.find<FirebaseNotificationService>().syncToken().catchError((_) {});
+    if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().refreshFromBackend().catchError((_) {});
+    Get.find<NavigationController>().goToHome();
+    Get.offAllNamed(AppRoutes.home);
+    return true;
+  }
+  Future<bool> restoreSession() async {
+    isLoggedIn.value = false;
+    if (_api == null || !_storage.rememberMe || (await _api.getAccessToken())?.isNotEmpty != true) {
+      _repo.clearLiveData(); return false;
+    }
+    try { await _repo.syncFromBackend(); isLoggedIn.value = _repo.currentUser.value.accountStatus == 'ACTIVE'; return isLoggedIn.value; }
+    catch (_) { _repo.clearLiveData(); return false; }
+  }
   Future<bool> login(String identity, String password) async {
     if (isLoading.value) return false;
-    final identityError = Validators.validateEmailOrMobile(identity);
-    if (identityError != null) {
-      Get.snackbar(
-        'Validation Error',
-        identityError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    final passwordError = Validators.validatePassword(password);
-    if (passwordError != null) {
-      Get.snackbar(
-        'Validation Error',
-        passwordError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
+    final validation = Validators.validateEmailOrMobile(identity) ?? Validators.validatePassword(password);
+    if (validation != null) { Get.snackbar('Validation Error', validation); return false; }
     isLoading.value = true;
     try {
-      // 1. Try Backend API login
-      if (_api != null) {
-        try {
-          final res = await _api.login(identity, password);
-          if (res != null) {
-            final userRole = (res['user']?['role'] ?? '')
-                .toString()
-                .toUpperCase();
-            if (userRole == 'ADMIN' || userRole == 'SUPER_ADMIN') {
-              await _api.logout().catchError((_) {});
-              await _storage.clearSession();
-              Get.snackbar(
-                'Access Restricted',
-                'Admin accounts cannot log into the mobile app. Please use the Admin Web Portal.',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-              return false;
-            }
-
-            isLoggedIn.value = true;
-            await _storage.setRememberMe(rememberMe.value);
-            await _storage.setLoggedIn(rememberMe.value);
-            if (rememberMe.value) {
-              await _storage.setUserEmail(identity);
-            }
-            // Sync live investor data from backend
-            await _repo.syncFromBackend();
-
-            try {
-              if (Get.isRegistered<FirebaseNotificationService>()) {
-                await Get.find<FirebaseNotificationService>().syncToken();
-              }
-              if (Get.isRegistered<NotificationService>()) {
-                await Get.find<NotificationService>().refreshFromBackend();
-              }
-            } catch (_) {}
-
-            Get.find<NavigationController>().goToHome();
-            Get.offAllNamed(AppRoutes.home);
-            return true;
-          }
-        } catch (apiError) {
-          debugPrint(
-            '[AuthController] Backend login failed: $apiError, checking local fallback',
-          );
-        }
-      }
-
-      // 2. Demo offline fallback for smooth local testing
-      if (identity.toLowerCase().trim().startsWith('admin@')) {
-        Get.snackbar(
-          'Access Restricted',
-          'Admin accounts cannot log into the mobile app. Please use the Admin Web Portal.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-      await Future.delayed(const Duration(milliseconds: 600));
-
-      isLoggedIn.value = true;
-      await _storage.setRememberMe(rememberMe.value);
-      await _storage.setLoggedIn(rememberMe.value);
-      if (rememberMe.value) {
-        await _storage.setUserEmail(identity);
-      } else {
-        await _storage.setUserEmail(null);
-      }
-
-      Get.find<NavigationController>().goToHome();
-      Get.offAllNamed(AppRoutes.home);
-      return true;
-    } catch (e) {
-      Get.snackbar(
-        'Login error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      if (_api == null) throw StateError('Account service is unavailable');
+      return await _finish(await _api.login(identity.trim(), password));
+    } catch (_) {
+      isLoggedIn.value = false;
+      Get.snackbar('Unable to sign in', 'Check your credentials and connection. No offline login was created.');
       return false;
-    } finally {
-      isLoading.value = false;
-    }
+    } finally { isLoading.value = false; }
   }
-
-  Future<bool> register({
-    required String fullName,
-    required String email,
-    required String mobileNumber,
-    required String password,
-  }) async {
+  Future<bool> register({required String fullName, required String email, required String mobileNumber, required String password}) async {
     if (isLoading.value) return false;
-    final nameError = Validators.validateName(fullName);
-    if (nameError != null) {
-      Get.snackbar(
-        'Validation Error',
-        nameError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    final emailError = Validators.validateEmail(email);
-    if (emailError != null) {
-      Get.snackbar(
-        'Validation Error',
-        emailError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    final mobileError = Validators.validateMobile(mobileNumber);
-    if (mobileError != null) {
-      Get.snackbar(
-        'Validation Error',
-        mobileError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    final passwordError = Validators.validatePassword(password);
-    if (passwordError != null) {
-      Get.snackbar(
-        'Validation Error',
-        passwordError,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
+    final validation = Validators.validateName(fullName) ?? Validators.validateEmail(email) ?? Validators.validateMobile(mobileNumber) ?? (password.length < 8 ? 'Use a password of at least 8 characters' : null);
+    if (validation != null) { Get.snackbar('Validation Error', validation); return false; }
     isLoading.value = true;
     try {
-      // 1. Try Backend API registration
-      if (_api != null) {
-        try {
-          final res = await _api.register(
-            fullName: fullName,
-            email: email,
-            mobileNumber: mobileNumber,
-            password: password,
-          );
-          if (res != null) {
-            isLoggedIn.value = true;
-            await _storage.setRememberMe(rememberMe.value);
-            await _storage.setLoggedIn(rememberMe.value);
-            if (rememberMe.value) {
-              await _storage.setUserEmail(email);
-            }
-            await _repo.syncFromBackend();
-
-            Get.snackbar(
-              'Account Created 🎉',
-              'Welcome to InvestPro, $fullName!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFFE8F8F0),
-              colorText: const Color(0xFF006B3C),
-            );
-
-            Get.find<NavigationController>().goToHome();
-            Get.offAllNamed(AppRoutes.home);
-            return true;
-          }
-        } catch (apiError) {
-          debugPrint(
-            '[AuthController] Backend register failed: $apiError, falling back to local',
-          );
-        }
-      }
-
-      // 2. Demo local registration fallback
-      await Future.delayed(const Duration(milliseconds: 700));
-
-      final newUser = UserModel(
-        id: 'INV-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-        fullName: fullName,
-        email: email,
-        mobileNumber: mobileNumber,
-        role: 'Investor',
-        isBankVerified: false,
-      );
-
-      await _repo.saveUser(newUser);
-
-      isLoggedIn.value = true;
-      await _storage.setRememberMe(rememberMe.value);
-      await _storage.setLoggedIn(rememberMe.value);
-      if (rememberMe.value) {
-        await _storage.setUserEmail(email);
-      }
-
-      Get.snackbar(
-        'Account Created',
-        'Welcome to InvestPro, $fullName!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFE8F8F0),
-        colorText: const Color(0xFF006B3C),
-      );
-
-      Get.find<NavigationController>().goToHome();
-      Get.offAllNamed(AppRoutes.home);
-      return true;
-    } catch (e) {
-      Get.snackbar(
-        'Registration error',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      if (_api == null) throw StateError('Account service is unavailable');
+      return await _finish(await _api.register(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
+    } catch (_) {
+      isLoggedIn.value = false;
+      Get.snackbar('Unable to complete registration', 'Check your connection and account details. If registration succeeded, sign in to load the account.');
       return false;
-    } finally {
-      isLoading.value = false;
-    }
+    } finally { isLoading.value = false; }
   }
 
   void forgotPassword(String identity) {
@@ -326,6 +142,7 @@ class AuthController extends GetxController {
 
     if (confirmed == true) {
       isLoggedIn.value = false;
+      _repo.clearLiveData();
       try {
         if (Get.isRegistered<FirebaseNotificationService>()) {
           await Get.find<FirebaseNotificationService>().deleteToken();

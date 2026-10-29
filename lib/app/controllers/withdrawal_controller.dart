@@ -13,6 +13,7 @@ class WithdrawalController extends GetxController {
   final RxString selectedFilter = 'All'.obs; // 'All', 'Withdrawals', 'Deposits'
   final TextEditingController amountController = TextEditingController();
   final bankSelected = false.obs;
+  String? _requestId;
   final RxBool isSubmitting = false.obs;
 
   double get availableBalance => _repo.availableBalance.value;
@@ -42,7 +43,7 @@ class WithdrawalController extends GetxController {
   Future<bool> submitWithdrawal() async {
     if (isSubmitting.value) return false;
     if (!bankSelected.value) {
-      Get.snackbar('Demo bank required', 'Select the demo bank account.');
+      Get.snackbar('Bank account required', 'Select your saved bank account.');
       return false;
     }
     final error = Validators.validateWithdrawalAmount(
@@ -66,14 +67,16 @@ class WithdrawalController extends GetxController {
 
     isSubmitting.value = true;
     try {
-      await Future.delayed(const Duration(milliseconds: 900));
+      _requestId ??= _repo.newReference('withdrawal');
 
       final success = await _repo.requestWithdrawal(
         amount: amount,
         bankSelected: bankSelected.value,
+        requestId: _requestId,
       );
       if (success) {
         amountController.clear();
+        _requestId = null;
         Get.back(); // Close dialog/bottom sheet
         Get.snackbar(
           'Request Submitted',

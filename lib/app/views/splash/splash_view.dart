@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
-import '../../services/local_storage_service.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -44,10 +43,9 @@ class _SplashViewState extends State<SplashView>
     await Future.delayed(const Duration(milliseconds: 2400));
     if (!mounted) return;
 
-    final storage = Get.find<LocalStorageService>();
     final authCtrl = Get.find<AuthController>();
 
-    if (storage.isLoggedIn || authCtrl.isLoggedIn.value) {
+    if (await authCtrl.restoreSession()) {
       Get.offAllNamed(AppRoutes.home);
     } else {
       Get.offAllNamed(AppRoutes.login);
