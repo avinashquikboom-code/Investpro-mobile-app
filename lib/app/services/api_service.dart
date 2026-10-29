@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -467,5 +465,50 @@ class ApiService extends getx.GetxService {
     } catch (_) {
       return false;
     }
+  }
+
+  Future<List<dynamic>?> getBankAccounts() async {
+    try {
+      final response = await dio.get('/mobile/bank-accounts');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'] as List<dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] getBankAccounts error: $e');
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> createBankAccount({
+    required String accountHolderName,
+    required String accountNumber,
+    required String bankName,
+    required String ifscCode,
+    String? branchName,
+    String accountType = 'SAVINGS',
+    bool isPrimary = false,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/mobile/bank-accounts',
+        data: {
+          'accountHolderName': accountHolderName,
+          'accountNumber': accountNumber,
+          'bankName': bankName,
+          'ifscCode': ifscCode,
+          'branchName': ?branchName,
+          'accountType': accountType,
+          'isPrimary': isPrimary,
+        },
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data['success'] == true) {
+        return response.data['data'] as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] createBankAccount error: $e');
+      rethrow;
+    }
+    return null;
   }
 }
