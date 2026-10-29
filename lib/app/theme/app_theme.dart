@@ -71,10 +71,9 @@ class AppTheme {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 18,
@@ -234,10 +233,9 @@ class AppTheme {
             ),
           ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.surfaceDark,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 18,

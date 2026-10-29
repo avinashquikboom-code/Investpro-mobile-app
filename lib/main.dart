@@ -1,7 +1,7 @@
+import 'app/widgets/app_system_ui.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import 'firebase_options.dart';
@@ -33,9 +33,6 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
-  );
 
   // 1. Initialize Storage & Core Services
   final storageService = await LocalStorageService().init();
@@ -127,16 +124,20 @@ class InvestProApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    return Obx(() => GetMaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      themeMode: ThemeMode.light,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeController.currentThemeMode,
+      defaultTransition: Transition.native,
+      popGesture: true,
+      builder: (context, child) => AppSystemUi(child: child ?? const SizedBox.shrink()),
       translations: AppTranslations(),
       locale: initialLocale,
       fallbackLocale: const Locale('en', 'US'),
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
-    );
+    ));
   }
 }

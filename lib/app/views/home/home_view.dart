@@ -1,3 +1,4 @@
+import '../../widgets/app_system_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,7 +23,7 @@ class HomeView extends StatelessWidget {
     final navCtrl = Get.find<NavigationController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return AppSystemUi(statusSurface: AppColors.primaryDark, child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: SafeArea(
         top: false,
@@ -317,6 +318,6 @@ class HomeView extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }
