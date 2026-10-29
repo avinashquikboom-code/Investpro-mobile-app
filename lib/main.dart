@@ -1,4 +1,5 @@
 import 'app/widgets/app_system_ui.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,6 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
 
   // 1. Initialize Storage & Core Services
   final storageService = await LocalStorageService().init();
@@ -124,20 +124,23 @@ class InvestProApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => GetMaterialApp(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeController.currentThemeMode,
-      defaultTransition: Transition.native,
-      popGesture: true,
-      builder: (context, child) => AppSystemUi(child: child ?? const SizedBox.shrink()),
-      translations: AppTranslations(),
-      locale: initialLocale,
-      fallbackLocale: const Locale('en', 'US'),
-      initialRoute: AppPages.initial,
-      getPages: AppPages.routes,
-    ));
+    return Obx(
+      () => GetMaterialApp(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeController.currentThemeMode,
+        defaultTransition: Transition.native,
+        popGesture: true,
+        builder: (context, child) =>
+            AppSystemUi(child: child ?? const SizedBox.shrink()),
+        translations: AppTranslations(),
+        locale: initialLocale,
+        fallbackLocale: const Locale('en', 'US'),
+        initialRoute: AppPages.initial,
+        getPages: AppPages.routes,
+      ),
+    );
   }
 }

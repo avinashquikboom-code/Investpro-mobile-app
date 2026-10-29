@@ -1,3 +1,6 @@
+import '../../theme/app_colors.dart';
+import '../../widgets/app_system_ui.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -62,113 +65,116 @@ class _SplashViewState extends State<SplashView>
     final screenSize = MediaQuery.of(context).size;
     final topPadding = MediaQuery.of(context).padding.top;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient matching exact reference screenshot
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF005C36),
-                  Color(0xFF004828),
-                  Color(0xFF002E19),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-
-          // Sprouting Plant & Layered Rolling Hills at the bottom
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: screenSize.height * 0.44,
-            child: Image.asset(
-              'assets/images/splash_plant_hills.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.bottomCenter,
-              filterQuality: FilterQuality.high,
-              errorBuilder: (context, error, stackTrace) {
-                // Graceful fallback painter if asset is unavailable
-                return CustomPaint(painter: _SplashPlantLandscapePainter());
-              },
-            ),
-          ),
-
-          // Upper-Center Branding matching reference screenshot
-          Positioned(
-            top: topPadding + (screenSize.height * 0.11),
-            left: 24,
-            right: 24,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Glowing 3D InvestPro Chart Logo
-                    Image.asset(
-                      'assets/images/splash_logo_3d.png',
-                      width: 96,
-                      height: 104,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const _Fallback3DLogo();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // App Title: "Invest" in White, "Pro" in Lime Green
-                    RichText(
-                      text: const TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Invest',
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Pro',
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF4ADE80),
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Tagline
-                    Text(
-                      'Grow Your Wealth\nWith Trusted Investments',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        height: 1.45,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
+    return AppSystemUi(
+      statusSurface: AppColors.primaryDark,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background Gradient matching exact reference screenshot
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF005C36),
+                    Color(0xFF004828),
+                    Color(0xFF002E19),
                   ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
             ),
-          ),
-        ],
+
+            // Sprouting Plant & Layered Rolling Hills at the bottom
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: screenSize.height * 0.44,
+              child: Image.asset(
+                'assets/images/splash_plant_hills.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (context, error, stackTrace) {
+                  // Graceful fallback painter if asset is unavailable
+                  return CustomPaint(painter: _SplashPlantLandscapePainter());
+                },
+              ),
+            ),
+
+            // Upper-Center Branding matching reference screenshot
+            Positioned(
+              top: topPadding + (screenSize.height * 0.11),
+              left: 24,
+              right: 24,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Glowing 3D InvestPro Chart Logo
+                      Image.asset(
+                        'assets/images/splash_logo_3d.png',
+                        width: 96,
+                        height: 104,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const _Fallback3DLogo();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // App Title: "Invest" in White, "Pro" in Lime Green
+                      RichText(
+                        text: const TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Invest',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Pro',
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF4ADE80),
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Tagline
+                      Text(
+                        'Grow Your Wealth\nWith Trusted Investments',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          height: 1.45,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

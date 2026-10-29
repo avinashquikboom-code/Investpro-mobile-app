@@ -10,15 +10,25 @@ class AppSystemUi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final darkStatus = ThemeData.estimateBrightnessForColor(statusSurface ?? theme.colorScheme.surface) == Brightness.dark;
+    final darkStatus =
+        ThemeData.estimateBrightnessForColor(
+          statusSurface ?? theme.colorScheme.surface,
+        ) ==
+        Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: darkStatus ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: darkStatus
+            ? Brightness.light
+            : Brightness.dark,
         statusBarBrightness: darkStatus ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
-        systemNavigationBarContrastEnforced: false),
-      child: child);
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: child,
+    );
   }
 }

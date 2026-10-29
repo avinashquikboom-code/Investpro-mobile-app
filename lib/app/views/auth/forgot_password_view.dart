@@ -1,4 +1,5 @@
 import '../../widgets/unsaved_changes_guard.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -144,25 +145,34 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return UnsavedChangesGuard(controllers: [_identityController, _otpController, _newPasswordController, _confirmPasswordController], child: Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppAppBar(
-        backgroundColor: Colors.transparent,
-        showBackButton: true,
-
-      ),
-      body: SafeArea(
-        child: ResponsiveHelper.responsiveContainer(
-          context: context,
-          maxWidth: 480,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Form(key: _formKey, child: _buildCurrentStep(isDark)),
+    return UnsavedChangesGuard(
+      controllers: [
+        _identityController,
+        _otpController,
+        _newPasswordController,
+        _confirmPasswordController,
+      ],
+      child: Scaffold(
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : AppColors.background,
+        appBar: AppAppBar(
+          backgroundColor: Colors.transparent,
+          showBackButton: true,
+        ),
+        body: SafeArea(
+          child: ResponsiveHelper.responsiveContainer(
+            context: context,
+            maxWidth: 480,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Form(key: _formKey, child: _buildCurrentStep(isDark)),
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildCurrentStep(bool isDark) {

@@ -1,4 +1,5 @@
 import '../../widgets/unsaved_changes_guard.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,155 +23,161 @@ class WithdrawalView extends StatelessWidget {
 
     controller.bankSelected.value = false;
     Get.bottomSheet(
-      UnsavedChangesGuard(controllers: [controller.amountController],
-        changes: [controller.bankSelected.stream], snapshot: () => controller.bankSelected.value,
+      UnsavedChangesGuard(
+        controllers: [controller.amountController],
+        changes: [controller.bankSelected.stream],
+        snapshot: () => controller.bankSelected.value,
         child: Container(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          24 + MediaQuery.viewInsetsOf(Get.context!).bottom,
-        ),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + MediaQuery.viewInsetsOf(Get.context!).bottom,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.borderDark
+                            : const Color(0xFFD4E0D9),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Withdraw Funds',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                       color: isDark
-                          ? AppColors.borderDark
-                          : const Color(0xFFD4E0D9),
-                      borderRadius: BorderRadius.circular(2),
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Withdraw Funds',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimary,
+                  const SizedBox(height: 6),
+                  Text(
+                    'Available to withdraw: ${CurrencyFormatter.format(controller.availableBalance)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Available to withdraw: ${CurrencyFormatter.format(controller.availableBalance)}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Amount Field
-                CustomTextField(
-                  controller: controller.amountController,
-                  label: 'Withdrawal Amount',
-                  hintText: 'Enter amount (e.g. 5000)',
-                  keyboardType: TextInputType.number,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(left: 14, right: 8),
-                    child: Text(
-                      '₹',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Linked Bank Account
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.surfaceDarkElevated
-                        : const Color(0xFFF3F8F5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.border,
-                      width: 1,
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.account_balance_rounded,
-                        color: AppColors.primary,
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Demo Bank •••• 4829',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Demo account • not verified',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
+                  // Amount Field
+                  CustomTextField(
+                    controller: controller.amountController,
+                    label: 'Withdrawal Amount',
+                    hintText: 'Enter amount (e.g. 5000)',
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.only(left: 14, right: 8),
+                      child: Text(
+                        '₹',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
                         ),
                       ),
-                      Icon(
-                        Icons.check_circle_rounded,
-                        color: AppColors.success,
-                        size: 20,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                Obx(
-                  () => CheckboxListTile(
-                    title: const Text('Use this demo bank account'),
-                    subtitle: const Text('No real transfer will occur.'),
-                    value: controller.bankSelected.value,
-                    onChanged: controller.isSubmitting.value
-                        ? null
-                        : (v) => controller.bankSelected.value = v ?? false,
+                  // Linked Bank Account
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.surfaceDarkElevated
+                          : const Color(0xFFF3F8F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.border,
+                        width: 1,
+                      ),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.account_balance_rounded,
+                          color: AppColors.primary,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Demo Bank •••• 4829',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Demo account • not verified',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.success,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                // Submit Button
-                Obx(() {
-                  return CustomButton(
-                    text: 'Confirm & Withdraw',
-                    isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submitWithdrawal,
-                  );
-                }),
-                TextButton(onPressed: () => Navigator.of(Get.context!).maybePop(), child: const Text('Cancel')),
-                const SizedBox(height: 10),
-              ],
+                  const SizedBox(height: 24),
+
+                  Obx(
+                    () => CheckboxListTile(
+                      title: const Text('Use this demo bank account'),
+                      subtitle: const Text('No real transfer will occur.'),
+                      value: controller.bankSelected.value,
+                      onChanged: controller.isSubmitting.value
+                          ? null
+                          : (v) => controller.bankSelected.value = v ?? false,
+                    ),
+                  ),
+                  // Submit Button
+                  Obx(() {
+                    return CustomButton(
+                      text: 'Confirm & Withdraw',
+                      isLoading: controller.isSubmitting.value,
+                      onPressed: controller.submitWithdrawal,
+                    );
+                  }),
+                  TextButton(
+                    onPressed: () => Navigator.of(Get.context!).maybePop(),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
           ),
         ),
-      )),
+      ),
       isScrollControlled: true,
       isDismissible: false,
       enableDrag: false,

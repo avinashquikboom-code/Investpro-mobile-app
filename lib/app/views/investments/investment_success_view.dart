@@ -1,3 +1,5 @@
+import '../../widgets/app_system_ui.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,155 +25,170 @@ class InvestmentSuccessView extends StatelessWidget {
             ? invCtrl.filteredInvestments.first
             : null);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        navCtrl.goToHome();
-        Get.offAllNamed(AppRoutes.home);
-      },
-      child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(gradient: AppColors.splashGradient),
-          child: SafeArea(
-            child: ResponsiveHelper.responsiveContainer(
-              context: context,
-              maxWidth: 500,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 20),
-                    // Large White Circle with Green Checkmark
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 20,
-                            offset: Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.check_rounded,
-                          size: 52,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // Heading
-                    Text(
-                      'investmentSuccessful'.tr,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'investmentSuccessSubtitle'.tr,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 28),
-
-                    // White Summary Card
-                    if (investment != null)
+    return AppSystemUi(
+      statusSurface: AppColors.primaryDark,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          navCtrl.goToHome();
+          Get.offAllNamed(AppRoutes.home);
+        },
+        child: Scaffold(
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(gradient: AppColors.splashGradient),
+            child: SafeArea(
+              child: ResponsiveHelper.responsiveContainer(
+                context: context,
+                maxWidth: 500,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Large White Circle with Green Checkmark
                       Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
+                        width: 90,
+                        height: 90,
+                        decoration: const BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
+                          shape: BoxShape.circle,
+                          boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 15,
-                              offset: Offset(0, 6),
+                              color: Colors.black26,
+                              blurRadius: 20,
+                              offset: Offset(0, 8),
                             ),
                           ],
                         ),
-                        child: Column(
-                          children: [
-                            _buildSummaryItem(
-                              'projectName'.tr,
-                              investment.projectName,
-                              isHighlight: true,
-                            ),
-                            const Divider(height: 20, color: AppColors.border),
-                            _buildSummaryItem(
-                              'amountInvested'.tr,
-                              CurrencyFormatter.format(
-                                investment.investedAmount,
-                              ),
-                            ),
-                            const Divider(height: 20, color: AppColors.border),
-                            _buildSummaryItem(
-                              'expectedReturnTotal'.tr,
-                              CurrencyFormatter.format(
-                                investment.expectedReturn,
-                              ),
-                              valueColor: AppColors.primary,
-                            ),
-                            const Divider(height: 20, color: AppColors.border),
-                            _buildSummaryItem(
-                              'investmentPeriod'.tr,
-                              '${investment.durationMonths} Months',
-                            ),
-                            const Divider(height: 20, color: AppColors.border),
-                            _buildSummaryItem(
-                              'investmentReference'.tr,
-                              investment.id,
-                              isCode: true,
-                            ),
-                          ],
+                        child: const Center(
+                          child: Icon(
+                            Icons.check_rounded,
+                            size: 52,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
-                    const SizedBox(height: 34),
+                      const SizedBox(height: 22),
 
-                    // View My Investments Button
-                    CustomButton(
-                      text: 'viewMyInvestments'.tr,
-                      backgroundColor: Colors.white,
-                      textColor: AppColors.primaryDark,
-                      onPressed: () {
-                        navCtrl.goToInvestments();
-                        Get.offAllNamed(AppRoutes.home);
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                      // Heading
+                      Text(
+                        'investmentSuccessful'.tr,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'investmentSuccessSubtitle'.tr,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
 
-                    // Go to Home Button
-                    CustomButton(
-                      text: 'goToHome'.tr,
-                      isOutlined: true,
-                      backgroundColor: Colors.white,
-                      textColor: Colors.white,
-                      onPressed: () {
-                        navCtrl.goToHome();
-                        Get.offAllNamed(AppRoutes.home);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                      // White Summary Card
+                      if (investment != null)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 15,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              _buildSummaryItem(
+                                'projectName'.tr,
+                                investment.projectName,
+                                isHighlight: true,
+                              ),
+                              const Divider(
+                                height: 20,
+                                color: AppColors.border,
+                              ),
+                              _buildSummaryItem(
+                                'amountInvested'.tr,
+                                CurrencyFormatter.format(
+                                  investment.investedAmount,
+                                ),
+                              ),
+                              const Divider(
+                                height: 20,
+                                color: AppColors.border,
+                              ),
+                              _buildSummaryItem(
+                                'expectedReturnTotal'.tr,
+                                CurrencyFormatter.format(
+                                  investment.expectedReturn,
+                                ),
+                                valueColor: AppColors.primary,
+                              ),
+                              const Divider(
+                                height: 20,
+                                color: AppColors.border,
+                              ),
+                              _buildSummaryItem(
+                                'investmentPeriod'.tr,
+                                '${investment.durationMonths} Months',
+                              ),
+                              const Divider(
+                                height: 20,
+                                color: AppColors.border,
+                              ),
+                              _buildSummaryItem(
+                                'investmentReference'.tr,
+                                investment.id,
+                                isCode: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 34),
+
+                      // View My Investments Button
+                      CustomButton(
+                        text: 'viewMyInvestments'.tr,
+                        backgroundColor: Colors.white,
+                        textColor: AppColors.primaryDark,
+                        onPressed: () {
+                          navCtrl.goToInvestments();
+                          Get.offAllNamed(AppRoutes.home);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Go to Home Button
+                      CustomButton(
+                        text: 'goToHome'.tr,
+                        isOutlined: true,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.white,
+                        onPressed: () {
+                          navCtrl.goToHome();
+                          Get.offAllNamed(AppRoutes.home);
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),

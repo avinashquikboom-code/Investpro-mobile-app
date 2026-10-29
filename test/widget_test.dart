@@ -51,7 +51,7 @@ void main() {
     expect(find.text('Active'), findsOneWidget);
   });
 
-  testWidgets('AppAppBar renders centered title and chevron back button', (
+  testWidgets('AppAppBar renders platform title and back button', (
     WidgetTester tester,
   ) async {
     bool backPressed = false;
@@ -72,7 +72,7 @@ void main() {
 
     expect(find.text('Test Title'), findsOneWidget);
     expect(find.byType(AppBackButton), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
 
     await tester.tap(find.byType(AppBackButton));
     await tester.pump();
@@ -93,7 +93,7 @@ void main() {
     expect(size.height, greaterThanOrEqualTo(48.0));
   });
 
-  testWidgets('CustomAppBar delegates to AppAppBar with centered title', (
+  testWidgets('CustomAppBar delegates to AppAppBar with adaptive title', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
