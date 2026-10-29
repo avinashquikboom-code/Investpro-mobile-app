@@ -101,6 +101,8 @@ class InvestmentCard extends StatelessWidget {
                                   ? AppColors.textSecondaryDark
                                   : AppColors.textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),

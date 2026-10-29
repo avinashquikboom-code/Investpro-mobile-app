@@ -76,21 +76,28 @@ class ReturnsView extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Obx(() {
-                                  return Text(
-                                    CurrencyFormatter.format(
-                                      returnsCtrl.totalReturns,
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimary,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  );
-                                }),
+                                Expanded(
+                                  child: Obx(() {
+                                    return FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        CurrencyFormatter.format(
+                                          returnsCtrl.totalReturns,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.textPrimary,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                const SizedBox(width: 10),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,

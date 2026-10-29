@@ -24,22 +24,21 @@ class MainNavigationShell extends StatelessWidget {
       const ProfileView(isTab: true),
     ];
 
-    return Obx(
-      () => PopScope(
-        canPop: navCtrl.currentIndex.value == 0,
+    return Obx(() {
+      final currentIndex = navCtrl.currentIndex.value;
+      return PopScope(
+        canPop: currentIndex == 0,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) navCtrl.goToHome();
         },
         child: Scaffold(
-          body: Obx(() {
-            return IndexedStack(
-              index: navCtrl.currentIndex.value,
-              children: pages,
-            );
-          }),
+          body: IndexedStack(
+            index: currentIndex,
+            children: pages,
+          ),
           bottomNavigationBar: const CustomBottomNavBar(),
         ),
-      ),
-    );
+      );
+    });
   }
 }

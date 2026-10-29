@@ -248,21 +248,61 @@ class HomeView extends StatelessWidget {
                             child: Text('No projects available'),
                           );
                         }
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: list.length,
-                          itemBuilder: (context, index) {
-                            final project = list[index];
-                            return ProjectCard(
-                              project: project,
-                              isDashboardVariant: true,
-                              onTap: () {
-                                projCtrl.selectProject(project);
-                                final invCtrl =
-                                    Get.find<InvestmentController>();
-                                invCtrl.setProject(project);
-                                Get.toNamed(AppRoutes.projectDetails);
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            final cols = ResponsiveHelper.gridColumns(
+                              constraints.maxWidth,
+                              phone: 1,
+                              tablet: 2,
+                              largeTablet: 3,
+                            );
+
+                            if (cols > 1) {
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  crossAxisSpacing: 14,
+                                  mainAxisSpacing: 12,
+                                  mainAxisExtent: 96,
+                                ),
+                                itemCount: list.length,
+                                itemBuilder: (context, index) {
+                                  final project = list[index];
+                                  return ProjectCard(
+                                    project: project,
+                                    isDashboardVariant: true,
+                                    onTap: () {
+                                      projCtrl.selectProject(project);
+                                      final invCtrl =
+                                          Get.find<InvestmentController>();
+                                      invCtrl.setProject(project);
+                                      Get.toNamed(AppRoutes.projectDetails);
+                                    },
+                                  );
+                                },
+                              );
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: list.length,
+                              itemBuilder: (context, index) {
+                                final project = list[index];
+                                return ProjectCard(
+                                  project: project,
+                                  isDashboardVariant: true,
+                                  onTap: () {
+                                    projCtrl.selectProject(project);
+                                    final invCtrl =
+                                        Get.find<InvestmentController>();
+                                    invCtrl.setProject(project);
+                                    Get.toNamed(AppRoutes.projectDetails);
+                                  },
+                                );
                               },
                             );
                           },

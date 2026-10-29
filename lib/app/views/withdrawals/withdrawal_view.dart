@@ -211,35 +211,44 @@ class WithdrawalView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'availableBalance'.tr,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Obx(() {
-                            return Text(
-                              CurrencyFormatter.format(
-                                withCtrl.availableBalance,
-                              ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'availableBalance'.tr,
                               style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
                                 color: isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimary,
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
                               ),
-                            );
-                          }),
-                        ],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Obx(() {
+                              return FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  CurrencyFormatter.format(
+                                    withCtrl.availableBalance,
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 12),
                       // Withdraw Button
                       ElevatedButton(
                         onPressed: () => _showWithdrawModal(context, withCtrl),

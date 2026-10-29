@@ -103,6 +103,8 @@ class ProjectCard extends StatelessWidget {
                                 ? AppColors.textSecondaryDark
                                 : AppColors.textSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -112,6 +114,8 @@ class ProjectCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                             color: AppColors.primary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ] else ...[
                         Text(
@@ -122,6 +126,8 @@ class ProjectCard extends StatelessWidget {
                                 ? AppColors.textSecondaryDark
                                 : AppColors.textSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -131,6 +137,8 @@ class ProjectCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ],

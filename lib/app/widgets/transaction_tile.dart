@@ -72,6 +72,8 @@ class TransactionTile extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,27 +92,34 @@ class TransactionTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${isCredit ? "+ " : ""}${CurrencyFormatter.format(transaction.amount)}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: isCredit
-                    ? AppColors.success
-                    : (transaction.type == TransactionType.withdrawal
-                          ? AppColors.error
-                          : (isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary)),
+        trailing: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 120),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${isCredit ? "+ " : ""}${CurrencyFormatter.format(transaction.amount)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isCredit
+                        ? AppColors.success
+                        : (transaction.type == TransactionType.withdrawal
+                              ? AppColors.error
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary)),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            StatusBadge(status: transaction.status),
-          ],
+              const SizedBox(height: 3),
+              StatusBadge(status: transaction.status),
+            ],
+          ),
         ),
       ),
     );

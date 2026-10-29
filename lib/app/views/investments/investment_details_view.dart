@@ -265,23 +265,29 @@ class InvestmentDetailsView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: isDark
-                ? AppColors.textSecondaryDark
-                : AppColors.textSecondary,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
+            ),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color:
-                valueColor ??
-                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+              color:
+                  valueColor ??
+                  (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            ),
           ),
         ),
       ],

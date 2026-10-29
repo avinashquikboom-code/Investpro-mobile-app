@@ -127,34 +127,42 @@ class _LoginViewState extends State<LoginView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Obx(() {
-                            return SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: Checkbox(
-                                value: authCtrl.rememberMe.value,
-                                activeColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Obx(() {
+                              return SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: authCtrl.rememberMe.value,
+                                  activeColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  onChanged: authCtrl.toggleRememberMe,
                                 ),
-                                onChanged: authCtrl.toggleRememberMe,
+                              );
+                            }),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'rememberMe'.tr,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            );
-                          }),
-                          const SizedBox(width: 8),
-                          Text(
-                            'rememberMe'.tr,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textPrimary,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       TextButton(
                         onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
                         style: TextButton.styleFrom(
