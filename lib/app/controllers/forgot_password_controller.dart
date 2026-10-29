@@ -111,20 +111,26 @@ class ForgotPasswordController extends GetxController {
     return fallback;
   }
 
+  void _showSnackbar(String title, String message, {bool isError = false}) {
+    if (Get.context == null || Get.overlayContext == null) return;
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: (isError ? AppColors.error : AppColors.success)
+          .withValues(alpha: 0.15),
+      colorText: isError ? AppColors.error : AppColors.success,
+      margin: const EdgeInsets.all(16),
+    );
+  }
+
   Future<bool> sendResetCode() async {
     if (isLoading.value) return false;
 
     final err = validateIdentifier(identifier.value);
     if (err != null) {
       validationError.value = err;
-      Get.snackbar(
-        'Validation Error',
-        err,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Validation Error', err, isError: true);
       return false;
     }
 
@@ -143,13 +149,9 @@ class ForgotPasswordController extends GetxController {
 
       currentStep.value = 1;
 
-      Get.snackbar(
+      _showSnackbar(
         'Code Dispatched',
         'A verification code has been dispatched to your credential.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.success.withValues(alpha: 0.15),
-        colorText: AppColors.success,
-        margin: const EdgeInsets.all(16),
       );
       return true;
     } catch (e) {
@@ -158,14 +160,7 @@ class ForgotPasswordController extends GetxController {
         'Unable to send verification code. Please check your network.',
       );
       apiError.value = msg;
-      Get.snackbar(
-        'Request Failed',
-        msg,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Request Failed', msg, isError: true);
       return false;
     } finally {
       isLoading.value = false;
@@ -183,14 +178,7 @@ class ForgotPasswordController extends GetxController {
     final err = validateOtp(otp.value);
     if (err != null) {
       validationError.value = err;
-      Get.snackbar(
-        'Validation Error',
-        err,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Validation Error', err, isError: true);
       return false;
     }
 
@@ -216,14 +204,7 @@ class ForgotPasswordController extends GetxController {
         'Invalid or expired verification code. Please try again.',
       );
       apiError.value = msg;
-      Get.snackbar(
-        'Verification Failed',
-        msg,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Verification Failed', msg, isError: true);
       return false;
     } finally {
       isLoading.value = false;
@@ -236,14 +217,7 @@ class ForgotPasswordController extends GetxController {
     final err = validatePasswords(newPassword.value, confirmPassword.value);
     if (err != null) {
       validationError.value = err;
-      Get.snackbar(
-        'Validation Error',
-        err,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Validation Error', err, isError: true);
       return false;
     }
 
@@ -271,14 +245,7 @@ class ForgotPasswordController extends GetxController {
         'Failed to reset password. Please request a new code.',
       );
       apiError.value = msg;
-      Get.snackbar(
-        'Reset Failed',
-        msg,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.error.withValues(alpha: 0.15),
-        colorText: AppColors.error,
-        margin: const EdgeInsets.all(16),
-      );
+      _showSnackbar('Reset Failed', msg, isError: true);
       return false;
     } finally {
       isLoading.value = false;
