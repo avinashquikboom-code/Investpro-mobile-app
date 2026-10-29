@@ -25,7 +25,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    isLoggedIn.value = _storage.isLoggedIn && _storage.rememberMe;
+    isLoggedIn.value = false;
     rememberMe.value = _storage.rememberMe;
   }
 

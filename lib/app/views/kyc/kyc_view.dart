@@ -1,3 +1,4 @@
+import '../../widgets/account_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,7 +18,7 @@ class _KycViewState extends State<KycView> {
   String _search = '';
   String _type = 'PAN_CARD';
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); }
   Future<void> _load() async {
     try { final rows = await Get.find<ApiService>().kyc(); if (mounted) setState(() { _rows = rows; _error = null; }); }
     catch (_) { if (mounted) setState(() => _error = 'Unable to load KYC requests. Retry.'); }
@@ -45,7 +46,7 @@ class _KycViewState extends State<KycView> {
   @override
   Widget build(BuildContext context) {
     final rows = _rows.where((row) => '$row'.toLowerCase().contains(_search.toLowerCase())).toList();
-    return Scaffold(appBar: const CustomAppBar(title: 'KYC Documents', showBackButton: true), body: Column(children: [
+    return Scaffold(appBar: const CustomAppBar(title: 'KYC Documents', showBackButton: true), body: AccountSync(authenticated: true, refresh: _load, child: Column(children: [
       TextField(decoration: const InputDecoration(labelText: 'Search KYC requests', prefixIcon: Icon(Icons.search)), onChanged: (value) => setState(() => _search = value)),
       if (_error != null) ListTile(title: Text(_error!), trailing: TextButton(onPressed: _load, child: const Text('Retry'))),
       DropdownButton<String>(value: _type, items: ['PAN_CARD', 'AADHAR_CARD', 'PASSPORT', 'BANK_STATEMENT'].map((type) => DropdownMenuItem(value: type, child: Text(type.replaceAll('_', ' ')))).toList(), onChanged: _busy ? null : (type) => setState(() => _type = type!)), TextButton.icon(onPressed: _busy ? null : _upload, icon: const Icon(Icons.upload_file), label: const Text('Submit document (up to 5 MB)')),
@@ -60,6 +61,6 @@ class _KycViewState extends State<KycView> {
             
           ])),
         ]))),
-    ]));
+    ])));
   }
 }

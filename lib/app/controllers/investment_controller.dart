@@ -66,6 +66,7 @@ class InvestmentController extends GetxController {
           ) ??
           0.0;
       if (parsed != investmentAmount.value) {
+        if (_pendingId != null && !isProcessingPayment.value) { _pendingId = null; _requestId = _repo.newReference('INV'); }
         investmentAmount.value = parsed;
       }
     });
@@ -207,13 +208,14 @@ class InvestmentController extends GetxController {
         amount: investmentAmount.value, paymentMethod: 'UPI', requestId: _requestId);
       _pendingId = pending.id;
     }
-    final order = await api.paymentOrder(_pendingId!);
+    final investmentId = _pendingId!;
+    final order = await api.paymentOrder(investmentId);
     _payment = Completer<bool>();
     _checkout?.clear();
     _checkout = Razorpay();
     _checkout!.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) async {
       try {
-        final verified = await api.verifyPayment({'investmentId': _pendingId,
+        final verified = await api.verifyPayment({'investmentId': investmentId,
           'orderId': response.orderId, 'paymentId': response.paymentId, 'signature': response.signature});
         if (verified['status'] != 'ACTIVE' || verified['paymentVerified'] != true) {
           throw StateError('Payment requires backend reconciliation. Check your investment history.');

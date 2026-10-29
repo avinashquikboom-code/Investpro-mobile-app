@@ -90,7 +90,9 @@ class ApiService extends getx.GetxService {
     await _secureStorage.delete(key: _keyRefreshToken);
   }
 
-  Future<bool> _refreshToken() async {
+  Future<bool>? _refreshing;
+  Future<bool> _refreshToken() => _refreshing ??= _performRefreshToken().whenComplete(() => _refreshing = null);
+  Future<bool> _performRefreshToken() async {
     final rToken = await getRefreshToken();
     if (rToken == null || rToken.isEmpty) {
       return false;
