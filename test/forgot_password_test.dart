@@ -53,6 +53,9 @@ void main() {
   });
 
   tearDown(() {
+    if (Get.isRegistered<ForgotPasswordController>()) {
+      Get.find<ForgotPasswordController>().onClose();
+    }
     Get.reset();
   });
 
