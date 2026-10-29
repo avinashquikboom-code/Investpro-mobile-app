@@ -196,38 +196,8 @@ class DemoRepository extends GetxService {
 
       // 3. Sync Projects
       final projs = await _api.getProjects();
-      if (projs != null && projs.isNotEmpty) {
-        final mappedProjs = projs.map((p) {
-          final typeName = p['projectType']?['name'] as String? ?? 'Technology';
-          String icon = 'code';
-          if (typeName.toLowerCase().contains('mobile')) {
-            icon = 'mobile';
-          } else if (typeName.toLowerCase().contains('ai') ||
-              typeName.toLowerCase().contains('auto')) {
-            icon = 'gear';
-          }
-
-          return ProjectModel(
-            id: p['id'] as String,
-            name: p['title'] as String? ?? 'Project',
-            category: typeName,
-            iconType: icon,
-            targetAmount: (p['targetAmount'] as num?)?.toDouble() ?? 500000.0,
-            raisedAmount: (p['fundedAmount'] as num?)?.toDouble() ?? 0.0,
-            returnRatePercent: (p['expectedRoi'] as num?)?.toDouble() ?? 15.0,
-            durationMonths: p['tenureMonths'] as int? ?? 12,
-            status: p['status'] == 'ACTIVE' ? 'Active' : 'Completed',
-            riskLevel: p['riskLevel'] == 'LOW'
-                ? 'Low'
-                : p['riskLevel'] == 'HIGH'
-                ? 'High'
-                : 'Moderate',
-            description: p['description'] as String? ?? '',
-            createdAt: p['createdAt'] != null
-                ? DateTime.parse(p['createdAt'])
-                : DateTime.now(),
-          );
-        }).toList();
+      if (projs != null) {
+        final mappedProjs = projs.map((p) => ProjectModel.fromBackend(Map<String, dynamic>.from(p as Map))).toList();
 
         projects.assignAll(mappedProjs);
       }

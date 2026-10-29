@@ -10,11 +10,17 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/project_card.dart';
 
-class ProjectsView extends StatelessWidget {
+class ProjectsView extends StatefulWidget {
   final bool isTab;
 
   const ProjectsView({super.key, this.isTab = true});
 
+  @override
+  State<ProjectsView> createState() => _ProjectsViewState();
+}
+class _ProjectsViewState extends State<ProjectsView> {
+  @override
+  void initState() { super.initState(); WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) Get.find<ProjectController>().refreshProjects(); }); }
   @override
   Widget build(BuildContext context) {
     final projCtrl = Get.find<ProjectController>();
@@ -23,7 +29,7 @@ class ProjectsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(title: 'projects'.tr, showBackButton: !isTab),
+      appBar: CustomAppBar(title: 'projects'.tr, showBackButton: !widget.isTab),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
           context: context,
@@ -153,18 +159,21 @@ class ProjectsView extends StatelessWidget {
               // Projects List
               Expanded(
                 child: Obx(() {
+                  if (projCtrl.isLoading.value) return const Center(child: CircularProgressIndicator());
+                  if (projCtrl.errorMessage.value.isNotEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(projCtrl.errorMessage.value), TextButton(onPressed: projCtrl.refreshProjects, child: const Text('Retry'))]));
                   final list = projCtrl.filteredProjects;
                   if (list.isEmpty) {
-                    return EmptyStateWidget(
+                    return RefreshIndicator(onRefresh: projCtrl.refreshProjects, child: ListView(physics: const AlwaysScrollableScrollPhysics(), children: [EmptyStateWidget(
                       icon: Icons.folder_open_rounded,
                       title: 'No Projects Found',
                       message: 'There are no projects matching this category right now.',
                       buttonText: 'Show All Projects',
-                      onButtonPressed: () => projCtrl.setFilter('All Projects'),
-                    );
+                      onButtonPressed: () { projCtrl.setFilter('All Projects'); projCtrl.setCategory('All Categories'); },
+                    ) ]));
                   }
 
-                  return ListView.builder(
+                  return RefreshIndicator(onRefresh: projCtrl.refreshProjects, child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -182,7 +191,7 @@ class ProjectsView extends StatelessWidget {
                         },
                       );
                     },
-                  );
+                  ));
                 }),
               ),
             ],

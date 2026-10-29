@@ -4,6 +4,7 @@ class ProjectModel {
   final String id;
   final String name;
   final String category;
+  final String? categoryId;
   final String iconType; // 'code', 'mobile', 'gear'
   final double targetAmount;
   final double raisedAmount;
@@ -18,6 +19,7 @@ class ProjectModel {
     required this.id,
     required this.name,
     required this.category,
+    this.categoryId,
     required this.iconType,
     required this.targetAmount,
     required this.raisedAmount,
@@ -57,6 +59,7 @@ class ProjectModel {
     String? id,
     String? name,
     String? category,
+    String? categoryId,
     String? iconType,
     double? targetAmount,
     double? raisedAmount,
@@ -71,6 +74,7 @@ class ProjectModel {
       id: id ?? this.id,
       name: name ?? this.name,
       category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
       iconType: iconType ?? this.iconType,
       targetAmount: targetAmount ?? this.targetAmount,
       raisedAmount: raisedAmount ?? this.raisedAmount,
@@ -88,6 +92,7 @@ class ProjectModel {
       'id': id,
       'name': name,
       'category': category,
+      'categoryId': categoryId,
       'iconType': iconType,
       'targetAmount': targetAmount,
       'raisedAmount': raisedAmount,
@@ -100,11 +105,23 @@ class ProjectModel {
     };
   }
 
+  factory ProjectModel.fromBackend(Map<String, dynamic> json) {
+    final type = json['projectType'] as Map?;
+    double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
+    return ProjectModel(id: json['id'] as String, name: json['title'] as String? ?? '',
+      category: type?['name'] as String? ?? '', categoryId: json['projectTypeId'] as String? ?? type?['id'] as String?,
+      iconType: type?['icon'] as String? ?? 'folder', targetAmount: number('targetAmount'), raisedAmount: number('fundedAmount'),
+      returnRatePercent: number('expectedRoi'), durationMonths: (json['tenureMonths'] as num?)?.toInt() ?? 0,
+      status: json['status'] == 'ACTIVE' ? 'Active' : '${json['status']}', description: json['description'] as String? ?? '',
+      riskLevel: json['riskLevel'] as String? ?? '', createdAt: DateTime.tryParse('${json['createdAt']}') ?? DateTime.fromMillisecondsSinceEpoch(0));
+  }
+
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
       id: json['id'] as String,
       name: json['name'] as String,
       category: json['category'] as String,
+      categoryId: json['categoryId'] as String?,
       iconType: json['iconType'] as String,
       targetAmount: (json['targetAmount'] as num).toDouble(),
       raisedAmount: (json['raisedAmount'] as num).toDouble(),

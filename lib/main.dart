@@ -75,7 +75,7 @@ Future<void> main() async {
     HomeController(demoRepo, notificationService),
     permanent: true,
   );
-  Get.put<ProjectController>(ProjectController(demoRepo), permanent: true);
+  Get.put<ProjectController>(ProjectController(demoRepo, apiService), permanent: true);
   Get.put<InvestmentController>(
     InvestmentController(demoRepo),
     permanent: true,

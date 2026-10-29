@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../services/demo_repository.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/project_controller.dart';
 import '../../routes/app_routes.dart';
@@ -13,9 +12,22 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/progress_indicator.dart';
 import '../../widgets/status_badge.dart';
 
-class ProjectDetailsView extends StatelessWidget {
+class ProjectDetailsView extends StatefulWidget {
   const ProjectDetailsView({super.key});
 
+  @override
+  State<ProjectDetailsView> createState() => _ProjectDetailsViewState();
+}
+class _ProjectDetailsViewState extends State<ProjectDetailsView> {
+  String? projectId;
+  @override
+  void initState() {
+    super.initState();
+    final controller = Get.find<ProjectController>();
+    final argument = Get.arguments;
+    projectId = argument is String ? argument : controller.selectedProject.value?.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted && projectId != null) controller.loadDetails(projectId!); });
+  }
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
@@ -44,14 +56,9 @@ class ProjectDetailsView extends StatelessWidget {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            final selected =
-                projCtrl.selectedProject.value ??
-                (projCtrl.filteredProjects.isNotEmpty
-                    ? projCtrl.filteredProjects.first
-                    : null);
-            final project = selected == null
-                ? null
-                : Get.find<DemoRepository>().liveProject(selected);
+            if (projCtrl.isDetailLoading.value) return const Center(child: CircularProgressIndicator());
+            if (projCtrl.detailError.value.isNotEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(projCtrl.detailError.value), TextButton(onPressed: projectId == null ? null : () => projCtrl.loadDetails(projectId!), child: const Text('Retry'))]));
+            final project = projCtrl.selectedProject.value;
 
             if (project == null) {
               return const Center(child: Text('No project selected'));
@@ -69,6 +76,8 @@ class ProjectDetailsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(project.category, style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 8),
                   // Top Summary Card
                   Container(
                     padding: const EdgeInsets.all(16),
