@@ -18,6 +18,7 @@ class ProjectDetailsView extends StatefulWidget {
   @override
   State<ProjectDetailsView> createState() => _ProjectDetailsViewState();
 }
+
 class _ProjectDetailsViewState extends State<ProjectDetailsView> {
   String? projectId;
   @override
@@ -25,9 +26,14 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
     super.initState();
     final controller = Get.find<ProjectController>();
     final argument = Get.arguments;
-    projectId = argument is String ? argument : controller.selectedProject.value?.id;
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted && projectId != null) controller.loadDetails(projectId!); });
+    projectId = argument is String
+        ? argument
+        : controller.selectedProject.value?.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && projectId != null) controller.loadDetails(projectId!);
+    });
   }
+
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
@@ -56,8 +62,25 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            if (projCtrl.isDetailLoading.value) return const Center(child: CircularProgressIndicator());
-            if (projCtrl.detailError.value.isNotEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(projCtrl.detailError.value), TextButton(onPressed: projectId == null ? null : () => projCtrl.loadDetails(projectId!), child: const Text('Retry'))]));
+            if (projCtrl.isDetailLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (projCtrl.detailError.value.isNotEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(projCtrl.detailError.value),
+                    TextButton(
+                      onPressed: projectId == null
+                          ? null
+                          : () => projCtrl.loadDetails(projectId!),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
             final project = projCtrl.selectedProject.value;
 
             if (project == null) {
@@ -76,7 +99,10 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(project.category, style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    project.category,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 8),
                   // Top Summary Card
                   Container(

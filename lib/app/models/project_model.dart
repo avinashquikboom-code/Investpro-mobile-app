@@ -108,12 +108,23 @@ class ProjectModel {
   factory ProjectModel.fromBackend(Map<String, dynamic> json) {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
-    return ProjectModel(id: json['id'] as String, name: json['title'] as String? ?? '',
-      category: type?['name'] as String? ?? '', categoryId: json['projectTypeId'] as String? ?? type?['id'] as String?,
-      iconType: type?['icon'] as String? ?? 'folder', targetAmount: number('targetAmount'), raisedAmount: number('fundedAmount'),
-      returnRatePercent: number('expectedRoi'), durationMonths: (json['tenureMonths'] as num?)?.toInt() ?? 0,
-      status: json['status'] == 'ACTIVE' ? 'Active' : '${json['status']}', description: json['description'] as String? ?? '',
-      riskLevel: json['riskLevel'] as String? ?? '', createdAt: DateTime.tryParse('${json['createdAt']}') ?? DateTime.fromMillisecondsSinceEpoch(0));
+    return ProjectModel(
+      id: json['id'] as String,
+      name: json['title'] as String? ?? '',
+      category: type?['name'] as String? ?? '',
+      categoryId: json['projectTypeId'] as String? ?? type?['id'] as String?,
+      iconType: type?['icon'] as String? ?? 'folder',
+      targetAmount: number('targetAmount'),
+      raisedAmount: number('fundedAmount'),
+      returnRatePercent: number('expectedRoi'),
+      durationMonths: (json['tenureMonths'] as num?)?.toInt() ?? 0,
+      status: json['status'] == 'ACTIVE' ? 'Active' : '${json['status']}',
+      description: json['description'] as String? ?? '',
+      riskLevel: json['riskLevel'] as String? ?? '',
+      createdAt:
+          DateTime.tryParse('${json['createdAt']}') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
   }
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {

@@ -18,9 +18,16 @@ class ProjectsView extends StatefulWidget {
   @override
   State<ProjectsView> createState() => _ProjectsViewState();
 }
+
 class _ProjectsViewState extends State<ProjectsView> {
   @override
-  void initState() { super.initState(); WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) Get.find<ProjectController>().refreshProjects(); }); }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Get.find<ProjectController>().refreshProjects();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final projCtrl = Get.find<ProjectController>();
@@ -100,9 +107,15 @@ class _ProjectsViewState extends State<ProjectsView> {
               // Category Filter Chips
               Obx(() {
                 final cats = projCtrl.availableCategories;
-                if (cats.length <= 1) return const SizedBox.shrink();
+                if (cats.length <= 1) {
+                  return const SizedBox.shrink();
+                }
                 return Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 8,
+                  ),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -134,7 +147,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                                 ),
                               ),
                               child: Text(
-                                cat,
+                                projCtrl.categoryLabel(cat),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: isSelected
@@ -159,39 +172,68 @@ class _ProjectsViewState extends State<ProjectsView> {
               // Projects List
               Expanded(
                 child: Obx(() {
-                  if (projCtrl.isLoading.value) return const Center(child: CircularProgressIndicator());
-                  if (projCtrl.errorMessage.value.isNotEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(projCtrl.errorMessage.value), TextButton(onPressed: projCtrl.refreshProjects, child: const Text('Retry'))]));
+                  if (projCtrl.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (projCtrl.errorMessage.value.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(projCtrl.errorMessage.value),
+                          TextButton(
+                            onPressed: projCtrl.refreshProjects,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   final list = projCtrl.filteredProjects;
                   if (list.isEmpty) {
-                    return RefreshIndicator(onRefresh: projCtrl.refreshProjects, child: ListView(physics: const AlwaysScrollableScrollPhysics(), children: [EmptyStateWidget(
-                      icon: Icons.folder_open_rounded,
-                      title: 'No Projects Found',
-                      message: 'There are no projects matching this category right now.',
-                      buttonText: 'Show All Projects',
-                      onButtonPressed: () { projCtrl.setFilter('All Projects'); projCtrl.setCategory('All Categories'); },
-                    ) ]));
+                    return RefreshIndicator(
+                      onRefresh: projCtrl.refreshProjects,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          EmptyStateWidget(
+                            icon: Icons.folder_open_rounded,
+                            title: 'No Projects Found',
+                            message: 'There are no projects matching this category right now.',
+                            buttonText: 'Show All Projects',
+                            onButtonPressed: () {
+                              projCtrl.setFilter('All Projects');
+                              projCtrl.setCategory('All Categories');
+                            },
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
-                  return RefreshIndicator(onRefresh: projCtrl.refreshProjects, child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                  return RefreshIndicator(
+                    onRefresh: projCtrl.refreshProjects,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      itemCount: list.length,
+                      itemBuilder: (context, index) {
+                        final project = list[index];
+                        return ProjectCard(
+                          project: project,
+                          isDashboardVariant: false,
+                          onTap: () {
+                            projCtrl.selectProject(project);
+                            invCtrl.setProject(project);
+                            Get.toNamed(AppRoutes.projectDetails);
+                          },
+                        );
+                      },
                     ),
-                    itemCount: list.length,
-                    itemBuilder: (context, index) {
-                      final project = list[index];
-                      return ProjectCard(
-                        project: project,
-                        isDashboardVariant: false,
-                        onTap: () {
-                          projCtrl.selectProject(project);
-                          invCtrl.setProject(project);
-                          Get.toNamed(AppRoutes.projectDetails);
-                        },
-                      );
-                    },
-                  ));
+                  );
                 }),
               ),
             ],

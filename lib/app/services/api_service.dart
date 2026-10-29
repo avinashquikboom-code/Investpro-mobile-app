@@ -92,7 +92,9 @@ class ApiService extends getx.GetxService {
 
   Future<bool> _refreshToken() async {
     final rToken = await getRefreshToken();
-    if (rToken == null || rToken.isEmpty) return false;
+    if (rToken == null || rToken.isEmpty) {
+      return false;
+    }
 
     try {
       final response = await dio.post(
@@ -215,22 +217,43 @@ class ApiService extends getx.GetxService {
 
   Future<List<Map<String, dynamic>>> getProjectCategories() async {
     final response = await dio.get('/mobile/project-categories');
-    if (response.data['success'] != true || response.data['data'] is! List) throw Exception('Unable to load categories');
-    return (response.data['data'] as List).map((v) => Map<String, dynamic>.from(v as Map)).toList();
+    if (response.data['success'] != true || response.data['data'] is! List) {
+      throw Exception('Unable to load categories');
+    }
+    return (response.data['data'] as List)
+        .map((v) => Map<String, dynamic>.from(v as Map))
+        .toList();
   }
 
-  Future<List<Map<String, dynamic>>> getEligibleProjects({String? projectTypeId, String? search}) async {
+  Future<List<Map<String, dynamic>>> getEligibleProjects({
+    String? projectTypeId,
+    String? search,
+  }) async {
     final records = <Map<String, dynamic>>[];
     for (var page = 1; ; page++) {
-      final response = await dio.get('/mobile/projects', queryParameters: {
-        'page': page, 'limit': 100,
-        if (projectTypeId != null && projectTypeId.isNotEmpty) 'projectTypeId': projectTypeId,
-        if (search != null && search.isNotEmpty) 'search': search,
-      });
-      if (response.data['success'] != true || response.data['data'] is! List) throw Exception('Unable to load projects');
-      records.addAll((response.data['data'] as List).map((v) => Map<String, dynamic>.from(v as Map)));
-      final pages = (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1;
-      if (page >= pages) return records;
+      final response = await dio.get(
+        '/mobile/projects',
+        queryParameters: {
+          'page': page,
+          'limit': 100,
+          if (projectTypeId != null && projectTypeId.isNotEmpty)
+            'projectTypeId': projectTypeId,
+          if (search != null && search.isNotEmpty) 'search': search,
+        },
+      );
+      if (response.data['success'] != true || response.data['data'] is! List) {
+        throw Exception('Unable to load projects');
+      }
+      records.addAll(
+        (response.data['data'] as List).map(
+          (v) => Map<String, dynamic>.from(v as Map),
+        ),
+      );
+      final pages =
+          (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1;
+      if (page >= pages) {
+        return records;
+      }
     }
   }
 

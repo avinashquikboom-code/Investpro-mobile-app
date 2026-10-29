@@ -197,7 +197,12 @@ class DemoRepository extends GetxService {
       // 3. Sync Projects
       final projs = await _api.getProjects();
       if (projs != null) {
-        final mappedProjs = projs.map((p) => ProjectModel.fromBackend(Map<String, dynamic>.from(p as Map))).toList();
+        final mappedProjs = projs
+            .map(
+              (p) =>
+                  ProjectModel.fromBackend(Map<String, dynamic>.from(p as Map)),
+            )
+            .toList();
 
         projects.assignAll(mappedProjs);
       }
