@@ -176,6 +176,13 @@ class DemoRepository extends GetxService {
     try {
       final token = await _api!.getAccessToken();
       if (token == null || token.isEmpty) { clearLiveData(); return; }
+      final account = await _api.object('/mobile/account-status');
+      if (account['status'] != 'ACTIVE') {
+        final previous = currentUser.value;
+        clearLiveData();
+        currentUser.value = previous.copyWith(accountStatus: '${account['status']}');
+        throw StateError('Account is not active');
+      }
       final data = await Future.wait<dynamic>([
         _api.getProfile(), _api.getDashboard(), _api.getEligibleProjects(),
         _api.getInvestments(), _api.getWithdrawals(), _api.getTransactions(), _api.getReturns(),

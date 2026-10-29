@@ -209,7 +209,7 @@ class ProfileView extends StatelessWidget {
                       const SizedBox(height: 3),
                       Obx(() {
                         return Text(
-                          'Investor ID: ${profileCtrl.user.id}',
+                          'Investor ID: ${profileCtrl.user.id}\nAccount: ${profileCtrl.user.accountStatus} · KYC: ${profileCtrl.user.kycStatus}',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark
