@@ -14,11 +14,7 @@ class ApiService extends getx.GetxService {
 
   static const String liveBaseUrl = 'https://api.qbunify.online/api/v1';
 
-  static String get defaultBaseUrl {
-    if (kIsWeb) return 'http://localhost:5000/api/v1';
-    if (!kIsWeb && Platform.isAndroid) return 'http://10.0.2.2:5000/api/v1';
-    return 'http://localhost:5000/api/v1';
-  }
+  static String get defaultBaseUrl => liveBaseUrl;
 
   Future<ApiService> init({String? baseUrl}) async {
     final url = baseUrl ?? defaultBaseUrl;

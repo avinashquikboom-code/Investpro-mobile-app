@@ -5,10 +5,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ApiService Tests', () {
-    test('defaultBaseUrl returns valid HTTP URL', () {
+    test('defaultBaseUrl returns valid live API URL', () {
       final url = ApiService.defaultBaseUrl;
-      expect(url.startsWith('http://'), isTrue);
-      expect(url.contains('5000/api/v1'), isTrue);
+      expect(url.startsWith('https://'), isTrue);
+      expect(url.contains('api.qbunify.online/api/v1'), isTrue);
     });
 
     test('ApiService initializes Dio instance', () async {
