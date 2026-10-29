@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,7 +22,9 @@ class WithdrawalView extends StatelessWidget {
 
     controller.bankSelected.value = false;
     Get.bottomSheet(
-      Container(
+      UnsavedChangesGuard(controllers: [controller.amountController],
+        changes: [controller.bankSelected.stream], snapshot: () => controller.bankSelected.value,
+        child: Container(
         padding: EdgeInsets.fromLTRB(
           24,
           24,
@@ -161,13 +164,16 @@ class WithdrawalView extends StatelessWidget {
                     onPressed: controller.submitWithdrawal,
                   );
                 }),
+                TextButton(onPressed: () => Navigator.of(Get.context!).maybePop(), child: const Text('Cancel')),
                 const SizedBox(height: 10),
               ],
             ),
           ),
         ),
-      ),
+      )),
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
     );
   }
 

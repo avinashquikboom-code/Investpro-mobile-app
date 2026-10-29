@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -143,18 +144,12 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return UnsavedChangesGuard(controllers: [_identityController, _otpController, _newPasswordController, _confirmPasswordController], child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: AppAppBar(
         backgroundColor: Colors.transparent,
         showBackButton: true,
-        onBackPressed: () {
-          if (_currentStep == 1) {
-            setState(() => _currentStep = 0);
-          } else {
-            Navigator.maybePop(context);
-          }
-        },
+
       ),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
@@ -167,7 +162,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildCurrentStep(bool isDark) {
@@ -255,7 +250,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
         // Back to Login link
         Center(
           child: TextButton.icon(
-            onPressed: () => Get.back(),
+            onPressed: () => Navigator.of(context).maybePop(),
             icon: const Icon(
               Icons.arrow_back_rounded,
               size: 16,

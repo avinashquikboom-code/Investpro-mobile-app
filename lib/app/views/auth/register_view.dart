@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -38,7 +39,7 @@ class _RegisterViewState extends State<RegisterView> {
     final authCtrl = Get.find<AuthController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return UnsavedChangesGuard(controllers: [_fullNameController, _emailController, _mobileController, _passwordController], child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: const AppAppBar(
         backgroundColor: Colors.transparent,
@@ -189,6 +190,6 @@ class _RegisterViewState extends State<RegisterView> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

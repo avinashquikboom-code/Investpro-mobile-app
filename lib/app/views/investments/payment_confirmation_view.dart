@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,7 +24,7 @@ class PaymentConfirmationView extends StatelessWidget {
       {'name': 'Demo Wallet', 'icon': Icons.wallet_rounded},
     ];
 
-    return Scaffold(
+    return UnsavedChangesGuard(controllers: [], changes: [invCtrl.selectedPaymentMethod.stream, invCtrl.agreeToTerms.stream], snapshot: () => '${invCtrl.selectedPaymentMethod.value}|${invCtrl.agreeToTerms.value}', child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: CustomAppBar(title: 'confirmPayment'.tr),
       body: SafeArea(
@@ -270,7 +271,7 @@ class PaymentConfirmationView extends StatelessWidget {
           }),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildRow(String label, String value, {Color? color}) {

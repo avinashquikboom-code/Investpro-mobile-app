@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +17,7 @@ class EditProfileView extends StatelessWidget {
     final profileCtrl = Get.find<ProfileController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return UnsavedChangesGuard(controllers: [profileCtrl.nameController, profileCtrl.emailController, profileCtrl.phoneController], child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: CustomAppBar(title: 'editProfile'.tr),
       body: SafeArea(
@@ -117,6 +118,6 @@ class EditProfileView extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

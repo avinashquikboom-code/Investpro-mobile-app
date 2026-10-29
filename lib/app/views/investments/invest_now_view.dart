@@ -1,3 +1,4 @@
+import '../../widgets/unsaved_changes_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -31,7 +32,7 @@ class InvestNowView extends StatelessWidget {
     final invCtrl = Get.find<InvestmentController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return UnsavedChangesGuard(controllers: [invCtrl.amountTextController], changes: [invCtrl.investmentAmount.stream], snapshot: () => invCtrl.investmentAmount.value, child: Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: const CustomAppBar(title: 'Invest Now'),
       body: SafeArea(
@@ -289,7 +290,7 @@ class InvestNowView extends StatelessWidget {
           }),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildSummaryRow({
