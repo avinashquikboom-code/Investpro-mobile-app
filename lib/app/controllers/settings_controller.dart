@@ -1,3 +1,4 @@
+import '../services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -67,7 +68,7 @@ class SettingsController extends GetxController {
     final confirmPass = TextEditingController();
 
     await Get.defaultDialog(
-      title: 'Demo Password Validation',
+      title: 'Change Password',
       titleStyle: const TextStyle(fontWeight: FontWeight.bold),
       content: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -100,7 +101,7 @@ class SettingsController extends GetxController {
       textCancel: 'Cancel',
       confirmTextColor: Colors.white,
       buttonColor: const Color(0xFF006B3C),
-      onConfirm: () {
+      onConfirm: () async {
         if (newPass.text.length < 8 ||
             !RegExp(r'[A-Za-z]').hasMatch(newPass.text) ||
             !RegExp(r'[0-9]').hasMatch(newPass.text)) {
@@ -119,14 +120,11 @@ class SettingsController extends GetxController {
           );
           return;
         }
-        Get.back();
-        Get.snackbar(
-          'Demo password validation',
-          'Password format accepted. No password is stored or changed in this local demo.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFE8F8F0),
-          colorText: const Color(0xFF006B3C),
-        );
+        try {
+          await Get.find<ApiService>().changePassword(oldPass.text, newPass.text);
+          Get.back();
+          Get.snackbar('Password updated', 'Your password was changed by the account service.');
+        } catch (_) { Get.snackbar('Unable to change password', 'Check your current password and retry.'); }
       },
     );
     oldPass.dispose();

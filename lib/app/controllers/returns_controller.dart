@@ -57,7 +57,7 @@ class ReturnsController extends GetxController {
       return ReturnPayoutModel(
         id: e.key,
         investmentId: 'summary',
-        projectName: 'Demo return summary',
+        projectName: 'Return summary',
         monthYear: label,
         payoutDate: date,
         amount:
@@ -72,7 +72,7 @@ class ReturnsController extends GetxController {
         records
             .where(
               (r) =>
-                  r.status == 'Pending' &&
+                  (r.status == 'Pending' || r.status == 'Scheduled') &&
                   !r.payoutDate.isBefore(DateTime.now()),
             )
             .toList()
