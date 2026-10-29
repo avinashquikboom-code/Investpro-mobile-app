@@ -55,53 +55,62 @@ class HomeView extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  border: Border.all(
-                                    color: AppColors.accent,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.person_rounded,
-                                  color: Colors.white,
-                                  size: 26,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Obx(() {
-                                    return Text(
-                                      'Hello, ${homeCtrl.user.fullName}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'welcomeToApp'.tr,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                      fontSize: 12,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    border: Border.all(
+                                      color: AppColors.accent,
+                                      width: 2,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Obx(() {
+                                        return Text(
+                                          'Hello, ${homeCtrl.user.fullName}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      }),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'welcomeToApp'.tr,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                          fontSize: 12,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 12),
                           // Notification Bell with Badge
                           GestureDetector(
                             onTap: () => Get.toNamed(AppRoutes.notifications),
@@ -172,23 +181,29 @@ class HomeView extends StatelessWidget {
                       Obx(() {
                         return Row(
                           children: [
-                            StatItemCard(
-                              title: 'totalInvested'.tr,
-                              value: CurrencyFormatter.format(
-                                homeCtrl.totalInvested,
+                            Expanded(
+                              child: StatItemCard(
+                                title: 'totalInvested'.tr,
+                                value: CurrencyFormatter.format(
+                                  homeCtrl.totalInvested,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 10),
-                            StatItemCard(
-                              title: 'totalReturns'.tr,
-                              value: CurrencyFormatter.format(
-                                homeCtrl.totalReturns,
+                            Expanded(
+                              child: StatItemCard(
+                                title: 'totalReturns'.tr,
+                                value: CurrencyFormatter.format(
+                                  homeCtrl.totalReturns,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 10),
-                            StatItemCard(
-                              title: 'totalProjects'.tr,
-                              value: '${homeCtrl.totalActiveProjects}',
+                            Expanded(
+                              child: StatItemCard(
+                                title: 'totalProjects'.tr,
+                                value: '${homeCtrl.totalActiveProjects}',
+                              ),
                             ),
                           ],
                         );
