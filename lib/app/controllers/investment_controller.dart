@@ -16,7 +16,7 @@ class InvestmentController extends GetxController {
   final DemoRepository _repo;
   bool get isLive => _repo.isLive;
 
-  InvestmentController(this._repo);
+  InvestmentController(this._repo) { if (_repo.isLive) myInvestmentsFilter.value = 'All'; }
 
   // Form & Calculations State
   final RxDouble investmentAmount = 5000.0.obs;
@@ -131,11 +131,17 @@ class InvestmentController extends GetxController {
     );
   }
 
+  InvestmentModel? get currentInvestment {
+    final selected = selectedInvestment.value;
+    final arguments = Get.arguments;
+    final id = arguments is Map ? arguments['investmentId']?.toString() ?? selected?.id : selected?.id;
+    return _repo.investments.where((record) => record.id == id).firstOrNull ?? (isLive ? null : selected);
+  }
   List<InvestmentModel> get filteredInvestments {
     return _repo.investments
         .where(
           (inv) =>
-              inv.status.toLowerCase() ==
+              myInvestmentsFilter.value == 'All' || inv.status.toLowerCase() ==
               myInvestmentsFilter.value.toLowerCase(),
         )
         .toList();

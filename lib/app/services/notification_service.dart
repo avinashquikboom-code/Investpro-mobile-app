@@ -22,10 +22,11 @@ class NotificationService extends GetxService {
   Future<void> refreshFromBackend() async {
     if (_api == null) return;
     try {
+      final session = _api.sessionVersion;
       final token = await _api.getAccessToken();
       if (token == null || token.isEmpty) { notifications.clear(); return; }
       final list = await _api.getNotifications();
-      if (token != await _api.getAccessToken()) return;
+      if (session != _api.sessionVersion) return;
       if (list != null) {
         final parsed = list
             .map(

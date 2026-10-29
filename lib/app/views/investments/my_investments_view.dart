@@ -19,7 +19,7 @@ class MyInvestmentsView extends StatelessWidget {
     final invCtrl = Get.find<InvestmentController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final filterTabs = ['Active', 'Completed', 'Withdrawn'];
+    final filterTabs = invCtrl.isLive ? ['All', 'Active', 'Completed'] : ['Active', 'Completed', 'Withdrawn'];
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,

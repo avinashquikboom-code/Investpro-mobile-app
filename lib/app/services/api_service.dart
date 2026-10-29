@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart' as getx;
 
 class ApiService extends getx.GetxService {
+  int sessionVersion = 0;
   static const String _keyAccessToken = 'investpro_access_token';
   static const String _keyRefreshToken = 'investpro_refresh_token';
 
@@ -86,6 +87,7 @@ class ApiService extends getx.GetxService {
   }
 
   Future<void> clearTokens() async {
+    sessionVersion++;
     await _secureStorage.delete(key: _keyAccessToken);
     await _secureStorage.delete(key: _keyRefreshToken);
   }
@@ -151,6 +153,7 @@ class ApiService extends getx.GetxService {
     String emailOrMobile,
     String password,
   ) async {
+    sessionVersion++;
     try {
       final response = await dio.post(
         '/auth/login',
@@ -177,6 +180,7 @@ class ApiService extends getx.GetxService {
     required String mobileNumber,
     required String password,
   }) async {
+    sessionVersion++;
     try {
       final response = await dio.post(
         '/auth/register',

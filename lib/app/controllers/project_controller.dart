@@ -1,3 +1,4 @@
+import '../routes/app_routes.dart';
 import 'package:get/get.dart';
 
 import '../models/project_model.dart';
@@ -60,7 +61,6 @@ class ProjectController extends GetxController {
     final request = ++_request;
     isLoading.value = true;
     errorMessage.value = '';
-    remoteProjects.clear();
     try {
       final catalog = await _api.getProjectCategories();
       if (request != _request || isClosed) {
@@ -81,10 +81,14 @@ class ProjectController extends GetxController {
         return;
       }
       remoteProjects.assignAll(projects.map(ProjectModel.fromBackend));
+      final selectedId = selectedProject.value?.id;
+      if (selectedId != null && Get.currentRoute == AppRoutes.projectDetails) await loadDetails(selectedId, background: true);
     } catch (_) {
       if (request == _request && !isClosed) {
+        remoteProjects.clear();
         errorMessage.value =
             'Unable to load projects and categories. Please retry.';
+        remoteProjects.clear();
       }
     } finally {
       if (request == _request && !isClosed) isLoading.value = false;
@@ -109,13 +113,13 @@ class ProjectController extends GetxController {
     detailError.value = '';
   }
 
-  Future<void> loadDetails(String id) async {
+  Future<void> loadDetails(String id, {bool background = false}) async {
     if (_api == null) {
       return;
     }
-    isDetailLoading.value = true;
+    if (!background) isDetailLoading.value = true;
     detailError.value = '';
-    selectedProject.value = null;
+    if (!background) selectedProject.value = null;
     try {
       final data = await _api.getProject(id);
       if (data == null) {
@@ -123,6 +127,7 @@ class ProjectController extends GetxController {
       }
       selectedProject.value = ProjectModel.fromBackend(data);
     } catch (_) {
+      selectedProject.value = null;
       detailError.value = 'This project is unavailable or could not be loaded.';
     } finally {
       if (!isClosed) isDetailLoading.value = false;

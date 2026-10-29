@@ -40,6 +40,7 @@ class DemoRepository extends GetxService {
   final returns = <ReturnPayoutModel>[].obs;
   final withdrawals = <WithdrawalModel>[].obs;
   final availableBalance = 0.0.obs;
+  int _generation = 0;
   bool get isLive => _api != null;
   final syncError = ''.obs;
   final isSyncing = false.obs;
@@ -48,6 +49,8 @@ class DemoRepository extends GetxService {
   Future<void>? _sync;
   void clearLiveData() {
     if (!isLive) return;
+    _generation++;
+    _sync = null;
     projects.clear(); investments.clear(); withdrawals.clear(); transactions.clear(); returns.clear();
     availableBalance.value = 0; serverTotalInvested.value = 0; serverTotalReturns.value = 0;
     currentUser.value = const UserModel(id: '', fullName: '', email: '', mobileNumber: '');
@@ -168,15 +171,22 @@ class DemoRepository extends GetxService {
 
   Future<void> syncFromBackend() {
     if (!isLive) return Future<void>.value();
-    return _sync ??= _loadSnapshot().whenComplete(() => _sync = null);
+    if (_sync != null) return _sync!;
+    late final Future<void> pending;
+    pending = _loadSnapshot().whenComplete(() { if (identical(_sync, pending)) _sync = null; });
+    _sync = pending;
+    return pending;
   }
   Future<void> _loadSnapshot() async {
+    final generation = _generation;
+    final session = _api!.sessionVersion;
     isSyncing.value = true;
     syncError.value = '';
     try {
-      final token = await _api!.getAccessToken();
+      final token = await _api.getAccessToken();
       if (token == null || token.isEmpty) { clearLiveData(); return; }
       final account = await _api.object('/mobile/account-status');
+      if (generation != _generation || session != _api.sessionVersion) throw StateError('Session changed');
       if (account['status'] != 'ACTIVE') {
         final previous = currentUser.value;
         clearLiveData();
@@ -193,7 +203,7 @@ class DemoRepository extends GetxService {
       if (portfolio is! Map || !portfolio.containsKey('availableBalance') || !portfolio.containsKey('totalInvested')) throw StateError('Portfolio data is unavailable');
       final user = BackendSnapshot.user(profile);
       if (user.accountStatus != 'ACTIVE') throw StateError('Account is not active');
-      if (token != await _api.getAccessToken()) return;
+      if (generation != _generation || session != _api.sessionVersion) throw StateError('Session changed');
       // Commit one coherent server snapshot; successful empty collections clear stale data.
       currentUser.value = user;
       serverTotalInvested.value = BackendSnapshot.number(portfolio['totalInvested']);

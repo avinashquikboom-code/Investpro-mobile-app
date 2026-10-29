@@ -19,7 +19,10 @@ class WithdrawalController extends GetxController {
   double get availableBalance => _repo.availableBalance.value;
 
   List<TransactionModel> get filteredTransactions {
-    final txns = _repo.transactions;
+    final txns = _repo.isLive ? [
+      ..._repo.withdrawals.map((request) => TransactionModel(id: request.id, type: TransactionType.withdrawal, title: 'Withdrawal request', subtitle: '${request.bankName} ${request.accountNumber}', amount: request.amount, date: request.requestDate, status: request.status, direction: 'DEBIT', referenceId: request.referenceId)),
+      ..._repo.transactions.where((record) => record.type == TransactionType.deposit),
+    ] : _repo.transactions;
     switch (selectedFilter.value) {
       case 'Withdrawals':
         return txns.where((t) => t.type == TransactionType.withdrawal).toList();

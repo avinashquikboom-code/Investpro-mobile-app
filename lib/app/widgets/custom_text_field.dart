@@ -45,9 +45,9 @@ class CustomTextField extends StatelessWidget {
             label!,
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: isDark
-                  ? AppColors.textSecondaryDark
+                  ? AppColors.textPrimaryDark
                   : AppColors.textPrimary,
             ),
           ),

@@ -1,7 +1,36 @@
+import 'package:investpro/app/controllers/investment_controller.dart';
+import 'package:investpro/app/controllers/withdrawal_controller.dart';
+import 'package:investpro/app/services/api_service.dart';
+import 'package:investpro/app/services/demo_repository.dart';
+import 'package:investpro/app/services/local_storage_service.dart';
+import 'package:investpro/app/services/notification_service.dart';
+import 'package:investpro/app/models/withdrawal_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:investpro/app/services/backend_snapshot.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  DemoRepository liveRepository() {
+    final storage = LocalStorageService();
+    return DemoRepository(storage, NotificationService(storage), ApiService());
+  }
+  test('withdrawal history shows the backend approval independently of transaction settlement', () {
+    final repo = liveRepository();
+    repo.withdrawals.add(WithdrawalModel(id:'w',amount:100,bankName:'Bank',accountNumber:'•••• 1234',requestDate:DateTime(2026),status:'Approved',referenceId:'W1'));
+    final controller = WithdrawalController(repo);
+    expect(controller.filteredTransactions.single.status, 'Approved');
+    expect(controller.filteredTransactions.single.referenceId, 'W1');
+    controller.onClose();
+  });
+  test('new live investment requests are visible in the default All filter', () {
+    final repo = liveRepository();
+    repo.investments.add(BackendSnapshot.investment({'id':'i','status':'PENDING_PAYMENT','amount':100}));
+    final controller = InvestmentController(repo);
+    expect(controller.myInvestmentsFilter.value, 'All');
+    expect(controller.filteredInvestments.single.status, 'Pending payment');
+    controller.onClose();
+  });
+
   test('preserves approval and settlement as distinct statuses', () {
     for (final status in ['PENDING', 'APPROVED', 'PROCESSING', 'COMPLETED', 'REJECTED']) {
       final row = BackendSnapshot.withdrawal({'id':'w','amount':'125.50','status':status,'requestedAt':'2026-10-30T00:00:00Z'});

@@ -59,8 +59,9 @@ class StatusBadge extends StatelessWidget {
             status,
             style: TextStyle(
               color: fg,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
             ),
           ),
         ],

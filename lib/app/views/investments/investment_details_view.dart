@@ -44,11 +44,7 @@ class InvestmentDetailsView extends StatelessWidget {
           context: context,
           maxWidth: 600,
           child: Obx(() {
-            final investment =
-                invCtrl.selectedInvestment.value ??
-                (invCtrl.filteredInvestments.isNotEmpty
-                    ? invCtrl.filteredInvestments.first
-                    : null);
+            final investment = invCtrl.currentInvestment;
 
             if (investment == null) {
               return const Center(child: Text('No investment selected'));

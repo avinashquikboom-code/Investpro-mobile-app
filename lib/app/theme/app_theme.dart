@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
+import 'app_typography.dart';
 
 class AppTheme {
   AppTheme._();
@@ -11,6 +12,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: AppTypography.fontFamily,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.light(
@@ -72,9 +74,10 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary, size: 20),
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -151,15 +154,56 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
+        labelStyle: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         hintStyle: GoogleFonts.poppins(
           fontSize: 14,
+          fontWeight: FontWeight.w400,
           color: AppColors.textSecondary.withValues(alpha: 0.7),
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surface,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
@@ -170,6 +214,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: AppTypography.fontFamily,
       primaryColor: AppColors.primaryLight,
       scaffoldBackgroundColor: AppColors.backgroundDark,
       colorScheme: const ColorScheme.dark(
@@ -234,9 +279,10 @@ class AppTheme {
           ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surfaceDark,
+        foregroundColor: AppColors.textPrimaryDark,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
+        iconTheme: const IconThemeData(color: AppColors.textPrimaryDark, size: 20),
         titleTextStyle: GoogleFonts.poppins(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -305,15 +351,64 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        labelStyle: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimaryDark,
+        ),
         hintStyle: GoogleFonts.poppins(
           fontSize: 14,
+          fontWeight: FontWeight.w400,
           color: AppColors.textSecondaryDark.withValues(alpha: 0.7),
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surfaceDark,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimaryDark,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondaryDark,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceDark,
         selectedItemColor: AppColors.accent,
         unselectedItemColor: AppColors.textSecondaryDark,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
