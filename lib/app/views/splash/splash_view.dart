@@ -1,11 +1,11 @@
-import '../../theme/app_colors.dart';
-import '../../widgets/app_system_ui.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/app_system_ui.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -128,12 +128,12 @@ class _SplashViewState extends State<SplashView>
                       const SizedBox(height: 16),
 
                       // App Title: "Invest" in White, "Pro" in Lime Green
-                      RichText(
-                        text: const TextSpan(
+                      Text.rich(
+                        TextSpan(
                           children: [
                             TextSpan(
                               text: 'Invest',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -142,10 +142,10 @@ class _SplashViewState extends State<SplashView>
                             ),
                             TextSpan(
                               text: 'Pro',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF4ADE80),
+                                color: const Color(0xFF4ADE80),
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -158,7 +158,7 @@ class _SplashViewState extends State<SplashView>
                       Text(
                         'Grow Your Wealth\nWith Trusted Investments',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Colors.white.withValues(alpha: 0.95),
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

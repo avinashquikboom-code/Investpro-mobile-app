@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
 import 'custom_button.dart';
@@ -41,7 +42,7 @@ class EmptyStateWidget extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               title,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: isDark
@@ -53,7 +54,7 @@ class EmptyStateWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: isDark
                     ? AppColors.textSecondaryDark

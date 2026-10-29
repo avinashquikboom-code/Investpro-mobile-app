@@ -138,7 +138,7 @@ class StatItemCard extends StatelessWidget {
               color: isDark
                   ? AppColors.textSecondaryDark
                   : AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

@@ -172,8 +172,8 @@ class _RegisterViewState extends State<RegisterView> {
                   Center(
                     child: TextButton(
                       onPressed: () => Get.offNamed(AppRoutes.login),
-                      child: RichText(
-                        text: TextSpan(
+                      child: Text.rich(
+                        TextSpan(
                           text: '${'alreadyHaveAccount'.tr.split('?').first}? ',
                           style: TextStyle(
                             fontSize: 13,

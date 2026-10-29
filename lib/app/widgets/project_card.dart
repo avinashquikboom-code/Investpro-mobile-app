@@ -111,7 +111,7 @@ class ProjectCard extends StatelessWidget {
                           '${project.returnRatePercent.toInt()}% Return',
                           style: const TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
                           maxLines: 1,

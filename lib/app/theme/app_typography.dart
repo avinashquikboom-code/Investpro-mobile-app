@@ -176,3 +176,4 @@ class AppTypography {
   static TextStyle caption(BuildContext context) =>
       bodySmall(color: _isDark(context) ? AppColors.textSecondaryDark : AppColors.textSecondary);
 }
+

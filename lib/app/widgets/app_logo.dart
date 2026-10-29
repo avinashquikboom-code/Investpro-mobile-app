@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
 
@@ -43,7 +44,7 @@ class AppLogo extends StatelessWidget {
           SizedBox(height: effectiveSpacing),
           Text(
             'InvestPro',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
               color: color,
