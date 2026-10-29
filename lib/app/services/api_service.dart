@@ -206,6 +206,73 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
+  Future<Map<String, dynamic>?> forgotPassword(String identifier) async {
+    try {
+      final response = await dio.post(
+        '/auth/forgot-password',
+        data: {
+          'email': identifier.trim(),
+          'identifier': identifier.trim(),
+        },
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return (response.data['data'] as Map<String, dynamic>?) ?? {};
+      }
+    } catch (e) {
+      debugPrint('[ApiService] forgotPassword error: $e');
+      rethrow;
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> verifyResetCode({
+    required String identifier,
+    required String otp,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/auth/verify-reset-code',
+        data: {
+          'email': identifier.trim(),
+          'identifier': identifier.trim(),
+          'otp': otp.trim(),
+        },
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return (response.data['data'] as Map<String, dynamic>?) ?? {};
+      }
+    } catch (e) {
+      debugPrint('[ApiService] verifyResetCode error: $e');
+      rethrow;
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> resetPassword({
+    required String identifier,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/auth/reset-password',
+        data: {
+          'email': identifier.trim(),
+          'identifier': identifier.trim(),
+          'otp': otp.trim(),
+          'newPassword': newPassword,
+        },
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return (response.data['data'] as Map<String, dynamic>?) ?? {};
+      }
+    } catch (e) {
+      debugPrint('[ApiService] resetPassword error: $e');
+      rethrow;
+    }
+    return null;
+  }
+
   Future<void> logout() async {
     final rToken = await getRefreshToken();
     try {
