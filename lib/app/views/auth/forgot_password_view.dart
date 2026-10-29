@@ -146,6 +146,9 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return UnsavedChangesGuard(
+      onBackWithinPage: _currentStep == 1
+          ? () => setState(() => _currentStep = 0)
+          : null,
       controllers: [
         _identityController,
         _otpController,

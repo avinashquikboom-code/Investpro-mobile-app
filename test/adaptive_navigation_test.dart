@@ -147,25 +147,56 @@ void main() {
     });
   }
 
-  testWidgets('platform override and explicit alignment remain available', (tester) async {
-    await tester.pumpWidget(MaterialApp(theme: ThemeData(platform: TargetPlatform.android),
-      home: Scaffold(appBar: AppAppBar(title: 'Override', platform: TargetPlatform.iOS,
-        centerTitle: false, showBackButton: true, onBackPressed: () {}))));
+  testWidgets('platform override and explicit alignment remain available', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.android),
+        home: Scaffold(
+          appBar: AppAppBar(
+            title: 'Override',
+            platform: TargetPlatform.iOS,
+            centerTitle: false,
+            showBackButton: true,
+            onBackPressed: () {},
+          ),
+        ),
+      ),
+    );
     expect(tester.widget<AppBar>(find.byType(AppBar)).centerTitle, false);
     expect(find.byIcon(CupertinoIcons.back), findsOneWidget);
   });
 
-  testWidgets('GetX native route preserves arguments and iOS swipe back', (tester) async {
+  testWidgets('GetX native route preserves arguments and iOS swipe back', (
+    tester,
+  ) async {
     Get.testMode = true;
     addTearDown(() => Get.reset());
-    await tester.pumpWidget(GetMaterialApp(
-      theme: ThemeData(platform: TargetPlatform.iOS),
-      defaultTransition: Transition.native, popGesture: true,
-      initialRoute: '/', getPages: [
-        GetPage(name: '/', page: () => Scaffold(body: TextButton(
-          onPressed: () => Get.toNamed('/details', arguments: 'record-7'), child: const Text('Open record')))),
-        GetPage(name: '/details', page: () => Scaffold(appBar: AppAppBar(title: Get.arguments as String))),
-      ]));
+    await tester.pumpWidget(
+      GetMaterialApp(
+        theme: ThemeData(platform: TargetPlatform.iOS),
+        defaultTransition: Transition.native,
+        popGesture: true,
+        initialRoute: '/',
+        getPages: [
+          GetPage(
+            name: '/',
+            page: () => Scaffold(
+              body: TextButton(
+                onPressed: () => Get.toNamed('/details', arguments: 'record-7'),
+                child: const Text('Open record'),
+              ),
+            ),
+          ),
+          GetPage(
+            name: '/details',
+            page: () =>
+                Scaffold(appBar: AppAppBar(title: Get.arguments as String)),
+          ),
+        ],
+      ),
+    );
     await tester.tap(find.text('Open record'));
     await tester.pumpAndSettle();
     expect(find.text('record-7'), findsOneWidget);
@@ -174,6 +205,44 @@ void main() {
     expect(find.text('record-7'), findsNothing);
     expect(find.text('Open record'), findsOneWidget);
   });
+
+  testWidgets(
+    'multi-step forms use the same toolbar and system step-back policy',
+    (tester) async {
+      var step = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => StatefulBuilder(
+                      builder: (context, update) => UnsavedChangesGuard(
+                        onBackWithinPage: step == 1
+                            ? () => update(() => step = 0)
+                            : null,
+                        child: Scaffold(appBar: AppAppBar(title: 'Step $step')),
+                      ),
+                    ),
+                  ),
+                ),
+                child: const Text('Begin'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Begin'));
+      await tester.pumpAndSettle();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('Step 0'), findsOneWidget);
+      await tester.tap(find.byType(AppBackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Begin'), findsOneWidget);
+    },
+  );
 
   Future<void> openForm(
     WidgetTester tester, {

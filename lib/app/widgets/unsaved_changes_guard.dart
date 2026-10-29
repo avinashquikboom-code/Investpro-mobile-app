@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 /// the toolbar provides the same confirmation without accidental data loss.
 class UnsavedChangesGuard extends StatefulWidget {
   final Widget child;
+  final VoidCallback? onBackWithinPage;
   final List<TextEditingController> controllers;
   final List<Stream<dynamic>> changes;
   final Object? Function()? snapshot;
   const UnsavedChangesGuard({
     super.key,
     required this.child,
+    this.onBackWithinPage,
     this.controllers = const [],
     this.changes = const [],
     this.snapshot,
@@ -113,10 +115,14 @@ class _UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
 
   @override
   Widget build(BuildContext context) => PopScope<Object?>(
-    canPop: _allowPop || !_dirty,
+    canPop: _allowPop || (!_dirty && widget.onBackWithinPage == null),
     onPopInvokedWithResult: (didPop, result) {
-      if (!didPop && _dirty) {
-        _confirm(result);
+      if (!didPop) {
+        if (widget.onBackWithinPage != null) {
+          widget.onBackWithinPage!();
+        } else if (_dirty) {
+          _confirm(result);
+        }
       }
     },
     child: widget.child,
