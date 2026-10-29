@@ -1,3 +1,4 @@
+import '../kyc/kyc_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -66,7 +67,7 @@ class ProfileView extends StatelessWidget {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                'Demo only • unverified',
+                                user.isBankVerified ? 'Verified' : 'Unverified',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -221,6 +222,7 @@ class ProfileView extends StatelessWidget {
                 ),
                 const SizedBox(height: 26),
 
+                ListTile(leading: const Icon(Icons.verified_user_outlined), title: const Text('KYC Documents'), onTap: () => Get.to(() => const KycView())),
                 // Menu Items Container
                 Container(
                   decoration: BoxDecoration(

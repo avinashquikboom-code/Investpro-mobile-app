@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../services/api_service.dart';
+import '../services/backend_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,6 +14,7 @@ import '../utils/validators.dart';
 
 class InvestmentController extends GetxController {
   final DemoRepository _repo;
+  bool get isLive => _repo.isLive;
 
   InvestmentController(this._repo);
 
@@ -23,10 +28,13 @@ class InvestmentController extends GetxController {
   final simulateFailure = false.obs;
   final paymentError = ''.obs;
   String _requestId = '';
+  String? _pendingId;
+  Razorpay? _checkout;
+  Completer<bool>? _payment;
   String? get amountError {
-    final format = Validators.validateInvestmentAmount(
-      amountTextController.text,
-    );
+    final format = _repo.isLive
+        ? (Validators.amount(amountTextController.text.trim()) == null ? 'Enter an amount with at most two decimal places' : null)
+        : Validators.validateInvestmentAmount(amountTextController.text);
     if (format != null) return format;
     final project = currentProject.value;
     return project == null
@@ -65,6 +73,8 @@ class InvestmentController extends GetxController {
 
   @override
   void onClose() {
+    _checkout?.clear();
+    if (_payment?.isCompleted == false) _payment!.complete(false);
     amountTextController.dispose();
     super.onClose();
   }
@@ -75,7 +85,8 @@ class InvestmentController extends GetxController {
     lastSuccessfulInvestment.value = null;
     agreeToTerms.value = false;
     paymentError.value = '';
-    _requestId = _repo.newReference('DEMO');
+    _requestId = _repo.newReference('INV');
+    _pendingId = null;
     selectQuickAmount(10000);
   }
 
@@ -114,7 +125,7 @@ class InvestmentController extends GetxController {
     }
     return InvestmentCalculator.calculate(
       principal: investmentAmount.value,
-      returnRatePercent: proj.returnRatePercent,
+      returnRatePercent: _repo.isLive ? proj.returnRatePercent * proj.durationMonths / 12 : proj.returnRatePercent,
       durationMonths: proj.durationMonths,
     );
   }
@@ -156,12 +167,13 @@ class InvestmentController extends GetxController {
     }
     if (!agreeToTerms.value || amountError != null) {
       paymentError.value =
-          amountError ?? 'Accept the demo investment terms to continue.';
+          amountError ?? 'Accept the investment terms to continue.';
       return false;
     }
     isProcessingPayment.value = true;
     paymentError.value = '';
     try {
+      if (_repo.isLive) return await _payVerified();
       await Future<void>.delayed(const Duration(milliseconds: 700));
       if (simulateFailure.value) {
         throw StateError(
@@ -186,5 +198,41 @@ class InvestmentController extends GetxController {
     } finally {
       isProcessingPayment.value = false;
     }
+  }
+
+  Future<bool> _payVerified() async {
+    final api = Get.find<ApiService>();
+    if (_pendingId == null) {
+      final pending = await _repo.createInvestment(project: currentProject.value!,
+        amount: investmentAmount.value, paymentMethod: 'UPI', requestId: _requestId);
+      _pendingId = pending.id;
+    }
+    final order = await api.paymentOrder(_pendingId!);
+    _payment = Completer<bool>();
+    _checkout?.clear();
+    _checkout = Razorpay();
+    _checkout!.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) async {
+      try {
+        final verified = await api.verifyPayment({'investmentId': _pendingId,
+          'orderId': response.orderId, 'paymentId': response.paymentId, 'signature': response.signature});
+        if (verified['status'] != 'ACTIVE' || verified['paymentVerified'] != true) {
+          throw StateError('Payment requires backend reconciliation. Check your investment history.');
+        }
+        lastSuccessfulInvestment.value = BackendSnapshot.investment(verified);
+        await _repo.syncFromBackend();
+        if (_payment?.isCompleted == false) _payment!.complete(true);
+        Get.offNamedUntil(AppRoutes.investmentSuccess, (route) => route.settings.name == AppRoutes.home);
+      } catch (_) {
+        paymentError.value = 'Payment verification is pending. Refresh your investments before retrying.';
+        if (_payment?.isCompleted == false) _payment!.complete(false);
+      }
+    });
+    _checkout!.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
+      paymentError.value = response.message ?? 'Checkout cancelled or unsuccessful. Your request remains pending.';
+      if (_payment?.isCompleted == false) _payment!.complete(false);
+    });
+    _checkout!.open({'key': order['keyId'], 'order_id': order['orderId'],
+      'amount': order['amount'], 'currency': order['currency'], 'name': 'InvestPro'});
+    return _payment!.future;
   }
 }

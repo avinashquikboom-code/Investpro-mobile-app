@@ -44,6 +44,7 @@ class AuthController extends GetxController {
       throw StateError('An investor account is required');
     }
     _repo.clearLiveData();
+    if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().notifications.clear();
     await _repo.syncFromBackend();
     await _storage.setRememberMe(rememberMe.value);
     await _storage.setLoggedIn(rememberMe.value);
@@ -58,10 +59,12 @@ class AuthController extends GetxController {
   Future<bool> restoreSession() async {
     isLoggedIn.value = false;
     if (_api == null || !_storage.rememberMe || (await _api.getAccessToken())?.isNotEmpty != true) {
-      _repo.clearLiveData(); return false;
+      _repo.clearLiveData();
+    if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().notifications.clear(); return false;
     }
     try { await _repo.syncFromBackend(); isLoggedIn.value = _repo.currentUser.value.accountStatus == 'ACTIVE'; return isLoggedIn.value; }
-    catch (_) { _repo.clearLiveData(); return false; }
+    catch (_) { _repo.clearLiveData();
+    if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().notifications.clear(); return false; }
   }
   Future<bool> login(String identity, String password) async {
     if (isLoading.value) return false;
@@ -143,6 +146,7 @@ class AuthController extends GetxController {
     if (confirmed == true) {
       isLoggedIn.value = false;
       _repo.clearLiveData();
+    if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().notifications.clear();
       try {
         if (Get.isRegistered<FirebaseNotificationService>()) {
           await Get.find<FirebaseNotificationService>().deleteToken();

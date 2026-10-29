@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../constants/app_constants.dart';
@@ -95,6 +94,12 @@ class DemoRepository extends GetxService {
   }
 
   String? investmentError(ProjectModel project, double amount) {
+    if (isLive) {
+      if (!amount.isFinite || amount <= 0) return 'Enter a positive amount';
+      if (amount < project.minInvestment || (project.maxInvestment != null && amount > project.maxInvestment!)) return 'Amount is outside the project investment limits';
+      if (project.status != 'Active') return 'Project is not available';
+      return null;
+    }
     if (!amount.isFinite ||
         amount <= 0 ||
         minor(amount) < minor(AppConstants.minInvestmentAmount) ||
@@ -181,6 +186,7 @@ class DemoRepository extends GetxService {
       if (portfolio is! Map || !portfolio.containsKey('availableBalance') || !portfolio.containsKey('totalInvested')) throw StateError('Portfolio data is unavailable');
       final user = BackendSnapshot.user(profile);
       if (user.accountStatus != 'ACTIVE') throw StateError('Account is not active');
+      if (token != await _api.getAccessToken()) return;
       // Commit one coherent server snapshot; successful empty collections clear stale data.
       currentUser.value = user;
       serverTotalInvested.value = BackendSnapshot.number(portfolio['totalInvested']);

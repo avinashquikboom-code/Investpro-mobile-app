@@ -1,3 +1,4 @@
+import 'app/widgets/account_sync.dart';
 import 'app/widgets/app_system_ui.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -137,7 +138,7 @@ class InvestProApp extends StatelessWidget {
         defaultTransition: Transition.native,
         popGesture: true,
         builder: (context, child) =>
-            AppSystemUi(child: child ?? const SizedBox.shrink()),
+            Obx(() => AccountSync(authenticated: Get.find<AuthController>().isLoggedIn.value, refresh: () async { await Get.find<DemoRepository>().syncFromBackend(); await Get.find<ProjectController>().refreshProjects(); await Get.find<NotificationController>().refreshNotifications(); }, child: AppSystemUi(child: child ?? const SizedBox.shrink()))),
         translations: AppTranslations(),
         locale: initialLocale,
         fallbackLocale: const Locale('en', 'US'),

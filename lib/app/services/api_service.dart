@@ -314,7 +314,7 @@ class ApiService extends getx.GetxService {
     try {
       final response = await dio.post(
         '/mobile/investments',
-        options: Options(headers: {if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey}),
+        options: Options(headers: {'Idempotency-Key': ?idempotencyKey}),
         data: {
           'projectId': projectId,
           'amount': amount,
@@ -350,7 +350,7 @@ class ApiService extends getx.GetxService {
       if (bankAccountId != null) payload['bankAccountId'] = bankAccountId;
       if (notes != null) payload['notes'] = notes;
 
-      final response = await dio.post('/mobile/withdrawals', data: payload, options: Options(headers: {if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey}));
+      final response = await dio.post('/mobile/withdrawals', data: payload, options: Options(headers: {'Idempotency-Key': ?idempotencyKey}));
 
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data['success'] == true) {
@@ -403,22 +403,7 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<List<dynamic>?> getNotifications() async {
-    try {
-      final response = await dio.get('/mobile/notifications');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final data = response.data['data'];
-        if (data is Map && data.containsKey('notifications')) {
-          return data['notifications'] as List<dynamic>;
-        } else if (data is List) {
-          return data;
-        }
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getNotifications error: $e');
-    }
-    return null;
-  }
+  Future<List<dynamic>?> getNotifications() async => collection('/mobile/notifications');
 
   Future<int?> getUnreadNotificationCount() async {
     try {

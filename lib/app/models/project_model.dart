@@ -1,6 +1,8 @@
 import '../services/investment_calculator.dart';
 
 class ProjectModel {
+  final double minInvestment;
+  final double? maxInvestment;
   final String id;
   final String name;
   final String category;
@@ -16,6 +18,8 @@ class ProjectModel {
   final DateTime createdAt;
 
   const ProjectModel({
+    this.minInvestment = 0,
+    this.maxInvestment,
     required this.id,
     required this.name,
     required this.category,
@@ -71,6 +75,8 @@ class ProjectModel {
     DateTime? createdAt,
   }) {
     return ProjectModel(
+      minInvestment: minInvestment,
+      maxInvestment: maxInvestment,
       id: id ?? this.id,
       name: name ?? this.name,
       category: category ?? this.category,
@@ -109,6 +115,8 @@ class ProjectModel {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
     return ProjectModel(
+      minInvestment: number('minInvestment'),
+      maxInvestment: json['maxInvestment'] == null ? null : number('maxInvestment'),
       id: json['id'] as String,
       name: json['title'] as String? ?? '',
       category: type?['name'] as String? ?? '',

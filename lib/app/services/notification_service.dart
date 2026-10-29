@@ -15,16 +15,18 @@ class NotificationService extends GetxService {
   int get unreadCount => notifications.where((n) => !n.isRead).length;
 
   Future<NotificationService> init() async {
-    loadNotifications();
-    refreshFromBackend();
+    if (_api == null) { loadNotifications(); } else { notifications.clear(); }
     return this;
   }
 
   Future<void> refreshFromBackend() async {
     if (_api == null) return;
     try {
+      final token = await _api.getAccessToken();
+      if (token == null || token.isEmpty) { notifications.clear(); return; }
       final list = await _api.getNotifications();
-      if (list != null && list.isNotEmpty) {
+      if (token != await _api.getAccessToken()) return;
+      if (list != null) {
         final parsed = list
             .map(
               (e) => NotificationModel.fromJson(
@@ -35,7 +37,7 @@ class NotificationService extends GetxService {
         notifications.value = parsed;
         _saveToStorage();
       }
-    } catch (_) {}
+    } catch (_) { rethrow; }
   }
 
   void loadNotifications() {

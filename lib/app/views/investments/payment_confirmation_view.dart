@@ -18,7 +18,7 @@ class PaymentConfirmationView extends StatelessWidget {
     final invCtrl = Get.find<InvestmentController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final paymentMethods = [
+    final paymentMethods = invCtrl.isLive ? [{'name': 'Razorpay Checkout', 'icon': Icons.lock_outline}] : [
       {'name': 'Demo UPI', 'icon': Icons.qr_code_rounded},
       {'name': 'Demo Net Banking', 'icon': Icons.account_balance_rounded},
       {'name': 'Demo Card', 'icon': Icons.credit_card_rounded},
@@ -218,10 +218,10 @@ class PaymentConfirmationView extends StatelessWidget {
                     }),
                     const SizedBox(height: 16),
 
-                    const Text(
+                    if (!invCtrl.isLive) const Text(
                       'DEMO PAYMENT • No real money is charged or card details collected.',
                     ),
-                    SwitchListTile(
+                    if (!invCtrl.isLive) SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: const Text('Simulate payment failure'),
                       value: invCtrl.simulateFailure.value,
