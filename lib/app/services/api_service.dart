@@ -403,7 +403,11 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<List<dynamic>?> getNotifications() async => collection('/mobile/notifications');
+  Future<List<dynamic>?> getNotifications() async {
+    final result = await object('/mobile/notifications');
+    if (result['notifications'] is! List) throw StateError('Unable to load notifications');
+    return result['notifications'] as List<dynamic>;
+  }
 
   Future<int?> getUnreadNotificationCount() async {
     try {
