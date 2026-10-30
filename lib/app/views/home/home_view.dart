@@ -13,6 +13,7 @@ import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/app_system_ui.dart';
+import '../../widgets/animated_notification_bell.dart';
 import '../../widgets/project_card.dart';
 import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
@@ -158,45 +159,22 @@ class HomeView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            // Notification Bell with dynamic badge
-                            GestureDetector(
-                              onTap: () => Get.toNamed(AppRoutes.notifications),
-                              behavior: HitTestBehavior.opaque,
-                              child: Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    const Icon(
-                                      Remix.notification_line,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
-                                    Obx(() {
-                                      final count = homeCtrl.unreadNotificationCount;
-                                      if (count <= 0) return const SizedBox.shrink();
-                                      return Positioned(
-                                        top: 9,
-                                        right: 9,
-                                        child: Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            color: AppColors.error,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            // Notification Bell with dynamic animated chime & badge
+                            Obx(() {
+                              final count = homeCtrl.unreadNotificationCount;
+                              return AnimatedNotificationBell(
+                                hasNotification: count > 0,
+                                unreadCount: count,
+                                onTap: () => Get.toNamed(AppRoutes.notifications),
+                                color: Colors.white,
+                                size: 22,
+                                badgeColor: AppColors.error,
+                                backgroundColor: Colors.white.withValues(alpha: 0.15),
+                                containerSize: 42,
+                                badgeTop: 9,
+                                badgeRight: 9,
+                              );
+                            }),
                           ],
                         ),
                         const SizedBox(height: 20),
