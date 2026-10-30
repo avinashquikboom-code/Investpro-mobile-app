@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/api_service.dart';
-import '../../services/demo_repository.dart';
+import '../../controllers/kyc_controller.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -17,9 +17,10 @@ class KycView extends StatefulWidget {
   State<KycView> createState() => _KycViewState();
 }
 
-class _KycViewState extends State<KycView> {
+class _KycViewState extends State<KycView> with WidgetsBindingObserver {
   final ApiService _api = Get.find<ApiService>();
-  final DemoRepository _repo = Get.find<DemoRepository>();
+  late final KycController _kyc;
+  Worker? _changes;
 
   List<dynamic> _requests = [];
   bool _isLoading = true;
@@ -27,8 +28,8 @@ class _KycViewState extends State<KycView> {
   String? _errorMessage;
 
   String _selectedDocType = 'PAN_CARD';
-  PlatformFile? _selectedFile;
-  int? _selectedFileSize;
+  ({String name})? get _selectedFile => _kyc.bytes.value == null ? null : (name: _kyc.fileName.value);
+  int? get _selectedFileSize => _kyc.bytes.value?.length;
 
   final Map<String, Map<String, dynamic>> _docTypes = {
     'PAN_CARD': {
@@ -43,12 +44,12 @@ class _KycViewState extends State<KycView> {
     },
     'PASSPORT': {
       'label': 'Passport',
-      'desc': 'Government-issued Indian Passport (front & back)',
+      'desc': 'Government-issued passport',
       'icon': Icons.menu_book_rounded,
     },
     'BANK_STATEMENT': {
       'label': 'Bank Statement',
-      'desc': 'Last 3 months certified bank account statement',
+      'desc': 'Bank statement',
       'icon': Icons.account_balance_outlined,
     },
   };
@@ -56,108 +57,40 @@ class _KycViewState extends State<KycView> {
   @override
   void initState() {
     super.initState();
+    _kyc = Get.isRegistered<KycController>() ? Get.find<KycController>() : Get.put(KycController(_api));
+    WidgetsBinding.instance.addObserver(this);
+    _changes = everAll([_kyc.bytes, _kyc.error, _kyc.progress], (_) { if (mounted) setState(() { _errorMessage = _kyc.error.value.isEmpty ? null : _kyc.error.value; }); });
     _loadKycRequests();
   }
-
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) { if (state == AppLifecycleState.resumed && !_isUploading) _loadKycRequests(); }
+  @override
+  void dispose() { _changes?.dispose(); WidgetsBinding.instance.removeObserver(this); _kyc.removeFile(); super.dispose(); }
   Future<void> _loadKycRequests() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final rows = await _api.kyc();
-      if (mounted) {
-        setState(() {
-          _requests = rows;
-          _isLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Unable to load KYC history. Please pull to refresh.';
-        });
-      }
-    }
+    if (_isUploading) return;
+    setState(() => _isLoading = true);
+    await _kyc.load();
+    if (mounted) setState(() { _requests = _kyc.rows.toList(); _isLoading = false; _errorMessage = _kyc.error.value.isEmpty ? null : _kyc.error.value; if (_kyc.types.isNotEmpty && !_kyc.types.contains(_selectedDocType)) _selectedDocType = _kyc.selectedType.value; });
   }
-
   Future<void> _pickFile() async {
+    if (_isUploading) return;
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
-      );
-
-      if (result.isNotEmpty) {
-        final file = result.first;
-        final len = await file.length();
-        if ((len ?? 5 * 1024 * 1024 + 1) > 5 * 1024 * 1024) {
-          Get.snackbar(
-            'File Too Large',
-            'Please select a document smaller than 5 MB.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.error,
-            colorText: Colors.white,
-          );
-          return;
-        }
-
-        setState(() {
-          _selectedFile = file;
-          _selectedFileSize = len;
-          _errorMessage = null;
-        });
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Picker Error',
-        'Unable to select document. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+      final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg']);
+      if (result.isEmpty || !mounted) return;
+      final file = result.single;
+      final size = await file.length();
+      if (size == null || _kyc.maxBytes == null || size > _kyc.maxBytes!) { setState(() => _errorMessage = 'Choose a PDF, PNG or JPEG within the configured file size limit.'); return; }
+      _kyc.selectFile(file.name, await file.readAsBytes());
+    } catch (_) { if (mounted) setState(() => _errorMessage = 'Unable to read this file. Select it again.'); }
   }
-
   Future<void> _uploadKycDocument() async {
-    if (_selectedFile == null) return;
-
-    setState(() {
-      _isUploading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final bytes = await _selectedFile!.readAsBytes();
-      await _api.submitKyc(_selectedDocType, bytes, _selectedFile!.name);
-      await _repo.syncFromBackend();
-
-      if (mounted) {
-        setState(() {
-          _selectedFile = null;
-          _selectedFileSize = null;
-          _isUploading = false;
-        });
-      }
-
-      await _loadKycRequests();
-
-      Get.snackbar(
-        'Document Submitted',
-        'Your $_selectedDocType has been received and queued for compliance verification.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.success,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isUploading = false;
-          _errorMessage =
-              'Failed to submit document. Please check connection and retry.';
-        });
-      }
-    }
+    if (_isUploading) return;
+    _kyc.selectedType.value = _selectedDocType;
+    setState(() { _isUploading = true; _errorMessage = null; });
+    final accepted = await _kyc.submit();
+    if (!mounted) return;
+    setState(() { _isUploading = false; _requests = _kyc.rows.toList(); _errorMessage = _kyc.error.value.isEmpty ? null : _kyc.error.value; });
+    if (accepted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('KYC documents submitted successfully. Your verification is pending admin review.')));
   }
 
   Future<void> _viewDocument(String id) async {
@@ -169,9 +102,7 @@ class _KycViewState extends State<KycView> {
       } else {
         Get.snackbar('Document Link', 'Could not open document viewer.');
       }
-    } catch (_) {
-      Get.snackbar('Error', 'Unable to retrieve secure document link.');
-    }
+    } catch (e) { if (mounted) setState(() => _errorMessage = _kyc.safeError(e)); }
   }
 
   String _formatDocName(String type) {
@@ -181,7 +112,7 @@ class _KycViewState extends State<KycView> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isVerified = _repo.currentUser.value.isKycVerified == true;
+    final isVerified = _kyc.status.value == 'VERIFIED';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -248,7 +179,6 @@ class _KycViewState extends State<KycView> {
                   if (_selectedFile != null)
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
@@ -256,7 +186,7 @@ class _KycViewState extends State<KycView> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: _isUploading ? null : _uploadKycDocument,
+                        onPressed: _isUploading || _kyc.selectionError != null ? null : _uploadKycDocument,
                         icon: _isUploading
                             ? const SizedBox(
                                 width: 18,
@@ -273,8 +203,8 @@ class _KycViewState extends State<KycView> {
                               ),
                         label: Text(
                           _isUploading
-                              ? 'Uploading & Encrypting...'
-                              : 'Submit ${_formatDocName(_selectedDocType)}',
+                              ? 'Uploading ${(_kyc.progress.value * 100).round()}%'
+                              : 'Submit documents',
                           style: GoogleFonts.poppins(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w600,
@@ -284,6 +214,8 @@ class _KycViewState extends State<KycView> {
                       ),
                     ),
 
+                  if (_isUploading) LinearProgressIndicator(value: _kyc.progress.value),
+                  if (_selectedFile != null && _kyc.selectionError != null) Text(_kyc.selectionError!),
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -338,7 +270,7 @@ class _KycViewState extends State<KycView> {
                         ),
                       ),
                     )
-                  else if (_requests.isEmpty)
+                  else if (_requests.isEmpty && _errorMessage == null)
                     _buildEmptyHistory(isDark)
                   else
                     ..._requests.map((req) => _buildKycItemCard(req, isDark)),
@@ -358,96 +290,17 @@ class _KycViewState extends State<KycView> {
   }
 
   Widget _buildStatusHeroCard(bool isVerified, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: isVerified
-            ? const LinearGradient(
-                colors: [Color(0xFF1B4D3E), Color(0xFF0F3026)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : const LinearGradient(
-                colors: [Color(0xFF2C3E50), Color(0xFF1A252F)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isVerified
-                      ? const Color(0xFF4ADE80).withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isVerified
-                      ? Icons.verified_user_rounded
-                      : Icons.shield_outlined,
-                  color: isVerified ? const Color(0xFF4ADE80) : Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                isVerified
-                    ? 'KYC VERIFIED ACCOUNT'
-                    : 'KYC VERIFICATION REQUIRED',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
-                  color: isVerified
-                      ? const Color(0xFF4ADE80)
-                      : const Color(0xFFB4E0CA),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            isVerified
-                ? 'Your identity is fully verified.'
-                : 'Unlock Full Investment & Withdrawal Privileges',
-            style: GoogleFonts.poppins(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            isVerified
-                ? 'Your account complies with financial guidelines. Payouts and wallet withdrawals are enabled.'
-                : 'Submit valid government documentation to unlock higher investment limits and instant bank payouts.',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: const Color(0xFFE2EBE6),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
+    final status = _kyc.status.value;
+    final label = switch (status) { 'VERIFIED' => 'Verified', 'PENDING' => 'Pending Review', 'REJECTED' => 'Rejected', 'NOT_SUBMITTED' => 'Not Submitted', _ => 'Status unavailable' };
+    return Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.lightMint, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.border)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [Icon(isVerified ? Icons.verified_user_rounded : Icons.shield_outlined, color: AppColors.primary), const SizedBox(width: 10), Expanded(child: Text('KYC: $label', style: Theme.of(context).textTheme.titleLarge))]),
+      const SizedBox(height: 8), Text(isVerified ? 'Your identity verification has been approved.' : 'Submit a supported identity document for admin review. Rejected documents can be replaced and resubmitted.', style: Theme.of(context).textTheme.bodyMedium),
+    ]));
   }
 
   Widget _buildDocTypeSelector(bool isDark) {
     return Column(
-      children: _docTypes.entries.map((entry) {
+      children: _docTypes.entries.where((entry) => _kyc.types.contains(entry.key)).map((entry) {
         final key = entry.key;
         final data = entry.value;
         final isSelected = _selectedDocType == key;
@@ -469,7 +322,7 @@ class _KycViewState extends State<KycView> {
             ),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () => setState(() => _selectedDocType = key),
+              onTap: _isUploading ? null : () => setState(() { _selectedDocType = key; _kyc.selectedType.value = key; }),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -485,7 +338,7 @@ class _KycViewState extends State<KycView> {
                             ? AppColors.primary
                             : (isDark
                                   ? AppColors.surfaceDarkElevated
-                                  : const Color(0xFFF3F8F5)),
+                                  : AppColors.secondaryBackground),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -541,128 +394,17 @@ class _KycViewState extends State<KycView> {
   }
 
   Widget _buildDropzone(bool isDark) {
-    if (_selectedFile != null) {
-      final sizeKb = ((_selectedFileSize ?? 0) / 1024).toStringAsFixed(1);
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.surfaceDarkElevated
-              : const Color(0xFFF7FAF8),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primary, width: 1.5),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.insert_drive_file_rounded,
-                color: AppColors.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _selectedFile!.name,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$sizeKb KB • Ready to submit',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.success,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.close_rounded,
-                color: AppColors.error,
-                size: 20,
-              ),
-              tooltip: 'Remove File',
-              onPressed: () => setState(() {
-                _selectedFile = null;
-                _selectedFileSize = null;
-              }),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: _pickFile,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? AppColors.borderDark : const Color(0xFFC7D7CE),
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.cloud_upload_outlined,
-                color: AppColors.primary,
-                size: 28,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Tap to Browse Document',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Supports PDF, PNG, JPG or JPEG (Maximum 5 MB)',
-              style: GoogleFonts.poppins(
-                fontSize: 11.5,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    final bytes = _kyc.bytes.value;
+    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.secondaryBackground, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.border)), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (bytes != null) ...[
+        Text(_selectedFile!.name, style: Theme.of(context).textTheme.titleSmall),
+        Text('${((_selectedFileSize ?? 0) / 1024).toStringAsFixed(1)} KB'),
+        if (bytes[0] == 137 || bytes[0] == 255) Image.memory(bytes, height: 180, fit: BoxFit.contain, errorBuilder: (_, error, stack) => const Text('Image preview unavailable. Replace damaged files.')) else const Padding(padding: EdgeInsets.all(20), child: Icon(Icons.picture_as_pdf_outlined, color: AppColors.primary, size: 40)),
+        TextButton(onPressed: _isUploading ? null : _kyc.removeFile, child: const Text('Remove File')),
+      ],
+      OutlinedButton.icon(onPressed: _isUploading || _kyc.maxBytes == null ? null : _pickFile, icon: const Icon(Icons.attach_file), label: Text(bytes == null ? 'Select document' : 'Replace document')),
+      Text(_kyc.maxBytes == null ? 'Loading file requirements…' : 'PDF, PNG or JPEG · Maximum ${(_kyc.maxBytes! / (1024 * 1024)).toStringAsFixed(0)} MB', style: Theme.of(context).textTheme.bodySmall),
+    ]));
   }
 
   Widget _buildKycItemCard(dynamic req, bool isDark) {
@@ -890,7 +632,7 @@ class _KycViewState extends State<KycView> {
       'Document photo must be sharp, in color, and completely legible.',
       'All 4 corners of the identity card must be clearly visible in the image.',
       'Full legal name and date of birth must match your registered profile.',
-      'Uploaded files are encrypted in compliance with financial regulations.',
+      'Documents are stored privately and require authorized viewing links.',
     ];
 
     return Container(
