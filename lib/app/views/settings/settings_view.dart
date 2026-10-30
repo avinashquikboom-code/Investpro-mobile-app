@@ -324,7 +324,7 @@ class SettingsView extends StatelessWidget {
                       title: 'KYC Documents',
                       subtitle: 'Government ID verification for investments',
                       trailing: Obx(() {
-                        final isKycVerified = repo.currentUser.value?.isKycVerified == true;
+                        final isKycVerified = repo.currentUser.value.isKycVerified == true;
                         return _buildBadge(
                           isKycVerified ? 'Verified' : 'Pending',
                           isKycVerified ? AppColors.success : AppColors.warning,
@@ -339,7 +339,7 @@ class SettingsView extends StatelessWidget {
                       title: 'Bank Accounts',
                       subtitle: 'Manage linked accounts for returns & withdrawals',
                       trailing: Obx(() {
-                        final isBank = repo.currentUser.value?.isBankVerified == true;
+                        final isBank = repo.currentUser.value.isBankVerified == true;
                         return _buildBadge(
                           isBank ? 'Linked' : 'Not Linked',
                           isBank ? AppColors.success : AppColors.textSecondary,
@@ -393,7 +393,7 @@ class SettingsView extends StatelessWidget {
                             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           ),
                         ),
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         value: settingsCtrl.biometricsEnabled.value,
                         onChanged: settingsCtrl.toggleBiometrics,
                       );
@@ -480,7 +480,7 @@ class SettingsView extends StatelessWidget {
                             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           ),
                         ),
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         value: settingsCtrl.notificationsEnabled.value,
                         onChanged: settingsCtrl.toggleNotifications,
                       );
