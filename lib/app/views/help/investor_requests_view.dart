@@ -39,7 +39,7 @@ class _InvestorRequestsViewState extends State<InvestorRequestsView> {
   @override
   Widget build(BuildContext context)=>Scaffold(appBar:const CustomAppBar(title:'Request History',showBackButton:true),body:RefreshIndicator(onRefresh:load,child:ListView(padding:const EdgeInsets.all(20),children:[
     if(error.isNotEmpty)Text(error,style:const TextStyle(color:AppColors.error)),
-    DropdownButtonFormField<String>(initialValue:kind,items:const[DropdownMenuItem(value:'SUPPORT',child:Text('Support request')),DropdownMenuItem(value:'APPROVAL',child:Text('General approval request'))],onChanged:busy?null:(v)=>setState(()=>kind=v!)),
+    DropdownButtonFormField<String>(isExpanded:true,initialValue:kind,items:const[DropdownMenuItem(value:'SUPPORT',child:Text('Support request')),DropdownMenuItem(value:'APPROVAL',child:Text('General approval request'))],onChanged:busy?null:(v)=>setState(()=>kind=v!)),
     TextField(controller:title,maxLength:120,decoration:const InputDecoration(labelText:'Subject')),
     TextField(controller:message,maxLength:4000,maxLines:3,decoration:const InputDecoration(labelText:'Message')),
     ElevatedButton.icon(onPressed:busy?null:submit,icon:const Icon(Remix.send_plane_line),label:Text(busy?'Submitting…':'Submit request')),
