@@ -40,12 +40,16 @@ class _SplashViewState extends State<SplashView>
   }
 
   Future<void> _navigateNext() async {
-    await Future.delayed(const Duration(milliseconds: 2400));
+    final authCtrl = Get.find<AuthController>();
+    final sessionFuture = authCtrl.restoreSession();
+    final delayFuture = Future.delayed(const Duration(milliseconds: 1800));
+
+    final results = await Future.wait([sessionFuture, delayFuture]);
+    final isAuthenticated = results[0] as bool;
+
     if (!mounted) return;
 
-    final authCtrl = Get.find<AuthController>();
-
-    if (await authCtrl.restoreSession()) {
+    if (isAuthenticated) {
       Get.offAllNamed(AppRoutes.home);
     } else {
       Get.offAllNamed(AppRoutes.login);

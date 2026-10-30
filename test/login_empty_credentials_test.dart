@@ -25,10 +25,23 @@ class MemoryStore implements LocalStore {
 
 class MockApiService extends ApiService {
   String? mockToken;
+  String? mockRefreshToken;
   Map<String, dynamic>? mockProfile;
 
   @override
   Future<String?> getAccessToken() async => mockToken;
+
+  @override
+  Future<String?> getRefreshToken() async =>
+      mockRefreshToken ?? (mockToken != null ? 'test-refresh-token' : null);
+
+  @override
+  Future<Map<String, dynamic>?> getMe() async => mockProfile ?? {
+    'id': 'user-123',
+    'status': 'ACTIVE',
+    'role': 'INVESTOR',
+    'email': 'investor@example.com',
+  };
 
   @override
   Future<Map<String, dynamic>> login(String identity, String password) async {

@@ -9,7 +9,6 @@ import '../../controllers/navigation_controller.dart';
 import '../../controllers/profile_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/demo_repository.dart';
-import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/app_app_bar.dart';
@@ -40,12 +39,7 @@ class ProfileView extends StatelessWidget {
     final profileCtrl = Get.isRegistered<ProfileController>()
         ? Get.find<ProfileController>()
         : Get.put(ProfileController(Get.find<DemoRepository>()));
-    final authCtrl = Get.isRegistered<AuthController>()
-        ? Get.find<AuthController>()
-        : Get.put(AuthController(
-            Get.find<LocalStorageService>(),
-            Get.find<DemoRepository>(),
-          ));
+    final authCtrl = Get.find<AuthController>();
     final navCtrl = Get.isRegistered<NavigationController>()
         ? Get.find<NavigationController>()
         : null;

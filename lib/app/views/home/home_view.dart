@@ -15,7 +15,6 @@ import '../../utils/responsive_helper.dart';
 import '../../widgets/app_system_ui.dart';
 import '../../widgets/animated_notification_bell.dart';
 import '../../widgets/explore_project_card.dart';
-import '../../widgets/project_card.dart';
 import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
 
@@ -508,82 +507,6 @@ class HomeView extends StatelessWidget {
                         }),
                         const SizedBox(height: 28),
 
-                        // 4. My Projects Section Header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'myProjects'.tr,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimary,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                if (navCtrl != null) {
-                                  navCtrl.goToInvestments();
-                                } else {
-                                  Get.toNamed(AppRoutes.myInvestments);
-                                }
-                              },
-                              behavior: HitTestBehavior.opaque,
-                              child: Text(
-                                'viewAll'.tr,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-
-                        // My Projects Content (Only Authenticated Investor-Owned Projects)
-                        Obx(() {
-                          final investments = homeCtrl.myInvestments;
-                          if (investments.isEmpty) {
-                            return _buildNoInvestmentsEmptyState(
-                              context,
-                              navCtrl,
-                              isDark,
-                            );
-                          }
-
-                          return ListView.separated(
-                            padding: EdgeInsets.zero,
-                            primary: false,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: investments.length > 3
-                                ? 3
-                                : investments.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final inv = investments[index];
-                              return MyProjectCard(
-                                investment: inv,
-                                onTap: () {
-                                  if (projCtrl != null) {
-                                    projCtrl.loadDetails(inv.projectId);
-                                  }
-                                  Get.toNamed(
-                                    AppRoutes.projectDetails,
-                                    arguments: inv.projectId,
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        }),
-                        const SizedBox(height: 22),
-
                         // 5. Recent Activity Section Header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -700,88 +623,6 @@ class HomeView extends StatelessWidget {
                   : AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildNoInvestmentsEmptyState(
-    BuildContext context,
-    NavigationController? navCtrl,
-    bool isDark,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.border,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Remix.folder_open_line,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No investments yet',
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Explore available investment opportunities to get started.',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (navCtrl != null) {
-                navCtrl.changeTab(1); // Projects Tab
-              } else {
-                Get.toNamed(AppRoutes.projects);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Browse Projects',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ),

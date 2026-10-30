@@ -19,7 +19,6 @@ import 'package:investpro/app/services/notification_service.dart';
 import 'package:investpro/app/theme/app_theme.dart';
 import 'package:investpro/app/views/home/home_view.dart';
 import 'package:investpro/app/widgets/explore_project_card.dart';
-import 'package:investpro/app/widgets/project_card.dart';
 import 'package:investpro/app/widgets/recent_activity_item.dart';
 import 'package:investpro/app/widgets/summary_card.dart';
 
@@ -156,12 +155,7 @@ void main() {
     expect(find.text('Discover high-potential investment opportunities'), findsOneWidget);
     expect(find.byIcon(Remix.compass_3_line), findsOneWidget);
 
-    // 5. My Projects Section
-    expect(find.text('My Projects'), findsOneWidget);
-    expect(find.text('Solar Park Phase 1'), findsOneWidget);
-    expect(find.byType(MyProjectCard), findsOneWidget);
-
-    // 6. Recent Activity Section
+    // 5. Recent Activity Section
     expect(find.text('Recent Activity'), findsOneWidget);
     expect(find.text('Return Credited'), findsOneWidget);
     expect(find.text('Investment Verified'), findsOneWidget);
@@ -202,10 +196,9 @@ void main() {
 
     await mount(tester);
 
-    // Empty state for My Projects
-    expect(find.text('No investments yet'), findsOneWidget);
-    expect(find.text('Explore available investment opportunities to get started.'), findsOneWidget);
-    expect(find.text('Browse Projects'), findsOneWidget);
+    // Empty state for Explore Projects when empty
+    expect(find.text('No projects available'), findsOneWidget);
+    expect(find.text('Check back soon for new high-potential investment opportunities.'), findsOneWidget);
 
     // Empty state for Recent Activity
     expect(find.text('No recent activity'), findsOneWidget);
@@ -297,15 +290,11 @@ void main() {
           final top=metrics.map((r)=>r.top).reduce((a,b)=>a<b?a:b),bottom=metrics.map((r)=>r.bottom).reduce((a,b)=>a>b?a:b);
           final portfolio=tester.getRect(find.byType(PortfolioSummaryCard));
           final explore=tester.getRect(find.text('Explore Projects'));
-          final projects=tester.getRect(find.text('My Projects'));
-          final firstProject=tester.getRect(find.byType(MyProjectCard).first),lastProject=tester.getRect(find.byType(MyProjectCard).last);
           final activity=tester.getRect(find.text('Recent Activity'));
           final firstActivity=tester.getRect(find.byType(RecentActivityItem).first),lastActivity=tester.getRect(find.byType(RecentActivityItem).last);
           expect(top-portfolio.bottom,closeTo(20,.1));
           expect(explore.top-bottom,closeTo(22,.1));
-          expect(firstProject.top-projects.bottom,closeTo(14,.1));
-          expect(lastProject.top-firstProject.bottom,closeTo(10,.1));
-          expect(activity.top-lastProject.bottom,closeTo(22,.1));
+          expect(activity.top,greaterThan(explore.bottom));
           expect(firstActivity.top-activity.bottom,closeTo(14,.1));
           expect(lastActivity.top-firstActivity.bottom,closeTo(10,.1));
           expect(portfolio.top,greaterThanOrEqualTo(44));

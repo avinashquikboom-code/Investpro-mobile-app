@@ -29,7 +29,10 @@ class ApiService extends getx.GetxService {
   static const String _keyRefreshToken = 'investpro_refresh_token';
 
   late final Dio dio;
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(resetOnError: false),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
 
   static const String liveBaseUrl = 'https://api.qbunify.online/api/v1';
 
@@ -52,36 +55,81 @@ class ApiService extends getx.GetxService {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          if(options.method=='GET'&&_nextReadAt?.isAfter(DateTime.now())==true){
-            return handler.reject(DioException(requestOptions:options,response:Response(requestOptions:options,statusCode:429,data:{'message':'Please wait before refreshing again.'}),type:DioExceptionType.badResponse));
+          if (options.method == 'GET' &&
+              _nextReadAt?.isAfter(DateTime.now()) == true) {
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: 429,
+                  data: {'message': 'Please wait before refreshing again.'},
+                ),
+                type: DioExceptionType.badResponse,
+              ),
+            );
           }
-          final token = await getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          if (!options.path.contains('/auth/login') &&
+              !options.path.contains('/auth/refresh')) {
+            final token = await getAccessToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          if(error.response?.statusCode==429){
-            final retry=ApiDiagnostics.retryAt(error.response?.headers.value('retry-after'),DateTime.now());
-            if(_nextReadAt==null||retry.isAfter(_nextReadAt!))_nextReadAt=retry;
+          if (error.response?.statusCode == 429) {
+            final retry = ApiDiagnostics.retryAt(
+              error.response?.headers.value('retry-after'),
+              DateTime.now(),
+            );
+            if (_nextReadAt == null || retry.isAfter(_nextReadAt!)) {
+              _nextReadAt = retry;
+            }
           }
           ApiDiagnostics.log(error);
-          if (error.response?.statusCode == 401 && !error.requestOptions.path.contains('/auth/login') && !error.requestOptions.path.contains('/auth/refresh') && error.requestOptions.extra['retry'] != true) {
+
+          final is401 = error.response?.statusCode == 401;
+          final isAuthEndpoint =
+              error.requestOptions.path.contains('/auth/login') ||
+                  error.requestOptions.path.contains('/auth/refresh');
+          final isAlreadyRetry = error.requestOptions.extra['retry'] == true;
+
+          if (is401 && !isAuthEndpoint && !isAlreadyRetry) {
             try {
-              final current=await getAccessToken();
-              final sent=error.requestOptions.headers['Authorization'];
-              final refreshed=current!=null&&current.isNotEmpty&&sent!='Bearer $current'||await _refreshToken();
-              if(refreshed){
-                final token=await getAccessToken();error.requestOptions.extra['retry']=true;error.requestOptions.headers['Authorization']='Bearer $token';
-                if(error.requestOptions.data is FormData)error.requestOptions.data=(error.requestOptions.data as FormData).clone();
-                try{return handler.resolve(await dio.fetch(error.requestOptions));}
-                on DioException catch(retryError){return handler.next(retryError);}
+              final current = await getAccessToken();
+              final sent = error.requestOptions.headers['Authorization'];
+              final bool refreshed = (current != null &&
+                      current.isNotEmpty &&
+                      sent != 'Bearer $current') ||
+                  await _refreshToken();
+
+              if (refreshed) {
+                final token = await getAccessToken();
+                final retryOptions = error.requestOptions;
+                retryOptions.extra['retry'] = true;
+                retryOptions.headers['Authorization'] = 'Bearer $token';
+                if (retryOptions.data is FormData) {
+                  retryOptions.data = (retryOptions.data as FormData).clone();
+                }
+                try {
+                  final retryResponse = await dio.fetch(retryOptions);
+                  return handler.resolve(retryResponse);
+                } on DioException catch (retryError) {
+                  if (retryError.response?.statusCode == 401) {
+                    await _expireSession();
+                  }
+                  return handler.next(retryError);
+                }
               }
-            } on DioException catch(refreshError){return handler.next(refreshError);}
-            catch(_){return handler.next(error);}
+            } on DioException catch (refreshError) {
+              return handler.next(refreshError);
+            } catch (_) {
+              return handler.next(error);
+            }
           }
-          if(error.response?.statusCode==401&&error.requestOptions.extra['retry']==true&&!error.requestOptions.path.contains('/auth/refresh'))await _expireSession();
+
           return handler.next(error);
         },
       ),
@@ -359,13 +407,9 @@ class ApiService extends getx.GetxService {
   }
 
   Future<Map<String, dynamic>?> getMe() async {
-    try {
-      final response = await dio.get('/auth/me');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getMe error: $e');
+    final response = await dio.get('/auth/me');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return response.data['data'] as Map<String, dynamic>;
     }
     return null;
   }

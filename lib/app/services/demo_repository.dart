@@ -56,6 +56,7 @@ class DemoRepository extends GetxService {
     currentUser.value = const UserModel(id: '', fullName: '', email: '', mobileNumber: '');
     syncError.value = '';
     isSyncing.value=false;
+    _storage.remove(AppConstants.keyUserData);
   }
   bool _writing = false;
   int _sequence = 0;
@@ -137,7 +138,13 @@ class DemoRepository extends GetxService {
   }
 
   Future<DemoRepository> init() async {
-    if (isLive) { clearLiveData(); return this; }
+    if (isLive) {
+      final profile = _storage.readMap(AppConstants.keyUserData);
+      if (profile != null) {
+        currentUser.value = UserModel.fromJson(profile);
+      }
+      return this;
+    }
     await loadData();
     return this;
   }
@@ -231,6 +238,7 @@ class DemoRepository extends GetxService {
       final snapshotReturns=(data[6] as List).map((v)=>BackendSnapshot.payout(Map<String,dynamic>.from(v as Map))).toList();
       // Commit one coherent server snapshot; successful empty collections clear stale data.
       currentUser.value = user;
+      await _storage.writeMap(AppConstants.keyUserData, user.toJson());
       serverTotalInvested.value = BackendSnapshot.number(portfolio['totalInvested']);
       serverTotalReturns.value = BackendSnapshot.number(portfolio['totalReturns']);
       availableBalance.value = BackendSnapshot.number(portfolio['availableBalance']);

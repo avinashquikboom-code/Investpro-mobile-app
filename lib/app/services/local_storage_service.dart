@@ -31,7 +31,7 @@ class LocalStorageService implements LocalStore {
   Future<void> setLoggedIn(bool value) =>
       write(AppConstants.keyIsLoggedIn, value);
 
-  bool get rememberMe => read(AppConstants.keyRememberMe) ?? false;
+  bool get rememberMe => read(AppConstants.keyRememberMe) ?? true;
   Future<void> setRememberMe(bool value) =>
       write(AppConstants.keyRememberMe, value);
 
