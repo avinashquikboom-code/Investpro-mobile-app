@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
@@ -111,6 +112,117 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  Widget _rememberAndForgot() {
+    final auth = Get.find<AuthController>();
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Obx(
+              () => SizedBox(
+                height: 24,
+                width: 24,
+                child: Checkbox(
+                  value: auth.rememberMe.value,
+                  activeColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  onChanged: auth.toggleRememberMe,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'rememberMe'.tr,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        TextButton(
+          onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'forgotPassword'.tr,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createAccountButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: TextButton(
+        onPressed: () => Get.toNamed(AppRoutes.register),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.primary, width: 1.2),
+          ),
+        ),
+        child: Text(
+          'createNewAccount'.tr,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _options() => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _rememberAndForgot(),
+      const SizedBox(height: 12),
+      _createAccountButton(),
+    ],
+  );
+
+  Widget _secureFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Remix.shield_check_line,
+          size: 16,
+          color: AppColors.primary,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          'secureAndTrusted'.tr,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Get.find<AuthController>();
@@ -163,6 +275,10 @@ class _LoginViewState extends State<LoginView> {
                           if (!compact || !passwordStep) _field(false, compact),
                           if (!compact) SizedBox(height: gap),
                           if (!compact || passwordStep) _field(true, compact),
+                          if (!compact) ...[
+                            SizedBox(height: gap / 2),
+                            _rememberAndForgot(),
+                          ],
                           SizedBox(height: gap),
                           Obx(
                             () => ElevatedButton(
@@ -198,8 +314,38 @@ class _LoginViewState extends State<LoginView> {
                                     },
                                     icon: const Icon(Remix.edit_line),
                                   ),
+                                Flexible(
+                                  child: TextButton(
+                                    onPressed: () {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                      showDialog<void>(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          title: Text('welcomeBack'.tr),
+                                          content: _options(),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Get.back(),
+                                              child: const Text('Close'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('More options'),
+                                  ),
+                                ),
                               ],
-                            ),
+                            )
+                          else ...[
+                            SizedBox(height: gap),
+                            _createAccountButton(),
+                            if (showBrand) ...[
+                              SizedBox(height: gap),
+                              _secureFooter(),
+                            ],
+                          ],
                         ],
                       ),
                     ),
