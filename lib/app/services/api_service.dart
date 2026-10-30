@@ -270,6 +270,63 @@ class ApiService extends getx.GetxService {
 
   // --- AUTH APIS ---
 
+  Future<Map<String, dynamic>> sendRegistrationOtp({
+    required String mobileNumber,
+    String? email,
+    String? fullName,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/auth/registration/send-otp',
+        data: {
+          'mobileNumber': mobileNumber.trim(),
+          if (email != null && email.isNotEmpty) 'email': email.trim(),
+          if (fullName != null && fullName.isNotEmpty) 'fullName': fullName.trim(),
+        },
+      );
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      throw StateError(response.data?['message'] ?? 'Unable to send OTP');
+    } catch (e) {
+      debugPrint('[ApiService] sendRegistrationOtp error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyRegistrationOtp({
+    required String fullName,
+    required String email,
+    required String mobileNumber,
+    required String password,
+    required String otp,
+  }) async {
+    sessionVersion++;
+    try {
+      final response = await dio.post(
+        '/auth/registration/verify-otp',
+        data: {
+          'fullName': fullName.trim(),
+          'email': email.trim(),
+          'mobileNumber': mobileNumber.trim(),
+          'password': password,
+          'otp': otp.trim(),
+        },
+      );
+      if (response.statusCode == 201 && response.data['success'] == true) {
+        final data = response.data['data'] as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String;
+        final refreshToken = data['refreshToken'] as String;
+        await saveTokens(accessToken: accessToken, refreshToken: refreshToken);
+        return data;
+      }
+      throw StateError(response.data?['message'] ?? 'Unable to verify OTP');
+    } catch (e) {
+      debugPrint('[ApiService] verifyRegistrationOtp error: $e');
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>?> login(
     String emailOrMobile,
     String password,
@@ -505,6 +562,9 @@ class ApiService extends getx.GetxService {
     return _paymentPost('/mobile/investments',{'projectId':projectId,'amount':amount,'paymentMethod':paymentMethod},requestId:idempotencyKey);
   }
 
+  Future<Map<String, dynamic>> getReturnsWorkspace(String period) =>
+      object('/mobile/returns/summary?period=${Uri.encodeQueryComponent(period.toLowerCase())}');
+
   Future<List<dynamic>?> getReturns() async => collection('/mobile/returns');
 
 
@@ -529,6 +589,8 @@ class ApiService extends getx.GetxService {
   Future<Map<String, dynamic>?> createWithdrawal({
     required double amount,
     String? exactAmount,
+    String? projectId,
+    bool returnsOnly = false,
     String? bankAccountId,
     String? notes,
     String? idempotencyKey,
@@ -536,6 +598,8 @@ class ApiService extends getx.GetxService {
     try {
       final payload = <String, dynamic>{'amount': exactAmount ?? amount};
       if (bankAccountId != null) payload['bankAccountId'] = bankAccountId;
+      if (projectId != null) payload['projectId'] = projectId;
+      if (returnsOnly) payload['returnsOnly'] = true;
       if (notes != null) payload['notes'] = notes;
 
       final response = await dio.post('/mobile/withdrawals', data: payload, options: Options(headers: {'Idempotency-Key': ?idempotencyKey}));

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../models/return_model.dart';
 import '../services/demo_repository.dart';
+import '../services/api_service.dart';
 
 class ReturnChartPoint {
   final String label;
@@ -23,6 +24,22 @@ class ReturnsController extends GetxController {
   final DemoRepository _repo;
 
   ReturnsController(this._repo);
+
+  bool get isLive => _repo.isLive;
+  final workspace = Rxn<Map<String, dynamic>>();
+  final workspaceError = ''.obs;
+  int _workspaceRequest = 0;
+  Future<void> loadWorkspace() async {
+    if (!isLive || !Get.isRegistered<ApiService>()) return;
+    final version = ++_workspaceRequest;
+    try {
+      final result = await Get.find<ApiService>().getReturnsWorkspace(selectedPeriod.value);
+      if (version != _workspaceRequest || isClosed) return;
+      workspace.value = result; workspaceError.value = '';
+    } catch (_) {
+      if (version == _workspaceRequest && !isClosed) workspaceError.value = 'Unable to refresh returns. Please retry.';
+    }
+  }
 
   final RxString selectedPeriod =
       'Monthly'.obs; // 'Monthly', 'Quarterly', 'Yearly'
@@ -210,7 +227,7 @@ class ReturnsController extends GetxController {
   Future<void> refreshData() async {
     isRefreshing.value = true;
     try {
-      await _repo.loadData();
+      await Future.wait([_repo.loadData(), loadWorkspace()]);
     } catch (_) {
       // Retain valid state safely
     } finally {
@@ -283,5 +300,6 @@ class ReturnsController extends GetxController {
 
   void setPeriod(String period) {
     selectedPeriod.value = period;
+    loadWorkspace();
   }
 }

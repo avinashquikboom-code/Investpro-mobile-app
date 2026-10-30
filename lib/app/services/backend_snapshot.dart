@@ -48,10 +48,10 @@ class BackendSnapshot {
       status: label(row['status']), referenceId: '${row['withdrawalReference'] ?? row['id']}');
   }
   static ReturnPayoutModel payout(Map<String, dynamic> row) {
-    final due = date(row['dueDate']);
+    final due = date(row['status'] == 'PAID' ? (row['returnPayment']?['payoutDate'] ?? row['paidAt'] ?? row['dueDate']) : row['dueDate']);
     return ReturnPayoutModel(id: '${row['id']}', investmentId: '${row['investmentId']}',
       projectName: '${row['investment']?['project']?['title'] ?? row['projectTitle'] ?? ''}',
-      monthYear: DateFormat.yMMM().format(due), payoutDate: due, amount: number(row['totalAmount']),
+      monthYear: DateFormat.yMMM().format(due), payoutDate: due, amount: number(row['profitAmount']),
       status: row['status'] == 'PAID' ? 'Received' : label(row['status']));
   }
   static TransactionModel transaction(Map<String, dynamic> row) {

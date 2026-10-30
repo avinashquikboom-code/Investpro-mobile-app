@@ -1,3 +1,4 @@
+import 'returns_workspace_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +23,7 @@ class ReturnsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final returnsCtrl = Get.find<ReturnsController>();
+    if (returnsCtrl.isLive) return ReturnsWorkspaceView(isTab: isTab);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final periodTabs = ['Monthly', 'Quarterly', 'Yearly'];
