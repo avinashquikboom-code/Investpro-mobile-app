@@ -28,16 +28,43 @@ class ReturnsController extends GetxController {
   bool get isLive => _repo.isLive;
   final workspace = Rxn<Map<String, dynamic>>();
   final workspaceError = ''.obs;
+  final workspaceLoading = false.obs;
+  Worker? _userWorker, _syncWorker;
+  String? _workspaceUser;
+  @override
+  void onInit() {
+    super.onInit();
+    _workspaceUser = _repo.currentUser.value.id;
+    _userWorker = ever(_repo.currentUser, (user) {
+      if (user.id == _workspaceUser) return;
+      _workspaceUser = user.id;
+      _workspaceRequest++;
+      workspace.value = null; workspaceError.value = '';
+      if (user.id.isNotEmpty) loadWorkspace();
+    });
+    _syncWorker = ever(_repo.isSyncing, (syncing) {
+      if (!syncing && _repo.currentUser.value.id.isNotEmpty) loadWorkspace();
+    });
+  }
+  @override
+  void onClose() {
+    _workspaceRequest++;
+    _userWorker?.dispose(); _syncWorker?.dispose();
+    super.onClose();
+  }
   int _workspaceRequest = 0;
   Future<void> loadWorkspace() async {
     if (!isLive || !Get.isRegistered<ApiService>()) return;
     final version = ++_workspaceRequest;
+    workspaceLoading.value = true;
     try {
       final result = await Get.find<ApiService>().getReturnsWorkspace(selectedPeriod.value);
       if (version != _workspaceRequest || isClosed) return;
       workspace.value = result; workspaceError.value = '';
     } catch (_) {
       if (version == _workspaceRequest && !isClosed) workspaceError.value = 'Unable to refresh returns. Please retry.';
+    } finally {
+      if (version == _workspaceRequest && !isClosed) workspaceLoading.value = false;
     }
   }
 
