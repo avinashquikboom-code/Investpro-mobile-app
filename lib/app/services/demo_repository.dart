@@ -1,3 +1,4 @@
+import 'api_diagnostics.dart';
 import 'dart:convert';
 
 import 'package:get/get.dart';
@@ -54,6 +55,7 @@ class DemoRepository extends GetxService {
     availableBalance.value = 0; serverTotalInvested.value = 0; serverTotalReturns.value = 0;
     currentUser.value = const UserModel(id: '', fullName: '', email: '', mobileNumber: '');
     syncError.value = '';
+    isSyncing.value=false;
   }
   bool _writing = false;
   int _sequence = 0;
@@ -201,7 +203,7 @@ class DemoRepository extends GetxService {
     syncError.value = '';
     try {
       final token = await _api.getAccessToken();
-      if (token == null || token.isEmpty) { clearLiveData(); return; }
+      if ((token == null || token.isEmpty) && (await _api.getRefreshToken())?.isNotEmpty != true) { clearLiveData(); return; }
       final account = await _api.object('/mobile/account-status');
       if (generation != _generation || session != _api.sessionVersion) throw StateError('Session changed');
       if (account['status'] != 'ACTIVE') {
@@ -231,10 +233,12 @@ class DemoRepository extends GetxService {
       withdrawals.assignAll((data[4] as List).map((v) => BackendSnapshot.withdrawal(Map<String, dynamic>.from(v as Map))));
       transactions.assignAll((data[5] as List).map((v) => BackendSnapshot.transaction(Map<String, dynamic>.from(v as Map))));
       returns.assignAll((data[6] as List).map((v) => BackendSnapshot.payout(Map<String, dynamic>.from(v as Map))));
-    } catch (_) {
+    } catch (error) {
+      ApiDiagnostics.log(error);
+      if(generation!=_generation||session!=_api.sessionVersion)rethrow;
       syncError.value = 'Unable to synchronize your account. Displayed records may be out of date.';
       rethrow;
-    } finally { isSyncing.value = false; }
+    } finally { if(generation==_generation&&session==_api.sessionVersion)isSyncing.value = false; }
   }
 
   void _recalculateBalance() {

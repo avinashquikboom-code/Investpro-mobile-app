@@ -202,6 +202,10 @@ class HomeView extends StatelessWidget {
                       children: [
                         const SizedBox(height: 16),
 
+                        Obx(() {
+                          if(homeCtrl.user.id.isNotEmpty||homeCtrl.syncError.isEmpty)return const SizedBox.shrink();
+                          return Padding(padding:const EdgeInsets.only(bottom:16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Unable to load your account data. Please retry.'),TextButton(onPressed:homeCtrl.refreshDashboard,child:const Text('Retry'))]));
+                        }),
                         // 4 Responsive Metric Cards (2x2 on phone, 4x1 on tablet)
                         LayoutBuilder(
                           builder: (context, constraints) {

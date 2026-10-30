@@ -407,6 +407,12 @@ void main() {
     },
   );
 
+  testWidgets('failed background and pull refresh retain valid project cards', (tester) async {
+    await mount(tester,const Size(390,844));expect(find.byType(ProjectListingCard),findsOneWidget);
+    api.fail=true;await controller.refreshProjects(background:true);await tester.pumpAndSettle();expect(find.byType(ProjectListingCard),findsOneWidget);expect(find.textContaining('Synchronization unavailable'),findsNothing);expect(controller.errorMessage.value,isNotEmpty);
+    await controller.refreshProjects();await tester.pumpAndSettle();expect(find.byType(ProjectListingCard),findsOneWidget);
+    api.fail=false;await controller.refreshProjects();expect(controller.errorMessage.value,isEmpty);
+  });
   testWidgets(
     'failed initial request offers retry and loads dynamic categories',
     (tester) async {

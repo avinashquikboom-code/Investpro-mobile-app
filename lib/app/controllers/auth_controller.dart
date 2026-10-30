@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'navigation_controller.dart';
+import 'project_controller.dart';
 import '../routes/app_routes.dart';
 import '../services/api_service.dart';
 import '../services/demo_repository.dart';
@@ -27,7 +28,18 @@ class AuthController extends GetxController {
     super.onInit();
     isLoggedIn.value = false;
     rememberMe.value = _storage.rememberMe;
+    if(_api!=null)_api.onSessionExpired=_sessionExpired;
   }
+
+  void _sessionExpired(){
+    isLoggedIn.value=false;
+    _repo.clearLiveData();
+    if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
+    if(Get.isRegistered<NotificationService>())Get.find<NotificationService>().clear();
+    _storage.setLoggedIn(false).catchError((_){ });
+    if(Get.key.currentState!=null&&Get.currentRoute!=AppRoutes.login)Get.offAllNamed(AppRoutes.login);
+  }
+  @override void onClose(){if(_api?.onSessionExpired==_sessionExpired)_api?.onSessionExpired=null;super.onClose();}
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
@@ -44,6 +56,7 @@ class AuthController extends GetxController {
       throw StateError('An investor account is required');
     }
     _repo.clearLiveData();
+    if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear();
     await _repo.syncFromBackend();
     await _storage.setRememberMe(rememberMe.value);
@@ -58,12 +71,14 @@ class AuthController extends GetxController {
   }
   Future<bool> restoreSession() async {
     isLoggedIn.value = false;
-    if (_api == null || !_storage.rememberMe || (await _api.getAccessToken())?.isNotEmpty != true) {
+    if (_api == null || !_storage.rememberMe || ((await _api.getAccessToken())?.isNotEmpty != true && (await _api.getRefreshToken())?.isNotEmpty != true)) {
       _repo.clearLiveData();
+    if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear(); return false;
     }
     try { await _repo.syncFromBackend(); isLoggedIn.value = _repo.currentUser.value.accountStatus == 'ACTIVE'; return isLoggedIn.value; }
     catch (_) { _repo.clearLiveData();
+    if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear(); return false; }
   }
   Future<bool> login(String identity, String password) async {
@@ -150,6 +165,7 @@ class AuthController extends GetxController {
       isLoggedIn.value = false;
       isPasswordVisible.value = false;
       _repo.clearLiveData();
+    if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear();
       try {
         if (Get.isRegistered<FirebaseNotificationService>()) {

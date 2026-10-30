@@ -66,7 +66,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
             if (projCtrl.isDetailLoading.value) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (projCtrl.detailError.value.isNotEmpty) {
+            if (projCtrl.detailError.value.isNotEmpty && projCtrl.selectedProject.value == null) {
               return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

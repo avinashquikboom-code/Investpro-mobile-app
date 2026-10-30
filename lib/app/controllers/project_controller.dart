@@ -25,9 +25,19 @@ class ProjectController extends GetxController {
   final isLoadingMore = false.obs;
   final hasMore = false.obs;
   final pageError = ''.obs;
+  bool hasLoaded=false;
+  bool hasAttempted=false;
   int _page = 0;
   int _request = 0;
   Timer? _searchTimer;
+
+  void clearForSession(){
+    _request++;_searchTimer?.cancel();
+    remoteProjects.clear();categories.clear();selectedProject.value=null;
+    selectedCategory.value='All Categories';searchQuery.value='';selectedFilter.value='All Projects';
+    hasLoaded=false;hasAttempted=false;_page=0;hasMore.value=false;
+    isLoading.value=false;isLoadingMore.value=false;errorMessage.value='';pageError.value='';detailError.value='';
+  }
 
   List<String> get statusFilters => const [
     'All Projects',
@@ -106,12 +116,15 @@ class ProjectController extends GetxController {
             p.category.toLowerCase().contains(searchQuery.value.toLowerCase());
         return status && category && search;
       }).toList();
-  Future<void> refreshProjects() async {
+  Future<void> refreshProjects({bool background=false}) async {
     if (_api == null) {
       return;
     }
+    if(background&&(isLoading.value||isLoadingMore.value))return;
+    hasAttempted=true;
     _searchTimer?.cancel();
     final request = ++_request;
+    final previousHasMore=hasMore.value;
     isLoadingMore.value = false;
     pageError.value = '';
     hasMore.value = false;
@@ -137,6 +150,7 @@ class ProjectController extends GetxController {
         return;
       }
       remoteProjects.assignAll(result.projects.map(ProjectModel.fromBackend));
+      hasLoaded=true;
       _page = result.page;
       hasMore.value = result.page < result.totalPages;
       final selectedId = selectedProject.value?.id;
@@ -145,7 +159,7 @@ class ProjectController extends GetxController {
       }
     } catch (_) {
       if (request == _request && !isClosed) {
-        remoteProjects.clear();
+        hasMore.value=previousHasMore;
         errorMessage.value =
             'Unable to load projects and categories. Please retry.';
       }
@@ -232,7 +246,7 @@ class ProjectController extends GetxController {
       }
       selectedProject.value = ProjectModel.fromBackend(data);
     } catch (_) {
-      selectedProject.value = null;
+      if(!background)selectedProject.value = null;
       detailError.value = 'This project is unavailable or could not be loaded.';
     } finally {
       if (!isClosed) isDetailLoading.value = false;

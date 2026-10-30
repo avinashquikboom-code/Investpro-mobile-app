@@ -1,3 +1,4 @@
+import 'api_diagnostics.dart';
 import 'payment_error.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -19,6 +20,11 @@ class ProjectPage {
 
 class ApiService extends getx.GetxService {
   int sessionVersion = 0;
+  DateTime? _nextReadAt;
+  DateTime? get nextReadAt => _nextReadAt;
+  VoidCallback? onSessionExpired;
+  bool _expirationNotified=false;
+
   static const String _keyAccessToken = 'investpro_access_token';
   static const String _keyRefreshToken = 'investpro_refresh_token';
 
@@ -46,6 +52,9 @@ class ApiService extends getx.GetxService {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          if(options.method=='GET'&&_nextReadAt?.isAfter(DateTime.now())==true){
+            return handler.reject(DioException(requestOptions:options,response:Response(requestOptions:options,statusCode:429,data:{'message':'Please wait before refreshing again.'}),type:DioExceptionType.badResponse));
+          }
           final token = await getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -53,27 +62,26 @@ class ApiService extends getx.GetxService {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          if (error.response?.statusCode == 401 &&
-              !error.requestOptions.path.contains('/auth/login') &&
-              !error.requestOptions.path.contains('/auth/refresh') &&
-              error.requestOptions.extra['retry'] != true) {
-            final refreshed = await _refreshToken();
-            if (refreshed) {
-              final token = await getAccessToken();
-              error.requestOptions.extra['retry'] = true;
-              error.requestOptions.headers['Authorization'] = 'Bearer $token';
-              try {
-                // A finalized multipart stream must be cloned before replay after token refresh.
-                if (error.requestOptions.data is FormData) {
-                  error.requestOptions.data = (error.requestOptions.data as FormData).clone();
-                }
-                final response = await dio.fetch(error.requestOptions);
-                return handler.resolve(response);
-              } catch (e) {
-                return handler.next(error);
-              }
-            }
+          if(error.response?.statusCode==429){
+            final retry=ApiDiagnostics.retryAt(error.response?.headers.value('retry-after'),DateTime.now());
+            if(_nextReadAt==null||retry.isAfter(_nextReadAt!))_nextReadAt=retry;
           }
+          ApiDiagnostics.log(error);
+          if (error.response?.statusCode == 401 && !error.requestOptions.path.contains('/auth/login') && !error.requestOptions.path.contains('/auth/refresh') && error.requestOptions.extra['retry'] != true) {
+            try {
+              final current=await getAccessToken();
+              final sent=error.requestOptions.headers['Authorization'];
+              final refreshed=current!=null&&current.isNotEmpty&&sent!='Bearer $current'||await _refreshToken();
+              if(refreshed){
+                final token=await getAccessToken();error.requestOptions.extra['retry']=true;error.requestOptions.headers['Authorization']='Bearer $token';
+                if(error.requestOptions.data is FormData)error.requestOptions.data=(error.requestOptions.data as FormData).clone();
+                try{return handler.resolve(await dio.fetch(error.requestOptions));}
+                on DioException catch(retryError){return handler.next(retryError);}
+              }
+            } on DioException catch(refreshError){return handler.next(refreshError);}
+            catch(_){return handler.next(error);}
+          }
+          if(error.response?.statusCode==401&&error.requestOptions.extra['retry']==true&&!error.requestOptions.path.contains('/auth/refresh'))await _expireSession();
           return handler.next(error);
         },
       ),
@@ -102,6 +110,7 @@ class ApiService extends getx.GetxService {
     required String accessToken,
     required String refreshToken,
   }) async {
+    _expirationNotified=false;
     await _secureStorage.write(key: _keyAccessToken, value: accessToken);
     await _secureStorage.write(key: _keyRefreshToken, value: refreshToken);
   }
@@ -117,6 +126,7 @@ class ApiService extends getx.GetxService {
   Future<bool> _performRefreshToken() async {
     final rToken = await getRefreshToken();
     if (rToken == null || rToken.isEmpty) {
+      await _expireSession();
       return false;
     }
 
@@ -138,10 +148,15 @@ class ApiService extends getx.GetxService {
           return true;
         }
       }
-    } catch (_) {
-      await clearTokens();
+    } on DioException catch(error) {
+      if(error.response?.statusCode==401||error.response?.statusCode==403){await _expireSession();return false;}
+      rethrow;
     }
-    return false;
+    throw const FormatException('Invalid session refresh response');
+  }
+  Future<void> _expireSession() async {
+    await clearTokens();
+    if(!_expirationNotified){_expirationNotified=true;onSessionExpired?.call();}
   }
 
   Future<List<dynamic>> collection(String path, {Map<String, dynamic>? query}) async {

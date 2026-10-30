@@ -28,7 +28,7 @@ class _ProjectsViewState extends State<ProjectsView> {
     super.initState();
     _search.text = Get.find<ProjectController>().searchQuery.value;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && !Get.find<ProjectController>().isLoading.value) {
+      if (mounted && !Get.find<ProjectController>().isLoading.value && !Get.find<ProjectController>().hasAttempted) {
         Get.find<ProjectController>().refreshProjects();
       }
     });
@@ -188,13 +188,13 @@ class _ProjectsViewState extends State<ProjectsView> {
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   Obx(() {
-                    if (projects.isLoading.value) {
+                    if (projects.isLoading.value && projects.filteredProjects.isEmpty) {
                       return const SliverFillRemaining(
                         hasScrollBody: false,
                         child: Center(child: CircularProgressIndicator()),
                       );
                     }
-                    if (projects.errorMessage.value.isNotEmpty) {
+                    if (projects.errorMessage.value.isNotEmpty && projects.filteredProjects.isEmpty) {
                       return SliverFillRemaining(
                         hasScrollBody: false,
                         child: Padding(
