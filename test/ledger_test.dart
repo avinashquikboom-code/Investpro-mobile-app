@@ -208,14 +208,18 @@ void main() {
       expect(notifications.notifications.length, count);
     },
   );
-  test('manual theme selection survives controller recreation', () async {
-    final c = Get.put(ThemeController(storage));
-    c.setThemeMode('dark');
-    await Future<void>.delayed(Duration.zero);
-    Get.delete<ThemeController>();
-    final restored = Get.put(ThemeController(storage));
-    expect(restored.currentThemeMode, ThemeMode.dark);
-  });
+  test(
+    'investor light theme survives legacy dark selection and recreation',
+    () async {
+      final c = Get.put(ThemeController(storage));
+      c.setThemeMode('dark');
+      await Future<void>.delayed(Duration.zero);
+      Get.delete<ThemeController>();
+      final restored = Get.put(ThemeController(storage));
+      expect(restored.currentThemeMode, ThemeMode.light);
+      expect(storage.themeMode, 'light');
+    },
+  );
   test('validators reject malformed phones, weak passwords and sub-paise', () {
     expect(Validators.validateMobile('abcdefghij'), isNotNull);
     expect(Validators.validatePassword('abcdefgh'), isNotNull);

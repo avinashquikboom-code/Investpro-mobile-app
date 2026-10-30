@@ -64,7 +64,7 @@ class _SplashViewState extends State<SplashView>
     final topPadding = MediaQuery.of(context).padding.top;
 
     return AppSystemUi(
-      statusSurface: AppColors.primaryDark,
+      statusSurface: AppColors.background,
       child: Scaffold(
         body: Stack(
           children: [
@@ -73,9 +73,9 @@ class _SplashViewState extends State<SplashView>
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF005C36),
-                    Color(0xFF004828),
-                    Color(0xFF002E19),
+                    AppColors.background,
+                    AppColors.secondaryBackground,
+                    AppColors.lightMint,
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -136,7 +136,7 @@ class _SplashViewState extends State<SplashView>
                               style: GoogleFonts.poppins(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -145,7 +145,7 @@ class _SplashViewState extends State<SplashView>
                               style: GoogleFonts.poppins(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFF4ADE80),
+                                color: AppColors.primary,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -159,7 +159,7 @@ class _SplashViewState extends State<SplashView>
                         'Grow Your Wealth\nWith Trusted Investments',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.95),
+                          color: AppColors.textSecondary,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                           height: 1.45,

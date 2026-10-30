@@ -26,7 +26,7 @@ class InvestmentSuccessView extends StatelessWidget {
             : null);
 
     return AppSystemUi(
-      statusSurface: AppColors.primaryDark,
+      statusSurface: AppColors.background,
       child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
@@ -38,7 +38,9 @@ class InvestmentSuccessView extends StatelessWidget {
           body: Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(gradient: AppColors.splashGradient),
+            decoration: const BoxDecoration(
+              color: AppColors.secondaryBackground,
+            ),
             child: SafeArea(
               child: ResponsiveHelper.responsiveContainer(
                 context: context,
@@ -83,16 +85,16 @@ class InvestmentSuccessView extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'investmentSuccessSubtitle'.tr,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: AppColors.textSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -166,8 +168,8 @@ class InvestmentSuccessView extends StatelessWidget {
                       // View My Investments Button
                       CustomButton(
                         text: 'viewMyInvestments'.tr,
-                        backgroundColor: Colors.white,
-                        textColor: AppColors.primaryDark,
+                        backgroundColor: AppColors.primary,
+                        textColor: Colors.white,
                         onPressed: () {
                           navCtrl.goToInvestments();
                           Get.offAllNamed(AppRoutes.home);
@@ -179,8 +181,8 @@ class InvestmentSuccessView extends StatelessWidget {
                       CustomButton(
                         text: 'goToHome'.tr,
                         isOutlined: true,
-                        backgroundColor: Colors.white,
-                        textColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        textColor: AppColors.primary,
                         onPressed: () {
                           navCtrl.goToHome();
                           Get.offAllNamed(AppRoutes.home);

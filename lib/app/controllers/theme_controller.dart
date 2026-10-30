@@ -3,50 +3,29 @@ import 'package:get/get.dart';
 
 import '../services/local_storage_service.dart';
 
+/// Investor branding always uses light surfaces, including on dark devices.
 class ThemeController extends GetxController {
   final LocalStorageService _storage;
-
   ThemeController(this._storage);
-
-  final RxString themeModeString = 'system'.obs;
+  final RxString themeModeString = 'light'.obs;
 
   @override
   void onInit() {
     super.onInit();
-    themeModeString.value = _storage.themeMode;
+    _storage.setThemeMode('light');
   }
 
   ThemeMode get currentThemeMode {
-    switch (themeModeString.value) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
+    // Keep the existing reactive app root subscribed.
+    themeModeString.value;
+    return ThemeMode.light;
   }
 
-  bool get isDarkMode {
-    if (themeModeString.value == 'system') {
-      return Get.isPlatformDarkMode;
-    }
-    return themeModeString.value == 'dark';
-  }
+  bool get isDarkMode => false;
 
   void setThemeMode(String mode) {
-    themeModeString.value = mode;
-    _storage.setThemeMode(mode);
-    switch (mode) {
-      case 'light':
-        Get.changeThemeMode(ThemeMode.light);
-        break;
-      case 'dark':
-        Get.changeThemeMode(ThemeMode.dark);
-        break;
-      default:
-        Get.changeThemeMode(ThemeMode.system);
-        break;
-    }
+    themeModeString.value = 'light';
+    _storage.setThemeMode('light');
+    Get.changeThemeMode(ThemeMode.light);
   }
 }

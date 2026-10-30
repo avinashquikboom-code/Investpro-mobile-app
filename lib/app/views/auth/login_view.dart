@@ -5,238 +5,267 @@ import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
-import '../../utils/responsive_helper.dart';
 import '../../widgets/app_logo.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/custom_text_field.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
-
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _formKey = GlobalKey<FormState>();
-  final _identityController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _identity = TextEditingController();
+  final _password = TextEditingController();
+  final _passwordFocus = FocusNode();
+  bool _passwordStep = false;
 
   @override
   void initState() {
     super.initState();
     final storage = Get.find<LocalStorageService>();
-    if (storage.rememberMe && storage.userEmail != null) {
-      _identityController.text = storage.userEmail!;
-    }
+    if (storage.rememberMe) _identity.text = storage.userEmail ?? '';
+    _identity.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
-    _identityController.dispose();
-    _passwordController.dispose();
+    _identity.dispose();
+    _password.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final authCtrl = Get.find<AuthController>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  void _login() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    Get.find<AuthController>().login(_identity.text.trim(), _password.text);
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      body: SafeArea(
-        child: ResponsiveHelper.responsiveContainer(
-          context: context,
-          maxWidth: 480,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 24),
-                  // App Logo
-                  const AppLogo(size: 60, fontSize: 26),
-                  const SizedBox(height: 28),
+  void _next() {
+    setState(() => _passwordStep = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _passwordFocus.requestFocus();
+    });
+  }
 
-                  // Heading
-                  Text(
-                    'welcomeBack'.tr,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
-                    ),
+  Widget _field(bool password, bool compact) {
+    final auth = Get.find<AuthController>();
+    return Obx(
+      () => TextFormField(
+        key: ValueKey(password ? 'login-password' : 'login-identity'),
+        controller: password ? _password : _identity,
+        focusNode: password ? _passwordFocus : null,
+        obscureText: password && !auth.isPasswordVisible.value,
+        enabled: !auth.isLoading.value,
+        keyboardType: password
+            ? TextInputType.visiblePassword
+            : TextInputType.emailAddress,
+        textInputAction: password ? TextInputAction.done : TextInputAction.next,
+        onFieldSubmitted: (_) {
+          if (password) {
+            _login();
+          } else if (compact) {
+            _next();
+          } else {
+            _passwordFocus.requestFocus();
+          }
+        },
+        autofillHints: password
+            ? const [AutofillHints.password]
+            : const [AutofillHints.username],
+        style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+        decoration: InputDecoration(
+          labelText: (password ? 'password' : 'emailOrMobile').tr,
+          prefixIcon: Icon(
+            password
+                ? Icons.lock_outline_rounded
+                : Icons.person_outline_rounded,
+          ),
+          suffixIcon: password
+              ? IconButton(
+                  tooltip: 'Show or hide password',
+                  onPressed: auth.togglePasswordVisibility,
+                  icon: Icon(
+                    auth.isPasswordVisible.value
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'loginSubtitle'.tr,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Email or Mobile Field
-                  CustomTextField(
-                    controller: _identityController,
-                    label: 'emailOrMobile'.tr,
-                    hintText: 'enterEmailOrMobile'.tr,
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(
-                      Icons.person_outline_rounded,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Password Field
-                  Obx(() {
-                    return CustomTextField(
-                      controller: _passwordController,
-                      label: 'password'.tr,
-                      hintText: 'enterPassword'.tr,
-                      obscureText: !authCtrl.isPasswordVisible.value,
-                      prefixIcon: const Icon(
-                        Icons.lock_outline_rounded,
+                )
+              : (_identity.text.isNotEmpty && !auth.isLoading.value
+                  ? IconButton(
+                      tooltip: 'Clear input',
+                      onPressed: () {
+                        _identity.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(
+                        Icons.clear_rounded,
+                        size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          authCtrl.isPasswordVisible.value
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: AppColors.textSecondary,
-                          size: 20,
-                        ),
-                        onPressed: authCtrl.togglePasswordVisibility,
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 12),
+                    )
+                  : null),
+        ),
+      ),
+    );
+  }
 
-                  // Remember me & Forgot Password
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Obx(() {
-                              return SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Checkbox(
-                                  value: authCtrl.rememberMe.value,
-                                  activeColor: AppColors.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  onChanged: authCtrl.toggleRememberMe,
-                                ),
-                              );
-                            }),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'rememberMe'.tr,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
+  Widget _options() => Wrap(
+    alignment: WrapAlignment.center,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 8,
+    children: [
+      Obx(() {
+        final auth = Get.find<AuthController>();
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 220),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Checkbox(
+                value: auth.rememberMe.value,
+                onChanged: auth.toggleRememberMe,
+              ),
+              Flexible(child: Text('rememberMe'.tr)),
+            ],
+          ),
+        );
+      }),
+      TextButton(
+        onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
+        child: Text('forgotPassword'.tr),
+      ),
+      TextButton(
+        onPressed: () => Get.toNamed(AppRoutes.register),
+        child: Text('createNewAccount'.tr),
+      ),
+    ],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Get.find<AuthController>();
+    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxHeight < 440 * scale;
+            // Preserve the focused password when the keyboard changes layout.
+            final passwordStep = _passwordStep || _passwordFocus.hasFocus;
+            final showBrand = !compact && constraints.maxHeight > 590 * scale;
+            final gap = (constraints.maxHeight * .022).clamp(6.0, 18.0);
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: constraints.maxWidth < 360 ? 16 : 24,
+                      vertical: 8,
+                    ),
+                    child: AutofillGroup(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (showBrand) ...[
+                            const AppLogo(size: 56, fontSize: 24),
+                            SizedBox(height: gap),
                           ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'forgotPassword'.tr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                          if (!compact) ...[
+                            Text(
+                              'welcomeBack'.tr,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            Text(
+                              'loginSubtitle'.tr,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            SizedBox(height: gap),
+                          ],
+                          if (!compact || !passwordStep) _field(false, compact),
+                          if (!compact) SizedBox(height: gap),
+                          if (!compact || passwordStep) _field(true, compact),
+                          SizedBox(height: gap),
+                          Obx(
+                            () => ElevatedButton(
+                              onPressed: auth.isLoading.value
+                                  ? null
+                                  : compact && !passwordStep
+                                  ? _next
+                                  : _login,
+                              child: auth.isLoading.value
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      compact && !passwordStep
+                                          ? 'Next'
+                                          : 'login'.tr,
+                                    ),
+                            ),
                           ),
-                        ),
+                          if (compact)
+                            Row(
+                              children: [
+                                if (passwordStep)
+                                  IconButton(
+                                    tooltip: 'emailOrMobile'.tr,
+                                    onPressed: () {
+                                      _passwordFocus.unfocus();
+                                      setState(() => _passwordStep = false);
+                                    },
+                                    icon: const Icon(Icons.edit_outlined),
+                                  ),
+                                Flexible(
+                                  child: TextButton(
+                                    onPressed: () {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                      showDialog<void>(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          title: Text('welcomeBack'.tr),
+                                          content: _options(),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Get.back(),
+                                              child: const Text('Close'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('More options'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else ...[
+                            SizedBox(height: gap / 2),
+                            _options(),
+                          ],
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 26),
-
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'LOCAL DEMO: use any valid email/mobile and a password with 8+ characters, letters and numbers. No real authentication.',
                     ),
                   ),
-                  // Login Button
-                  Obx(() {
-                    return CustomButton(
-                      text: 'login'.tr,
-                      isLoading: authCtrl.isLoading.value,
-                      onPressed: () {
-                        authCtrl.login(
-                          _identityController.text.trim(),
-                          _passwordController.text,
-                        );
-                      },
-                    );
-                  }),
-                  const SizedBox(height: 14),
-
-                  // Create New Account Outlined Button
-                  CustomButton(
-                    text: 'createNewAccount'.tr,
-                    isOutlined: true,
-                    onPressed: () => Get.toNamed(AppRoutes.register),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Footer: Secure & Trusted
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.shield_outlined,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'secureAndTrusted'.tr,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
