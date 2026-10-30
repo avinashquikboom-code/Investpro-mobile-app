@@ -556,7 +556,7 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.check_circle_rounded,
+                        Remix.checkbox_circle_fill,
                         color: AppColors.success,
                         size: 14,
                       ),
