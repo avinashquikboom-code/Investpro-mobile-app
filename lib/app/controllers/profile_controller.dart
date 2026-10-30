@@ -11,6 +11,9 @@ class ProfileController extends GetxController {
   ProfileController(this._repo);
 
   UserModel get user => _repo.currentUser.value;
+  Rx<UserModel> get liveUser => _repo.currentUser;
+  RxBool get isSyncing => _repo.isSyncing;
+  RxString get syncError => _repo.syncError;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -21,6 +24,13 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     populateFields();
+  }
+
+  Future<void> refreshProfile() async {
+    try {
+      await _repo.syncFromBackend();
+      populateFields();
+    } catch (_) {}
   }
 
   void populateFields() {

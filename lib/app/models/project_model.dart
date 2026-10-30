@@ -1,6 +1,11 @@
 import '../services/investment_calculator.dart';
 
 class ProjectModel {
+  final String? location;
+  final String? imageUrl;
+  final int? investorCount;
+  final bool hasFundingData;
+  final bool hasReturnData;
   final double minInvestment;
   final double? maxInvestment;
   final String id;
@@ -18,6 +23,11 @@ class ProjectModel {
   final DateTime createdAt;
 
   const ProjectModel({
+    this.location,
+    this.imageUrl,
+    this.investorCount,
+    this.hasFundingData = true,
+    this.hasReturnData = true,
     this.minInvestment = 0,
     this.maxInvestment,
     required this.id,
@@ -34,6 +44,10 @@ class ProjectModel {
     this.riskLevel = 'Moderate',
     required this.createdAt,
   });
+
+  String get statusLabel => status.isEmpty
+      ? 'Unknown'
+      : status[0].toUpperCase() + status.substring(1).toLowerCase();
 
   int get rate => returnRatePercent.round();
   int get months => durationMonths;
@@ -75,6 +89,11 @@ class ProjectModel {
     DateTime? createdAt,
   }) {
     return ProjectModel(
+      location: location,
+      imageUrl: imageUrl,
+      investorCount: investorCount,
+      hasFundingData: hasFundingData,
+      hasReturnData: hasReturnData,
       minInvestment: minInvestment,
       maxInvestment: maxInvestment,
       id: id ?? this.id,
@@ -95,6 +114,13 @@ class ProjectModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'location': location,
+      'imageUrl': imageUrl,
+      'investorCount': investorCount,
+      'hasFundingData': hasFundingData,
+      'hasReturnData': hasReturnData,
+      'minInvestment': minInvestment,
+      'maxInvestment': maxInvestment,
       'id': id,
       'name': name,
       'category': category,
@@ -115,8 +141,19 @@ class ProjectModel {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
     return ProjectModel(
+      location: json['location'] as String?,
+      imageUrl: json['bannerUrl'] as String?,
+      investorCount: (json['investorsCount'] as num?)?.toInt(),
+      hasFundingData:
+          num.tryParse('${json['targetAmount']}')?.isFinite == true &&
+          num.tryParse('${json['fundedAmount']}')?.isFinite == true &&
+          number('targetAmount') > 0 &&
+          number('fundedAmount') >= 0,
+      hasReturnData: num.tryParse('${json['expectedRoi']}')?.isFinite == true,
       minInvestment: number('minInvestment'),
-      maxInvestment: json['maxInvestment'] == null ? null : number('maxInvestment'),
+      maxInvestment: json['maxInvestment'] == null
+          ? null
+          : number('maxInvestment'),
       id: json['id'] as String,
       name: json['title'] as String? ?? '',
       category: type?['name'] as String? ?? '',
@@ -137,6 +174,13 @@ class ProjectModel {
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
+      location: json['location'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      investorCount: (json['investorCount'] as num?)?.toInt(),
+      hasFundingData: json['hasFundingData'] as bool? ?? true,
+      hasReturnData: json['hasReturnData'] as bool? ?? true,
+      minInvestment: (json['minInvestment'] as num?)?.toDouble() ?? 0,
+      maxInvestment: (json['maxInvestment'] as num?)?.toDouble(),
       id: json['id'] as String,
       name: json['name'] as String,
       category: json['category'] as String,

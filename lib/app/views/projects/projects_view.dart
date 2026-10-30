@@ -1,242 +1,395 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/auth_controller.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/project_controller.dart';
+import '../../models/project_model.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
-import '../../utils/responsive_helper.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/app_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
-import '../../widgets/project_card.dart';
+import '../../widgets/project_listing_card.dart';
 
 class ProjectsView extends StatefulWidget {
   final bool isTab;
-
   const ProjectsView({super.key, this.isTab = true});
-
   @override
   State<ProjectsView> createState() => _ProjectsViewState();
 }
 
 class _ProjectsViewState extends State<ProjectsView> {
+  final _search = TextEditingController();
+  bool _openingInvestment = false;
+
   @override
   void initState() {
     super.initState();
+    _search.text = Get.find<ProjectController>().searchQuery.value;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) Get.find<ProjectController>().refreshProjects();
+      if (mounted && !Get.find<ProjectController>().isLoading.value) {
+        Get.find<ProjectController>().refreshProjects();
+      }
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final projCtrl = Get.find<ProjectController>();
-    final invCtrl = Get.find<InvestmentController>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: CustomAppBar(title: 'projects'.tr, showBackButton: !widget.isTab),
-      body: SafeArea(
-        child: ResponsiveHelper.responsiveContainer(
-          context: context,
-          maxWidth: 600,
-          child: Column(
-            children: [
-              // Filter Tabs (All Projects, Active, Completed)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+  bool get _authenticated =>
+      Get.isRegistered<AuthController>() &&
+      Get.find<AuthController>().isLoggedIn.value;
+
+  Future<void> _invest(ProjectModel project) async {
+    if (_openingInvestment) return;
+    final projects = Get.find<ProjectController>();
+    final investments = Get.find<InvestmentController>();
+    if (investments.isProcessingPayment.value ||
+        projects.investmentUnavailableReason(
+              project,
+              authenticated: _authenticated,
+            ) !=
+            null) {
+      return;
+    }
+    setState(() => _openingInvestment = true);
+    try {
+      // Revalidate visibility using the actual selected ID before entering the existing flow.
+      await projects.loadDetails(project.id);
+      if (!mounted) return;
+      final current = projects.selectedProject.value;
+      final reason = current == null
+          ? projects.detailError.value
+          : projects.investmentUnavailableReason(
+              current,
+              authenticated: _authenticated,
+            );
+      if (current == null || reason != null) {
+        Get.snackbar(
+          'Unable to invest',
+          reason ?? 'This project is unavailable',
+        );
+        return;
+      }
+      if (investments.isProcessingPayment.value) return;
+      investments.setProject(current);
+      Get.toNamed(AppRoutes.investNow, arguments: current.id);
+    } finally {
+      if (mounted) setState(() => _openingInvestment = false);
+    }
+  }
+
+  Widget _chips(
+    List<String> ids,
+    String selected,
+    String Function(String) label,
+    void Function(String) onSelected,
+  ) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Row(
+      children: ids
+          .map(
+            (id) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(label(id)),
+                selected: selected == id,
+                onSelected: (_) => onSelected(id),
+                showCheckmark: false,
+                selectedColor: AppColors.primaryDark,
+                backgroundColor: AppColors.surface,
+                side: BorderSide(
+                  color: selected == id
+                      ? AppColors.primaryDark
+                      : AppColors.border,
                 ),
-                child: Obx(() {
-                  final filters = ['All Projects', 'Active', 'Completed'];
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: filters.map((filter) {
-                        final isSelected =
-                            projCtrl.selectedFilter.value == filter;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
-                            onTap: () => projCtrl.setFilter(filter),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primaryDark
-                                    : (isDark
-                                          ? AppColors.surfaceDark
-                                          : Colors.white),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primaryDark
-                                      : (isDark
-                                            ? AppColors.borderDark
-                                            : AppColors.border),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                filter,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : (isDark
-                                            ? AppColors.textSecondaryDark
-                                            : AppColors.textPrimary),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                }),
+                labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: selected == id
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+            ),
+          )
+          .toList(),
+    ),
+  );
 
-              // Category Filter Chips
-              Obx(() {
-                final cats = projCtrl.availableCategories;
-                if (cats.length <= 1) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: 8,
-                  ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: cats.map((cat) {
-                        final isSelected =
-                            projCtrl.selectedCategory.value == cat;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: GestureDetector(
-                            onTap: () => projCtrl.setCategory(cat),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primaryLight
-                                    : (isDark
-                                          ? AppColors.surfaceDark
-                                          : Colors.white),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primaryDark
-                                      : (isDark
-                                            ? AppColors.borderDark
-                                            : AppColors.border),
-                                ),
-                              ),
-                              child: Text(
-                                projCtrl.categoryLabel(cat),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? AppColors.primaryDark
-                                      : (isDark
-                                            ? AppColors.textSecondaryDark
-                                            : AppColors.textSecondary),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                );
-              }),
-
-              // Projects List
-              Expanded(
-                child: Obx(() {
-                  if (projCtrl.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (projCtrl.errorMessage.value.isNotEmpty) {
-                    return Center(
+  @override
+  Widget build(BuildContext context) {
+    final projects = Get.find<ProjectController>();
+    final investments = Get.find<InvestmentController>();
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppAppBar(
+        title: 'projects'.tr,
+        showBackButton: widget.isTab ? false : null,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: RefreshIndicator(
+              onRefresh: projects.refreshProjects,
+              child: CustomScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(projCtrl.errorMessage.value),
-                          TextButton(
-                            onPressed: projCtrl.refreshProjects,
-                            child: const Text('Retry'),
+                          Text(
+                            'Discover investment opportunities',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _search,
+                                  onChanged: projects.setSearchQuery,
+                                  textInputAction: TextInputAction.search,
+                                  onSubmitted: (_) =>
+                                      projects.refreshProjects(),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search projects by name or location...',
+                                    prefixIcon: const Icon(
+                                      Icons.search_rounded,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    suffixIcon: Obx(
+                                      () => projects.searchQuery.value.isEmpty
+                                          ? const SizedBox.shrink()
+                                          : IconButton(
+                                              tooltip: 'Clear search',
+                                              icon: const Icon(
+                                                Icons.close_rounded,
+                                              ),
+                                              onPressed: () {
+                                                _search.clear();
+                                                projects.setSearchQuery('');
+                                              },
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.outlined(
+                                tooltip: 'Filter projects',
+                                icon: const Icon(
+                                  Icons.tune_rounded,
+                                  color: AppColors.primary,
+                                ),
+                                onPressed: () {
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                  showModalBottomSheet<void>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (_) => SafeArea(
+                                      child: SingleChildScrollView(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 24,
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Filter projects',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleLarge,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Obx(
+                                              () => _chips(
+                                                projects.statusFilters,
+                                                projects.selectedFilter.value,
+                                                (id) => id,
+                                                projects.setFilter,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Obx(
+                                              () => _chips(
+                                                projects.availableCategories,
+                                                projects.selectedCategory.value,
+                                                projects.categoryLabel,
+                                                projects.setCategory,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            TextButton(
+                                              onPressed: () => Get.back(),
+                                              child: const Text('Done'),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  }
-                  final list = projCtrl.filteredProjects;
-                  if (list.isEmpty) {
-                    return RefreshIndicator(
-                      onRefresh: projCtrl.refreshProjects,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          EmptyStateWidget(
-                            icon: Icons.folder_open_rounded,
-                            title: 'No Projects Found',
-                            message: 'There are no projects matching this category right now.',
-                            buttonText: 'Show All Projects',
-                            onButtonPressed: () {
-                              projCtrl.setFilter('All Projects');
-                              projCtrl.setCategory('All Categories');
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: projCtrl.refreshProjects,
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        final project = list[index];
-                        return ProjectCard(
-                          project: project,
-                          isDashboardVariant: false,
-                          onTap: () {
-                            projCtrl.selectProject(project);
-                            invCtrl.setProject(project);
-                            Get.toNamed(AppRoutes.projectDetails);
-                          },
-                        );
-                      },
                     ),
-                  );
-                }),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Obx(
+                      () => _chips(
+                        projects.statusFilters,
+                        projects.selectedFilter.value,
+                        (id) => id,
+                        projects.setFilter,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                  SliverToBoxAdapter(
+                    child: Obx(
+                      () => _chips(
+                        projects.availableCategories,
+                        projects.selectedCategory.value,
+                        projects.categoryLabel,
+                        projects.setCategory,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  Obx(() {
+                    if (projects.isLoading.value) {
+                      return const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (projects.errorMessage.value.isNotEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.cloud_off_rounded,
+                                color: AppColors.textSecondary,
+                                size: 36,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                projects.errorMessage.value,
+                                textAlign: TextAlign.center,
+                              ),
+                              TextButton(
+                                onPressed: projects.refreshProjects,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    final list = projects.filteredProjects;
+                    if (list.isEmpty) {
+                      return SliverToBoxAdapter(
+                        child: EmptyStateWidget(
+                          icon: Icons.folder_open_rounded,
+                          title: 'No Projects Found',
+                          message: 'No matching projects are currently visible to investors. Only published, active opportunities are available from the current catalog.',
+                          buttonText: 'Show All Projects',
+                          onButtonPressed: () {
+                            _search.clear();
+                            projects.setSearchQuery('');
+                            projects.setFilter('All Projects');
+                            projects.setCategory('All Categories');
+                          },
+                        ),
+                      );
+                    }
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverList.builder(
+                        itemCount: list.length,
+                        itemBuilder: (context, index) {
+                          final project = list[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Obx(() {
+                              final reason = projects
+                                  .investmentUnavailableReason(
+                                    project,
+                                    authenticated: _authenticated,
+                                  );
+                              final busy =
+                                  _openingInvestment ||
+                                  investments.isProcessingPayment.value;
+                              return ProjectListingCard(
+                                key: ValueKey(project.id),
+                                project: project,
+                                onDetails: () {
+                                  projects.selectProject(project);
+                                  // The details route loads this ID from the backend again.
+                                  Get.toNamed(
+                                    AppRoutes.projectDetails,
+                                    arguments: project.id,
+                                  );
+                                },
+                                onInvest: reason == null && !busy
+                                    ? () => _invest(project)
+                                    : null,
+                                investmentHint: reason,
+                              );
+                            }),
+                          );
+                        },
+                      ),
+                    );
+                  }),
+                  SliverToBoxAdapter(
+                    child: Obx(
+                      () => Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        child: Column(
+                          children: [
+                            if (projects.pageError.value.isNotEmpty)
+                              Text(
+                                projects.pageError.value,
+                                textAlign: TextAlign.center,
+                              ),
+                            if (projects.isLoadingMore.value)
+                              const CircularProgressIndicator()
+                            else if (projects.hasMore.value)
+                              OutlinedButton(
+                                onPressed: projects.loadMore,
+                                child: Text(
+                                  projects.pageError.value.isEmpty
+                                      ? 'Load more projects'
+                                      : 'Retry loading more',
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

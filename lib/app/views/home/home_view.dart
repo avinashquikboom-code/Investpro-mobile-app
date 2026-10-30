@@ -1,17 +1,19 @@
-import '../../widgets/app_system_ui.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../controllers/home_controller.dart';
-import '../../controllers/investment_controller.dart';
 import '../../controllers/navigation_controller.dart';
 import '../../controllers/project_controller.dart';
 import '../../routes/app_routes.dart';
+import '../../services/demo_repository.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
+import '../../widgets/app_system_ui.dart';
 import '../../widgets/project_card.dart';
+import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
 
 class HomeView extends StatelessWidget {
@@ -19,9 +21,20 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final homeCtrl = Get.find<HomeController>();
-    final projCtrl = Get.find<ProjectController>();
-    final navCtrl = Get.find<NavigationController>();
+    final homeCtrl = Get.isRegistered<HomeController>()
+        ? Get.find<HomeController>()
+        : Get.put(
+            HomeController(
+              Get.find<DemoRepository>(),
+              Get.find<NotificationService>(),
+            ),
+          );
+    final navCtrl = Get.isRegistered<NavigationController>()
+        ? Get.find<NavigationController>()
+        : null;
+    final projCtrl = Get.isRegistered<ProjectController>()
+        ? Get.find<ProjectController>()
+        : null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AppSystemUi(
@@ -40,7 +53,7 @@ class HomeView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Green Curved Header
+                  // 1. Curved Green Header with User Avatar, Greeting, and Notification Bell
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.only(
@@ -56,43 +69,68 @@ class HomeView extends StatelessWidget {
                       ),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // User Greeting & Notification Bell
+                        // Top Greeting Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Row(
                                 children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      border: Border.all(
-                                        color: AppColors.accent,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_rounded,
-                                      color: Colors.white,
-                                      size: 26,
-                                    ),
+                                  // Investor Avatar (taps to Profile)
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (navCtrl != null) {
+                                        navCtrl.changeTab(4);
+                                      } else {
+                                        Get.toNamed(AppRoutes.profile);
+                                      }
+                                    },
+                                    child: Obx(() {
+                                      final user = homeCtrl.user;
+                                      return Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white.withValues(alpha: 0.15),
+                                          border: Border.all(
+                                            color: AppColors.accent,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                                              ? Image.network(
+                                                  user.avatarUrl!,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                                    Icons.person_rounded,
+                                                    color: Colors.white,
+                                                    size: 26,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.person_rounded,
+                                                  color: Colors.white,
+                                                  size: 26,
+                                                ),
+                                        ),
+                                      );
+                                    }),
                                   ),
                                   const SizedBox(width: 12),
+                                  // Greeting text
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Obx(() {
+                                          final name = homeCtrl.user.fullName;
                                           return Text(
-                                            'Hello, ${homeCtrl.user.fullName}',
-                                            style: const TextStyle(
+                                            'Hello, ${name.isNotEmpty ? name : 'Investor'}',
+                                            style: GoogleFonts.poppins(
                                               color: Colors.white,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
@@ -104,11 +142,10 @@ class HomeView extends StatelessWidget {
                                         const SizedBox(height: 2),
                                         Text(
                                           'welcomeToApp'.tr,
-                                          style: TextStyle(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.8,
-                                            ),
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white.withValues(alpha: 0.85),
                                             fontSize: 12,
+                                            fontWeight: FontWeight.w400,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -120,9 +157,10 @@ class HomeView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            // Notification Bell with Badge
+                            // Notification Bell with dynamic badge
                             GestureDetector(
                               onTap: () => Get.toNamed(AppRoutes.notifications),
+                              behavior: HitTestBehavior.opaque,
                               child: Container(
                                 width: 42,
                                 height: 42,
@@ -139,14 +177,11 @@ class HomeView extends StatelessWidget {
                                       size: 22,
                                     ),
                                     Obx(() {
-                                      final count =
-                                          homeCtrl.unreadNotificationCount;
-                                      if (count <= 0) {
-                                        return const SizedBox.shrink();
-                                      }
+                                      final count = homeCtrl.unreadNotificationCount;
+                                      if (count <= 0) return const SizedBox.shrink();
                                       return Positioned(
-                                        top: 8,
-                                        right: 8,
+                                        top: 9,
+                                        right: 9,
                                         child: Container(
                                           width: 8,
                                           height: 8,
@@ -165,67 +200,95 @@ class HomeView extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
 
-                        // Portfolio Summary Card inside header
+                        // 2. Portfolio Summary Card
                         Obx(() {
+                          final growth = homeCtrl.growthPercent;
                           return PortfolioSummaryCard(
                             totalValue: homeCtrl.totalPortfolioValue,
-                            growth:
-                                '+${homeCtrl.growthPercent.toStringAsFixed(1)}%',
+                            growth: growth != null ? '+${growth.toStringAsFixed(1)}%' : null,
                             activeProjectsCount: homeCtrl.totalActiveProjects,
+                            isHideBalance: homeCtrl.isHideBalance.value,
+                            onToggleVisibility: homeCtrl.toggleBalanceVisibility,
                           );
                         }),
                       ],
                     ),
                   ),
 
-                  // Main Content Body
+                  // 3. Main Dashboard Body
                   Padding(
                     padding: ResponsiveHelper.pagePadding(context),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
-                        // 3 Stat Cards in a row
-                        Obx(() {
-                          return Row(
-                            children: [
-                              Expanded(
-                                child: StatItemCard(
+                        // 4 Responsive Metric Cards (2x2 on phone, 4x1 on tablet)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isTablet = constraints.maxWidth >= 600;
+                            final cols = isTablet ? 4 : 2;
+
+                            return Obx(() {
+                              final cards = [
+                                DashboardMetricCard(
+                                  icon: Icons.trending_up_rounded,
+                                  iconColor: AppColors.primary,
+                                  iconBg: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalInvested'.tr,
-                                  value: CurrencyFormatter.format(
-                                    homeCtrl.totalInvested,
-                                  ),
+                                  value: CurrencyFormatter.format(homeCtrl.totalInvested),
+                                  isDark: isDark,
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: StatItemCard(
+                                DashboardMetricCard(
+                                  icon: Icons.payments_outlined,
+                                  iconColor: AppColors.success,
+                                  iconBg: AppColors.success.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalReturns'.tr,
-                                  value: CurrencyFormatter.format(
-                                    homeCtrl.totalReturns,
-                                  ),
+                                  value: CurrencyFormatter.format(homeCtrl.totalReturns),
+                                  isDark: isDark,
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: StatItemCard(
+                                DashboardMetricCard(
+                                  icon: Icons.folder_outlined,
+                                  iconColor: AppColors.info,
+                                  iconBg: AppColors.info.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalProjects'.tr,
-                                  value: '${homeCtrl.totalActiveProjects}',
+                                  value: '${homeCtrl.totalProjects}',
+                                  isDark: isDark,
                                 ),
-                              ),
-                            ],
-                          );
-                        }),
-                        const SizedBox(height: 24),
+                                DashboardMetricCard(
+                                  icon: Icons.check_circle_outline_rounded,
+                                  iconColor: AppColors.accent,
+                                  iconBg: AppColors.accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                                  title: 'Active Projects',
+                                  value: '${homeCtrl.totalActiveProjects}',
+                                  isDark: isDark,
+                                ),
+                              ];
 
-                        // My Projects Section Header
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  mainAxisExtent: 114,
+                                ),
+                                itemCount: cards.length,
+                                itemBuilder: (context, index) => cards[index],
+                              );
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 28),
+
+                        // 4. My Projects Section Header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'myProjects'.tr,
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: isDark
@@ -234,11 +297,17 @@ class HomeView extends StatelessWidget {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () =>
-                                  navCtrl.changeTab(1), // Go to Projects Tab
+                              onTap: () {
+                                if (navCtrl != null) {
+                                  navCtrl.goToInvestments();
+                                } else {
+                                  Get.toNamed(AppRoutes.myInvestments);
+                                }
+                              },
+                              behavior: HitTestBehavior.opaque,
                               child: Text(
                                 'viewAll'.tr,
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primary,
@@ -249,75 +318,89 @@ class HomeView extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
 
-                        // Featured Projects List
+                        // My Projects Content (Only Authenticated Investor-Owned Projects)
                         Obx(() {
-                          final list = homeCtrl.featuredProjects;
-                          if (list.isEmpty) {
-                            return const Center(
-                              child: Text('No projects available'),
-                            );
+                          final investments = homeCtrl.myInvestments;
+                          if (investments.isEmpty) {
+                            return _buildNoInvestmentsEmptyState(context, navCtrl, isDark);
                           }
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
-                              final cols = ResponsiveHelper.gridColumns(
-                                constraints.maxWidth,
-                                phone: 1,
-                                tablet: 2,
-                                largeTablet: 3,
-                              );
 
-                              if (cols > 1) {
-                                return GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: cols,
-                                        crossAxisSpacing: 14,
-                                        mainAxisSpacing: 12,
-                                        mainAxisExtent: 96,
-                                      ),
-                                  itemCount: list.length,
-                                  itemBuilder: (context, index) {
-                                    final project = list[index];
-                                    return ProjectCard(
-                                      project: project,
-                                      isDashboardVariant: true,
-                                      onTap: () {
-                                        projCtrl.selectProject(project);
-                                        final invCtrl =
-                                            Get.find<InvestmentController>();
-                                        invCtrl.setProject(project);
-                                        Get.toNamed(AppRoutes.projectDetails);
-                                      },
-                                    );
-                                  },
-                                );
-                              }
-
-                              return ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: list.length,
-                                itemBuilder: (context, index) {
-                                  final project = list[index];
-                                  return ProjectCard(
-                                    project: project,
-                                    isDashboardVariant: true,
-                                    onTap: () {
-                                      projCtrl.selectProject(project);
-                                      final invCtrl =
-                                          Get.find<InvestmentController>();
-                                      invCtrl.setProject(project);
-                                      Get.toNamed(AppRoutes.projectDetails);
-                                    },
+                          return ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: investments.length > 3 ? 3 : investments.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final inv = investments[index];
+                              return MyProjectCard(
+                                investment: inv,
+                                onTap: () {
+                                  if (projCtrl != null) {
+                                    projCtrl.loadDetails(inv.projectId);
+                                  }
+                                  Get.toNamed(
+                                    AppRoutes.projectDetails,
+                                    arguments: inv.projectId,
                                   );
                                 },
                               );
                             },
                           );
                         }),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 28),
+
+                        // 5. Recent Activity Section Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Recent Activity',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => Get.toNamed(AppRoutes.transactions),
+                              behavior: HitTestBehavior.opaque,
+                              child: Text(
+                                'viewAll'.tr,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Recent Activity Content
+                        Obx(() {
+                          final activities = homeCtrl.recentActivity;
+                          if (activities.isEmpty) {
+                            return _buildNoActivityEmptyState(isDark);
+                          }
+
+                          return ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: activities.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final item = activities[index];
+                              return RecentActivityItem(
+                                transaction: item,
+                                onTap: () => Get.toNamed(AppRoutes.transactions),
+                              );
+                            },
+                          );
+                        }),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -326,6 +409,136 @@ class HomeView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  static Widget _buildNoInvestmentsEmptyState(
+    BuildContext context,
+    NavigationController? navCtrl,
+    bool isDark,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.folder_open_rounded,
+              color: AppColors.primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No investments yet',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Explore available investment opportunities to get started.',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              if (navCtrl != null) {
+                navCtrl.changeTab(1); // Projects Tab
+              } else {
+                Get.toNamed(AppRoutes.projects);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Explore Projects',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildNoActivityEmptyState(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.textSecondary.withValues(alpha: isDark ? 0.2 : 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              color: AppColors.textSecondary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No recent activity',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Your latest investments and returns will appear here.',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

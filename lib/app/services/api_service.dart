@@ -3,6 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart' as getx;
 
+class ProjectPage {
+  final List<Map<String, dynamic>> projects;
+  final int page;
+  final int totalPages;
+  const ProjectPage(
+    this.projects, {
+    required this.page,
+    required this.totalPages,
+  });
+}
+
 class ApiService extends getx.GetxService {
   int sessionVersion = 0;
   static const String _keyAccessToken = 'investpro_access_token';
@@ -312,35 +323,46 @@ class ApiService extends getx.GetxService {
         .toList();
   }
 
+  Future<ProjectPage> getEligibleProjectPage({
+    int page = 1,
+    int limit = 12,
+    String? projectTypeId,
+    String? search,
+  }) async {
+    final response = await dio.get(
+      '/mobile/projects',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (projectTypeId != null && projectTypeId.isNotEmpty)
+          'projectTypeId': projectTypeId,
+        if (search != null && search.isNotEmpty) 'search': search,
+      },
+    );
+    if (response.data['success'] != true || response.data['data'] is! List) {
+      throw Exception('Unable to load projects');
+    }
+    final records = (response.data['data'] as List)
+        .map((v) => Map<String, dynamic>.from(v as Map))
+        .toList();
+    final pages = (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1;
+    return ProjectPage(records, page: page, totalPages: pages);
+  }
+
   Future<List<Map<String, dynamic>>> getEligibleProjects({
     String? projectTypeId,
     String? search,
   }) async {
     final records = <Map<String, dynamic>>[];
     for (var page = 1; ; page++) {
-      final response = await dio.get(
-        '/mobile/projects',
-        queryParameters: {
-          'page': page,
-          'limit': 100,
-          if (projectTypeId != null && projectTypeId.isNotEmpty)
-            'projectTypeId': projectTypeId,
-          if (search != null && search.isNotEmpty) 'search': search,
-        },
+      final result = await getEligibleProjectPage(
+        page: page,
+        limit: 100,
+        projectTypeId: projectTypeId,
+        search: search,
       );
-      if (response.data['success'] != true || response.data['data'] is! List) {
-        throw Exception('Unable to load projects');
-      }
-      records.addAll(
-        (response.data['data'] as List).map(
-          (v) => Map<String, dynamic>.from(v as Map),
-        ),
-      );
-      final pages =
-          (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1;
-      if (page >= pages) {
-        return records;
-      }
+      records.addAll(result.projects);
+      if (page >= result.totalPages) return records;
     }
   }
 
@@ -408,6 +430,21 @@ class ApiService extends getx.GetxService {
 
   Future<List<dynamic>?> getReturns() async => collection('/mobile/returns');
 
+
+  Future<Map<String, dynamic>> getWallet() async => object('/mobile/wallet');
+
+  Future<({List<Map<String, dynamic>> rows, int totalPages})> getWalletHistory({int page = 1, String filter = 'All'}) async {
+    final response = await dio.get('/mobile/wallet/transactions', queryParameters: {'page': page, 'limit': 15, 'filter': filter});
+    if (response.data['success'] != true || response.data['data'] is! List) {
+      throw StateError('Wallet history unavailable');
+    }
+    return (
+      rows: (response.data['data'] as List).map((v) => Map<String, dynamic>.from(v as Map)).toList(),
+      totalPages: (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1,
+    );
+  }
+
+  Future<Map<String, dynamic>> getWalletTransaction(String id) async => object('/mobile/wallet/transactions/${Uri.encodeComponent(id)}');
 
   Future<List<dynamic>?> getWithdrawals() async => collection('/mobile/withdrawals');
 

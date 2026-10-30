@@ -84,8 +84,14 @@ class DemoRepository extends GetxService {
       .toSet()
       .length;
 
-  double get growthPercent =>
-      totalInvested == 0 ? 0 : totalReturns / totalInvested * 100;
+  int get totalInvestedProjects => investments
+      .where((i) => i.status == 'Active' || i.status == 'Completed')
+      .map((i) => i.projectId)
+      .toSet()
+      .length;
+
+  double? get growthPercent =>
+      (totalInvested <= 0 || totalReturns <= 0) ? null : totalReturns / totalInvested * 100;
 
   ProjectModel liveProject(ProjectModel project) {
     try {

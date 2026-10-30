@@ -1,9 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../models/investment_model.dart';
 import '../models/project_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
 import 'status_badge.dart';
+
+class MyProjectCard extends StatelessWidget {
+  final InvestmentModel investment;
+  final VoidCallback onTap;
+
+  const MyProjectCard({
+    super.key,
+    required this.investment,
+    required this.onTap,
+  });
+
+  IconData _getIcon(String iconType) {
+    switch (iconType.toLowerCase()) {
+      case 'code':
+        return Icons.code_rounded;
+      case 'mobile':
+        return Icons.phone_android_rounded;
+      case 'gear':
+      case 'ai':
+        return Icons.settings_suggest_rounded;
+      case 'real-estate':
+      case 'building':
+        return Icons.apartment_rounded;
+      case 'solar':
+      case 'energy':
+        return Icons.solar_power_rounded;
+      case 'agriculture':
+        return Icons.agriculture_rounded;
+      default:
+        return Icons.business_center_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Material(
+      color: isDark ? AppColors.surfaceDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+          width: 1,
+        ),
+      ),
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.primary.withValues(alpha: 0.08),
+        highlightColor: AppColors.primary.withValues(alpha: 0.04),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              // Leading square icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryDark,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getIcon(investment.iconType),
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      investment.projectName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${CurrencyFormatter.format(investment.investedAmount)}  |  ${investment.durationMonths} Months',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${investment.returnRatePercent.toInt()}% Return',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusBadge(status: investment.status),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class ProjectCard extends StatelessWidget {
   final ProjectModel project;

@@ -29,12 +29,14 @@ class CategoryApi extends ApiService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getEligibleProjects({
+  Future<ProjectPage> getEligibleProjectPage({
+    int page = 1,
+    int limit = 12,
     String? projectTypeId,
     String? search,
   }) async {
     requestedId = projectTypeId;
-    return records;
+    return ProjectPage(records, page: page, totalPages: 1);
   }
 
   @override

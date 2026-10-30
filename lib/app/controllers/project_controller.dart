@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import '../routes/app_routes.dart';
+
 import 'package:get/get.dart';
 
 import '../models/project_model.dart';
@@ -19,7 +22,68 @@ class ProjectController extends GetxController {
   final isDetailLoading = false.obs;
   final errorMessage = ''.obs;
   final detailError = ''.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = false.obs;
+  final pageError = ''.obs;
+  int _page = 0;
   int _request = 0;
+  Timer? _searchTimer;
+
+  List<String> get statusFilters => [
+    'All Projects',
+    'Active',
+    'Upcoming',
+    'Completed',
+    'Funded',
+    'Cancelled',
+    'Draft',
+    ...remoteProjects
+        .map((p) => p.statusLabel)
+        .where(
+          (s) => ![
+            'Active',
+            'Upcoming',
+            'Completed',
+            'Funded',
+            'Cancelled',
+            'Draft',
+          ].contains(s),
+        )
+        .toSet(),
+  ];
+
+  String? investmentUnavailableReason(
+    ProjectModel project, {
+    required bool authenticated,
+  }) {
+    if (!authenticated) return 'Sign in to invest';
+    final user = _repo.currentUser.value;
+    if (user.accountStatus != 'ACTIVE') {
+      return 'An active investor account is required';
+    }
+    if (user.kycStatus != 'VERIFIED') {
+      return 'Complete KYC verification to invest';
+    }
+    if (project.status.toUpperCase() != 'ACTIVE') {
+      return 'This project is not open for investment';
+    }
+    if (!project.hasFundingData ||
+        project.minInvestment <= 0 ||
+        project.targetAmount - project.raisedAmount < project.minInvestment ||
+        (project.maxInvestment != null &&
+            project.maxInvestment! < project.minInvestment)) {
+      return 'No eligible investment amount is currently available';
+    }
+    return null;
+  }
+
+  @override
+  void onClose() {
+    _searchTimer?.cancel();
+    _request++;
+    super.onClose();
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -37,7 +101,7 @@ class ProjectController extends GetxController {
     final category = categories.firstWhereOrNull((c) => c['id'] == id);
     return category == null
         ? ''
-        : '${category['name']} (${category['projectsCount'] ?? 0})';
+        : '${category['name']}${category['projectsCount'] is num ? ' (${category['projectsCount']})' : ''}';
   }
 
   List<ProjectModel> get filteredProjects =>
@@ -49,8 +113,12 @@ class ProjectController extends GetxController {
             selectedCategory.value == 'All Categories' ||
             p.categoryId == selectedCategory.value;
         final search =
+            _api != null ||
             searchQuery.value.isEmpty ||
             p.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+            (p.location ?? '').toLowerCase().contains(
+              searchQuery.value.toLowerCase(),
+            ) ||
             p.category.toLowerCase().contains(searchQuery.value.toLowerCase());
         return status && category && search;
       }).toList();
@@ -58,7 +126,11 @@ class ProjectController extends GetxController {
     if (_api == null) {
       return;
     }
+    _searchTimer?.cancel();
     final request = ++_request;
+    isLoadingMore.value = false;
+    pageError.value = '';
+    hasMore.value = false;
     isLoading.value = true;
     errorMessage.value = '';
     try {
@@ -71,7 +143,7 @@ class ProjectController extends GetxController {
           !categories.any((c) => c['id'] == selectedCategory.value)) {
         selectedCategory.value = 'All Categories';
       }
-      final projects = await _api.getEligibleProjects(
+      final result = await _api.getEligibleProjectPage(
         projectTypeId: selectedCategory.value == 'All Categories'
             ? null
             : selectedCategory.value,
@@ -80,18 +152,57 @@ class ProjectController extends GetxController {
       if (request != _request || isClosed) {
         return;
       }
-      remoteProjects.assignAll(projects.map(ProjectModel.fromBackend));
+      remoteProjects.assignAll(result.projects.map(ProjectModel.fromBackend));
+      _page = result.page;
+      hasMore.value = result.page < result.totalPages;
       final selectedId = selectedProject.value?.id;
-      if (selectedId != null && Get.currentRoute == AppRoutes.projectDetails) await loadDetails(selectedId, background: true);
+      if (selectedId != null && Get.currentRoute == AppRoutes.projectDetails) {
+        await loadDetails(selectedId, background: true);
+      }
     } catch (_) {
       if (request == _request && !isClosed) {
         remoteProjects.clear();
         errorMessage.value =
             'Unable to load projects and categories. Please retry.';
-        remoteProjects.clear();
       }
     } finally {
       if (request == _request && !isClosed) isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (_api == null ||
+        !hasMore.value ||
+        isLoading.value ||
+        isLoadingMore.value) {
+      return;
+    }
+    final request = _request;
+    isLoadingMore.value = true;
+    pageError.value = '';
+    try {
+      final result = await _api.getEligibleProjectPage(
+        page: _page + 1,
+        projectTypeId: selectedCategory.value == 'All Categories'
+            ? null
+            : selectedCategory.value,
+        search: searchQuery.value,
+      );
+      if (request != _request || isClosed) return;
+      final ids = remoteProjects.map((p) => p.id).toSet();
+      remoteProjects.addAll(
+        result.projects
+            .map(ProjectModel.fromBackend)
+            .where((p) => ids.add(p.id)),
+      );
+      _page = result.page;
+      hasMore.value = result.page < result.totalPages;
+    } catch (_) {
+      if (request == _request && !isClosed) {
+        pageError.value = 'Unable to load more projects. Please retry.';
+      }
+    } finally {
+      if (request == _request && !isClosed) isLoadingMore.value = false;
     }
   }
 
@@ -105,7 +216,17 @@ class ProjectController extends GetxController {
   }
 
   void setSearchQuery(String query) {
-    searchQuery.value = query;
+    searchQuery.value = query.trim();
+    _searchTimer?.cancel();
+    // Immediately invalidate requests for the previous query.
+    _request++;
+    isLoading.value = _api != null;
+    isLoadingMore.value = false;
+    hasMore.value = false;
+    remoteProjects.clear();
+    _searchTimer = Timer(const Duration(milliseconds: 350), () {
+      if (!isClosed) refreshProjects();
+    });
   }
 
   void selectProject(ProjectModel project) {
