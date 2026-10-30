@@ -160,7 +160,7 @@ class ApiService extends getx.GetxService {
   }
   Future<Map<String,dynamic>> _paymentPost(String path,Map<String,dynamic> data,{String? requestId}) async {
     try {
-      final response=await dio.post(path,data:data,options:Options(headers:{'Idempotency-Key':?requestId},receiveTimeout:const Duration(seconds:30)));
+      final response=await dio.post(path,data:data,options:Options(headers:{'Idempotency-Key':?requestId},receiveTimeout:const Duration(seconds:50)));
       if(response.data is! Map || response.data['success']!=true || response.data['data'] is! Map)throw const PaymentFailure('The payment service returned an invalid response. Retry safely.');
       return Map<String,dynamic>.from(response.data['data'] as Map);
     } catch(error) {

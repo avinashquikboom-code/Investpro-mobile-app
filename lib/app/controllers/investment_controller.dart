@@ -212,6 +212,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<bool> _acceptVerified(Map<String,dynamic> verified) async {
+    if(isClosed)return false;
     if(!['ACTIVE','MATURED'].contains(verified['status'])||verified['paymentVerified']!=true) return false;
     if(lastSuccessfulInvestment.value?.id==verified['id'])return true;
     final record=BackendSnapshot.investment(verified);
@@ -241,12 +242,15 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       _requestId=await _repo.paymentRequestId(currentProject.value!,investmentAmount.value);
       final pending=await _repo.createInvestment(project:currentProject.value!,amount:investmentAmount.value,paymentMethod:'UPI',requestId:_requestId);
       _pendingId=pending.id;
+      if(isClosed)return false;
     }
     final investmentId=_pendingId!;
     final current=await api.object('/mobile/investments/$investmentId');
+    if(isClosed)return false;
     if(await _acceptVerified(current))return true;
     if(current['status']!='PENDING_PAYMENT')throw const PaymentFailure('This investment is not awaiting payment. Refresh your investment history.');
     final order=await api.paymentOrder(investmentId);
+    if(isClosed)return false;
     final amount=order['amount'];
     if(order['investmentId']!=investmentId||order['orderId'] is! String||!(order['orderId'] as String).startsWith('order_')||order['keyId'] is! String||!RegExp(r'^rzp_(test|live)_').hasMatch(order['keyId'] as String)||amount is! int||amount<=0||amount!=DemoRepository.minor((current['amount'] as num).toDouble())||order['currency']!='INR')throw const PaymentFailure('The payment order is invalid. Please retry or contact support.');
     final completion=Completer<bool>();_payment=completion;
@@ -275,8 +279,11 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       paymentError.value='External wallet selected. Return to the app and refresh your investment before retrying.';
       completion.complete(false);
     });
-    try {_checkout!.open({'key':order['keyId'],'order_id':order['orderId'],'amount':amount,'currency':'INR','name':'InvestPro'});}
-    catch(_){if(!completion.isCompleted)completion.complete(false);throw const PaymentFailure('Unable to open secure checkout. Please retry.');}
+    runZonedGuarded(() {
+      _checkout!.open({'key':order['keyId'],'order_id':order['orderId'],'amount':amount,'currency':'INR','name':'InvestPro'});
+    },(error,stack) {
+      if(!inactive()){paymentError.value='Unable to open secure checkout. Please retry.';completion.complete(false);}
+    });
     try{return await completion.future;}finally{_checkout?.clear();}
   }
 }
