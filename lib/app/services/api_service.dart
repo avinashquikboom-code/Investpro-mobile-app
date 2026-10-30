@@ -451,12 +451,13 @@ class ApiService extends getx.GetxService {
 
   Future<Map<String, dynamic>?> createWithdrawal({
     required double amount,
+    String? exactAmount,
     String? bankAccountId,
     String? notes,
     String? idempotencyKey,
   }) async {
     try {
-      final payload = <String, dynamic>{'amount': amount};
+      final payload = <String, dynamic>{'amount': exactAmount ?? amount};
       if (bankAccountId != null) payload['bankAccountId'] = bankAccountId;
       if (notes != null) payload['notes'] = notes;
 

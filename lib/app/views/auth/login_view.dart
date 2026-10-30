@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../../routes/app_routes.dart';
 import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
@@ -93,55 +92,23 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 )
               : (_identity.text.isNotEmpty && !auth.isLoading.value
-                  ? IconButton(
-                      tooltip: 'Clear input',
-                      onPressed: () {
-                        _identity.clear();
-                        setState(() {});
-                      },
-                      icon: const Icon(
-                        Icons.clear_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                    )
-                  : null),
+                    ? IconButton(
+                        tooltip: 'Clear input',
+                        onPressed: () {
+                          _identity.clear();
+                          setState(() {});
+                        },
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                      )
+                    : null),
         ),
       ),
     );
   }
-
-  Widget _options() => Wrap(
-    alignment: WrapAlignment.center,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: 8,
-    children: [
-      Obx(() {
-        final auth = Get.find<AuthController>();
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 220),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Checkbox(
-                value: auth.rememberMe.value,
-                onChanged: auth.toggleRememberMe,
-              ),
-              Flexible(child: Text('rememberMe'.tr)),
-            ],
-          ),
-        );
-      }),
-      TextButton(
-        onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
-        child: Text('forgotPassword'.tr),
-      ),
-      TextButton(
-        onPressed: () => Get.toNamed(AppRoutes.register),
-        child: Text('createNewAccount'.tr),
-      ),
-    ],
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -230,34 +197,8 @@ class _LoginViewState extends State<LoginView> {
                                     },
                                     icon: const Icon(Icons.edit_outlined),
                                   ),
-                                Flexible(
-                                  child: TextButton(
-                                    onPressed: () {
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus();
-                                      showDialog<void>(
-                                        context: context,
-                                        builder: (_) => AlertDialog(
-                                          title: Text('welcomeBack'.tr),
-                                          content: _options(),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Get.back(),
-                                              child: const Text('Close'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('More options'),
-                                  ),
-                                ),
                               ],
-                            )
-                          else ...[
-                            SizedBox(height: gap / 2),
-                            _options(),
-                          ],
+                            ),
                         ],
                       ),
                     ),

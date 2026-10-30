@@ -97,8 +97,10 @@ class Validators {
 
   static String? validateWithdrawalAmount(
     String? value,
-    double availableBalance,
-  ) {
+    double availableBalance, {
+    double? minAmount,
+    double? maxAmount,
+  }) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter a withdrawal amount';
     }
@@ -109,8 +111,12 @@ class Validators {
     if (amount == null || amount <= 0) {
       return 'Enter a valid amount';
     }
-    if (amount < AppConstants.minWithdrawalAmount) {
-      return 'Minimum withdrawal is ₹ ${AppConstants.minWithdrawalAmount.toInt()}';
+    final minLimit = minAmount ?? AppConstants.minWithdrawalAmount;
+    if (amount < minLimit) {
+      return 'Minimum withdrawal is ₹ ${minLimit.toStringAsFixed(minLimit.truncateToDouble() == minLimit ? 0 : 2)}';
+    }
+    if (maxAmount != null && maxAmount > 0 && amount > maxAmount) {
+      return 'Maximum withdrawal is ₹ ${maxAmount.toStringAsFixed(maxAmount.truncateToDouble() == maxAmount ? 0 : 2)}';
     }
     if (amount > availableBalance) {
       return 'Amount exceeds available balance';
