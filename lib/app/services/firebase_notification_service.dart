@@ -37,6 +37,7 @@ class FirebaseNotificationService extends GetxService {
       'High-priority transaction, investment and update notifications';
 
   bool _pendingKyc = false;
+  String? _pendingRequest;
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
@@ -208,7 +209,7 @@ class FirebaseNotificationService extends GetxService {
     final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
 
     final welcome = typeStr.toUpperCase() == 'INVESTOR_WELCOME' || message.data['event'] == 'INVESTOR_WELCOME';
-    if (welcome) {
+    if (welcome || message.data['resource']=='REQUEST') {
       // The server record is authoritative: never insert a second synthetic history row.
       _notificationService.refreshFromBackend().catchError((_) {});
       final id = message.data['notificationId']?.toString() ?? message.messageId;
@@ -336,7 +337,8 @@ class FirebaseNotificationService extends GetxService {
       _pendingKyc = true;
       flushKyc();
     } else if (data['resource'] == 'REQUEST' || type == 'REQUEST_UPDATED') {
-      Get.toNamed(AppRoutes.requests,arguments:relatedId);
+      _pendingRequest = relatedId ?? '';
+      flushKyc();
     } else if (type.contains('PROJECT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
         Get.toNamed(
@@ -365,7 +367,7 @@ class FirebaseNotificationService extends GetxService {
   }
 
   void flushKyc() {
-    if (!_pendingKyc ||
+    if ((!_pendingKyc && _pendingRequest == null) ||
         Get.context == null ||
         !Get.isRegistered<AuthController>() ||
         !Get.find<AuthController>().isLoggedIn.value ||
@@ -373,10 +375,12 @@ class FirebaseNotificationService extends GetxService {
         Get.currentRoute == AppRoutes.login) {
       return;
     }
+    final request = _pendingRequest;
+    _pendingRequest = null;
     _pendingKyc = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.find<AuthController>().isLoggedIn.value) {
-        Get.toNamed(AppRoutes.kyc);
+        if(request!=null) { Get.toNamed(AppRoutes.requests,arguments:request.isEmpty?null:request); } else { Get.toNamed(AppRoutes.kyc); }
       }
     });
     WidgetsBinding.instance.scheduleFrame();

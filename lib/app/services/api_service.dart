@@ -53,6 +53,8 @@ class ApiService extends getx.GetxService {
         },
         onError: (DioException error, handler) async {
           if (error.response?.statusCode == 401 &&
+              !error.requestOptions.path.contains('/auth/login') &&
+              !error.requestOptions.path.contains('/auth/refresh') &&
               error.requestOptions.extra['retry'] != true) {
             final refreshed = await _refreshToken();
             if (refreshed) {
