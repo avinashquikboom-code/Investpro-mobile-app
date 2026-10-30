@@ -63,15 +63,17 @@ class SettingsView extends StatelessWidget {
           maxWidth: 600,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceDark : Colors.white,
+            child: Material(
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? AppColors.borderDark : AppColors.border,
                   width: 1,
                 ),
               ),
+              clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
                   // Profile Settings

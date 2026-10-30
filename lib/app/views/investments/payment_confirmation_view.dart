@@ -156,19 +156,22 @@ class PaymentConfirmationView extends StatelessWidget {
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
+                        child: Material(
                           color: isDark ? AppColors.surfaceDark : Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : (isDark
-                                      ? AppColors.borderDark
-                                      : AppColors.border),
-                            width: isSelected ? 1.5 : 1.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : (isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.border),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
                           ),
-                        ),
-                        child: ListTile(
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
                           leading: Icon(
                             icon,
                             color: isSelected
@@ -214,8 +217,9 @@ class PaymentConfirmationView extends StatelessWidget {
                           ),
                           onTap: () => invCtrl.setPaymentMethod(name),
                         ),
-                      );
-                    }),
+                      ),
+                    );
+                  }),
                     const SizedBox(height: 16),
 
                     if (!invCtrl.isLive) const Text(

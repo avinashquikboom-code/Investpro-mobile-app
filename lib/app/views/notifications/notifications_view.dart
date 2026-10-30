@@ -111,21 +111,24 @@ class NotificationsView extends StatelessWidget {
                   final notif = list[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    decoration: BoxDecoration(
+                    child: Material(
                       color: isDark ? AppColors.surfaceDark : Colors.white,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
-                        width: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: isDark ? AppColors.borderDark : AppColors.border,
+                          width: 1,
+                        ),
                       ),
-                    ),
-                    child: ListTile(
-                      onTap: () => notifCtrl.handleNotificationTap(notif),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 4,
-                      ),
-                      leading: Container(
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        onTap: () => notifCtrl.handleNotificationTap(notif),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
+                        ),
+                        leading: Container(
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
@@ -192,8 +195,9 @@ class NotificationsView extends StatelessWidget {
                         ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                );
+              },
               ),
             );
           }),
