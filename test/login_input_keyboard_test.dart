@@ -97,7 +97,7 @@ void main() {
     expect(passwordTextField.focusNode?.hasFocus, isTrue);
     expect(passwordTextField.readOnly, isFalse);
     expect(passwordTextField.enabled, isTrue);
-    expect(passwordTextField.keyboardType, TextInputType.text);
+    expect(passwordTextField.keyboardType, TextInputType.visiblePassword);
   });
 
   testWidgets('Email input can be entered, edited, selected, and completely cleared via suffix icon', (tester) async {

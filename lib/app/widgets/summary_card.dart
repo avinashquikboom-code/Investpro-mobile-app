@@ -174,7 +174,7 @@ class DashboardMetricCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDark ? AppColors.borderDark : AppColors.border,
+          color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
           width: 1,
         ),
       ),
@@ -206,11 +206,11 @@ class DashboardMetricCard extends StatelessWidget {
                   child: Text(
                     value,
                     style: GoogleFonts.poppins(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: isDark
                           ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
+                          : const Color(0xFF102F25),
                     ),
                     maxLines: 1,
                   ),
@@ -219,7 +219,7 @@ class DashboardMetricCard extends StatelessWidget {
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 11,
+                    fontSize: 11.5,
                     color: isDark
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondary,

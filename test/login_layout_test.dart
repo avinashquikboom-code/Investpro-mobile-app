@@ -84,21 +84,12 @@ void main() {
     const Size(1024, 1366),
   ]) {
     for (final keyboard in [0.0, 300.0]) {
-      testWidgets('Non-scroll layout $size keyboard $keyboard', (tester) async {
+      testWidgets('Keyboard-aware layout $size keyboard $keyboard', (tester) async {
         await mount(tester, size, keyboard: keyboard);
         expect(tester.takeException(), isNull);
-        expect(find.byType(SingleChildScrollView), findsNothing);
+        expect(find.byType(SingleChildScrollView), findsOneWidget);
         expect(find.byType(TextFormField), findsWidgets);
-        if (find.text('Next').evaluate().isNotEmpty) {
-          await tester.enterText(
-            find.byType(TextFormField),
-            'investor@example.com',
-          );
-          await tester.tap(find.text('Next'));
-          await tester.pumpAndSettle();
-          expect(find.byKey(const ValueKey('login-password')), findsOneWidget);
-          expect(tester.takeException(), isNull);
-        }
+        expect(find.byType(TextFormField), findsNWidgets(2));
       });
     }
   }
@@ -150,7 +141,7 @@ void main() {
       await tester.tap(find.byTooltip('Show or hide password'));
       await tester.pump();
       expect(auth.isPasswordVisible.value, isTrue);
-      await tester.tap(find.text('More options'));
+      await tester.ensureVisible(find.byType(Checkbox));
       await tester.pumpAndSettle();
       expect(find.text('Forgot Password?'), findsOneWidget);
       final previous = auth.rememberMe.value;
@@ -158,14 +149,13 @@ void main() {
       await tester.pump();
       expect(auth.rememberMe.value, !previous);
       expect(tester.takeException(), isNull);
-      await tester.tap(find.text('Close'));
-      await tester.pumpAndSettle();
+
     },
   );
-  testWidgets('Large text with keyboard uses compact fields', (tester) async {
+  testWidgets('Large text with keyboard keeps both fields scrollable', (tester) async {
     await mount(tester, const Size(320, 568), scale: 2, keyboard: 280);
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('Next'));
+    await tester.ensureVisible(find.byType(ElevatedButton));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('login-password')), findsOneWidget);

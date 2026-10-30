@@ -18,7 +18,6 @@ class _LoginViewState extends State<LoginView> {
   final _password = TextEditingController();
   final _identityFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  bool _passwordStep = false;
 
   @override
   void initState() {
@@ -43,16 +42,12 @@ class _LoginViewState extends State<LoginView> {
     Get.find<AuthController>().login(identity, password);
   }
 
-  void _next() {
-    setState(() => _passwordStep = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _passwordFocus.requestFocus();
-    });
-  }
-
-  Widget _field(bool password, bool compact) {
+  Widget _field(bool password) {
     final auth = Get.find<AuthController>();
     return Obx(
+      key: ValueKey(
+        password ? 'password-input-region' : 'identity-input-region',
+      ),
       () => TextFormField(
         key: ValueKey(password ? 'login-password' : 'login-identity'),
         controller: password ? _password : _identity,
@@ -62,7 +57,7 @@ class _LoginViewState extends State<LoginView> {
         readOnly: false,
         enableInteractiveSelection: true,
         keyboardType: password
-            ? TextInputType.text
+            ? TextInputType.visiblePassword
             : TextInputType.emailAddress,
         textInputAction: password ? TextInputAction.done : TextInputAction.next,
         autofillHints: null,
@@ -71,8 +66,6 @@ class _LoginViewState extends State<LoginView> {
         onFieldSubmitted: (_) {
           if (password) {
             _login();
-          } else if (compact) {
-            _next();
           } else {
             _passwordFocus.requestFocus();
           }
@@ -80,11 +73,7 @@ class _LoginViewState extends State<LoginView> {
         style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
         decoration: InputDecoration(
           labelText: (password ? 'password' : 'emailOrMobile').tr,
-          prefixIcon: Icon(
-            password
-                ? Remix.lock_2_line
-                : Remix.user_3_line,
-          ),
+          prefixIcon: Icon(password ? Remix.lock_2_line : Remix.user_3_line),
           suffixIcon: password
               ? IconButton(
                   tooltip: 'Show or hide password',
@@ -189,34 +178,17 @@ class _LoginViewState extends State<LoginView> {
         ),
         child: Text(
           'createNewAccount'.tr,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
-  Widget _options() => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      _rememberAndForgot(),
-      const SizedBox(height: 12),
-      _createAccountButton(),
-    ],
-  );
-
   Widget _secureFooter() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(
-          Remix.shield_check_line,
-          size: 16,
-          color: AppColors.primary,
-        ),
+        const Icon(Remix.shield_check_line, size: 16, color: AppColors.primary),
         const SizedBox(width: 6),
         Text(
           'secureAndTrusted'.tr,
@@ -240,119 +212,78 @@ class _LoginViewState extends State<LoginView> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final compact = constraints.maxHeight < 440 * scale;
-            // Preserve the focused password when the keyboard changes layout.
-            final passwordStep = _passwordStep || _passwordFocus.hasFocus;
-            final showBrand = !compact && constraints.maxHeight > 590 * scale;
-            final gap = (constraints.maxHeight * .022).clamp(6.0, 18.0);
-            return TapRegion(
-              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-              child: Center(
+            final fullHeight =
+                constraints.maxHeight + MediaQuery.viewInsetsOf(context).bottom;
+            final showBrand = fullHeight > 590 * scale;
+            final gap = (fullHeight * .022).clamp(6.0, 18.0);
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: constraints.maxWidth < 360 ? 16 : 24,
-                      vertical: 8,
-                    ),
-                    child: AutofillGroup(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (showBrand) ...[
-                            const AppLogo(size: 56, fontSize: 24),
-                            SizedBox(height: gap),
-                          ],
-                          if (!compact) ...[
-                            Text(
-                              'welcomeBack'.tr,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            Text(
-                              'loginSubtitle'.tr,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            SizedBox(height: gap),
-                          ],
-                          if (!compact || !passwordStep) _field(false, compact),
-                          if (!compact) SizedBox(height: gap),
-                          if (!compact || passwordStep) _field(true, compact),
-                          if (!compact) ...[
-                            SizedBox(height: gap / 2),
-                            _rememberAndForgot(),
-                          ],
-                          SizedBox(height: gap),
-                          Obx(
-                            () => ElevatedButton(
-                              onPressed: auth.isLoading.value
-                                  ? null
-                                  : compact && !passwordStep
-                                  ? _next
-                                  : _login,
-                              child: auth.isLoading.value
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      compact && !passwordStep
-                                          ? 'Next'
-                                          : 'login'.tr,
-                                    ),
-                            ),
-                          ),
-                          if (compact)
-                            Row(
-                              children: [
-                                if (passwordStep)
-                                  IconButton(
-                                    tooltip: 'emailOrMobile'.tr,
-                                    onPressed: () {
-                                      _passwordFocus.unfocus();
-                                      setState(() => _passwordStep = false);
-                                    },
-                                    icon: const Icon(Remix.edit_line),
-                                  ),
-                                Flexible(
-                                  child: TextButton(
-                                    onPressed: () {
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus();
-                                      showDialog<void>(
-                                        context: context,
-                                        builder: (_) => AlertDialog(
-                                          title: Text('welcomeBack'.tr),
-                                          content: _options(),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Get.back(),
-                                              child: const Text('Close'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('More options'),
-                                  ),
-                                ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: constraints.maxWidth < 360 ? 16 : 24,
+                          vertical: 8,
+                        ),
+                        child: AutofillGroup(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (showBrand) ...[
+                                const AppLogo(size: 56, fontSize: 24),
+                                SizedBox(height: gap),
                               ],
-                            )
-                          else ...[
-                            SizedBox(height: gap),
-                            _createAccountButton(),
-                            if (showBrand) ...[
+                              Text(
+                                'welcomeBack'.tr,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              Text(
+                                'loginSubtitle'.tr,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                               SizedBox(height: gap),
-                              _secureFooter(),
+                              _field(false),
+                              SizedBox(height: gap),
+                              _field(true),
+                              SizedBox(height: gap / 2),
+                              _rememberAndForgot(),
+                              SizedBox(height: gap),
+                              Obx(
+                                () => ElevatedButton(
+                                  onPressed: auth.isLoading.value
+                                      ? null
+                                      : _login,
+                                  child: auth.isLoading.value
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text('login'.tr),
+                                ),
+                              ),
+                              SizedBox(height: gap),
+                              _createAccountButton(),
+                              if (showBrand) ...[
+                                SizedBox(height: gap),
+                                _secureFooter(),
+                              ],
                             ],
-                          ],
-                        ],
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -147,26 +147,33 @@ class _AnimatedNotificationBellState extends State<AnimatedNotificationBell>
 
   @override
   Widget build(BuildContext context) {
+    final double defaultBadgeTop = widget.containerSize != null
+        ? (widget.containerSize! - widget.size) / 2 - 1.0
+        : -1.0;
+    final double defaultBadgeRight = widget.containerSize != null
+        ? (widget.containerSize! - widget.size) / 2 - 1.0
+        : -1.0;
+
+    final double effectiveTop = widget.badgeTop ?? defaultBadgeTop;
+    final double effectiveRight = widget.badgeRight ?? defaultBadgeRight;
+
     Widget content = AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Transform.rotate(
-              angle: widget.hasNotification ? _rotationAnimation.value : 0.0,
-              alignment: Alignment.topCenter,
-              child: Icon(
-                widget.icon,
-                color: widget.color,
-                size: widget.size,
-              ),
-            ),
-            if (widget.hasNotification)
-              Positioned(
-                top: widget.badgeTop ?? 8,
-                right: widget.badgeRight ?? 8,
+        final bellIcon = Transform.rotate(
+          angle: widget.hasNotification ? _rotationAnimation.value : 0.0,
+          alignment: Alignment.topCenter,
+          child: Icon(
+            widget.icon,
+            color: widget.color,
+            size: widget.size,
+          ),
+        );
+
+        final badge = widget.hasNotification
+            ? Positioned(
+                top: effectiveTop,
+                right: effectiveRight,
                 child: Transform.scale(
                   scale: _badgeScaleAnimation.value,
                   child: Container(
@@ -181,24 +188,37 @@ class _AnimatedNotificationBellState extends State<AnimatedNotificationBell>
                     ),
                   ),
                 ),
-              ),
+              )
+            : null;
+
+        if (widget.containerSize != null) {
+          return Container(
+            width: widget.containerSize,
+            height: widget.containerSize,
+            decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              shape: BoxShape.circle,
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(child: bellIcon),
+                ?badge,
+              ],
+            ),
+          );
+        }
+
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            bellIcon,
+            ?badge,
           ],
         );
       },
     );
-
-    if (widget.containerSize != null) {
-      content = Container(
-        width: widget.containerSize,
-        height: widget.containerSize,
-        decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: content,
-      );
-    }
 
     Widget clickable = GestureDetector(
       onTap: widget.onTap,

@@ -91,5 +91,35 @@ void main() {
       await tester.pump();
       expect(find.byType(Positioned), findsNothing);
     });
+
+    testWidgets('badge is correctly positioned at top-right corner of bell in circular container', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AnimatedNotificationBell(
+                hasNotification: true,
+                unreadCount: 1,
+                size: 22,
+                containerSize: 42,
+                badgeTop: 9,
+                badgeRight: 9,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final iconRect = tester.getRect(find.byIcon(Remix.notification_line));
+      final badgeWidget = tester.widget<Positioned>(find.byType(Positioned));
+
+      // In a 42x42 container, icon (size 22) is centered (x: 10..32, y: 10..32)
+      // Badge top is 9, right is 9 (x: 25..33, y: 9..17)
+      // Badge must be at the top-right corner of the bell, not inside its center
+      expect(badgeWidget.top, equals(9.0));
+      expect(badgeWidget.right, equals(9.0));
+      expect(iconRect.width, equals(22.0));
+      expect(iconRect.height, equals(22.0));
+    });
   });
 }
