@@ -51,8 +51,11 @@ class _AccountSyncState extends State<AccountSync> with WidgetsBindingObserver {
     if (retry != null && retry.isAfter(now) && retry.difference(now) > delay) {
       delay = retry.difference(now);
     }
-    if(delay==Duration.zero){unawaited(_refresh());}
-    else{_timer = Timer(delay, () => unawaited(_refresh()));}
+    if (delay == Duration.zero) {
+      unawaited(_refresh());
+    } else {
+      _timer = Timer(delay, () => unawaited(_refresh()));
+    }
   }
 
   Future<void> _refresh() async {

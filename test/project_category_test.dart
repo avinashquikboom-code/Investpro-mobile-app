@@ -107,7 +107,7 @@ void main() {
     expect(api.requestedId, isNull);
     c.onClose();
   });
-  test('network errors clear stale results and expose retry state', () async {
+  test('network errors retain valid cached results and expose retry state', () async {
     final api = CategoryApi()
       ..records = [
         {
@@ -123,7 +123,7 @@ void main() {
     api.fail = true;
     await c.refreshProjects();
     expect(c.errorMessage.value, isNotEmpty);
-    expect(c.filteredProjects, isEmpty);
+    expect(c.filteredProjects.single.id, 'p1');
     expect(c.isLoading.value, false);
     c.onClose();
   });

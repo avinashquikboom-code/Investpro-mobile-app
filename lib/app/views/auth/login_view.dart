@@ -16,6 +16,7 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final _identity = TextEditingController();
   final _password = TextEditingController();
+  final _identityFocus = FocusNode();
   final _passwordFocus = FocusNode();
   bool _passwordStep = false;
 
@@ -24,15 +25,13 @@ class _LoginViewState extends State<LoginView> {
     super.initState();
     _identity.clear();
     _password.clear();
-    _identity.addListener(() {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   void dispose() {
     _identity.dispose();
     _password.dispose();
+    _identityFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
   }
@@ -41,12 +40,10 @@ class _LoginViewState extends State<LoginView> {
     FocusManager.instance.primaryFocus?.unfocus();
     final identity = _identity.text.trim();
     final password = _password.text;
-    _password.clear();
     Get.find<AuthController>().login(identity, password);
   }
 
   void _next() {
-    _password.clear();
     setState(() => _passwordStep = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _passwordFocus.requestFocus();
@@ -59,11 +56,13 @@ class _LoginViewState extends State<LoginView> {
       () => TextFormField(
         key: ValueKey(password ? 'login-password' : 'login-identity'),
         controller: password ? _password : _identity,
-        focusNode: password ? _passwordFocus : null,
+        focusNode: password ? _passwordFocus : _identityFocus,
         obscureText: password && !auth.isPasswordVisible.value,
         enabled: !auth.isLoading.value,
+        readOnly: false,
+        enableInteractiveSelection: true,
         keyboardType: password
-            ? TextInputType.visiblePassword
+            ? TextInputType.text
             : TextInputType.emailAddress,
         textInputAction: password ? TextInputAction.done : TextInputAction.next,
         autofillHints: null,
@@ -96,20 +95,25 @@ class _LoginViewState extends State<LoginView> {
                         : Remix.eye_off_line,
                   ),
                 )
-              : (_identity.text.isNotEmpty && !auth.isLoading.value
-                    ? IconButton(
+              : ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _identity,
+                  builder: (context, value, _) {
+                    if (value.text.isNotEmpty && !auth.isLoading.value) {
+                      return IconButton(
                         tooltip: 'Clear input',
                         onPressed: () {
                           _identity.clear();
-                          setState(() {});
                         },
                         icon: const Icon(
                           Remix.close_line,
                           size: 20,
                           color: AppColors.textSecondary,
                         ),
-                      )
-                    : null),
+                      );
+                    }
+                    return const SizedBox(width: 0, height: 0);
+                  },
+                ),
         ),
       ),
     );
@@ -241,9 +245,8 @@ class _LoginViewState extends State<LoginView> {
             final passwordStep = _passwordStep || _passwordFocus.hasFocus;
             final showBrand = !compact && constraints.maxHeight > 590 * scale;
             final gap = (constraints.maxHeight * .022).clamp(6.0, 18.0);
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            return TapRegion(
+              onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 480),

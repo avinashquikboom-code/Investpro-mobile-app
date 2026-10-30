@@ -223,16 +223,22 @@ class DemoRepository extends GetxService {
       final user = BackendSnapshot.user(profile);
       if (user.accountStatus != 'ACTIVE') throw StateError('Account is not active');
       if (generation != _generation || session != _api.sessionVersion) throw StateError('Session changed');
+      // Parse every collection before changing any cached state.
+      final snapshotProjects=(data[2] as List).map((v)=>ProjectModel.fromBackend(Map<String,dynamic>.from(v as Map))).toList();
+      final snapshotInvestments=(data[3] as List).map((v)=>BackendSnapshot.investment(Map<String,dynamic>.from(v as Map))).toList();
+      final snapshotWithdrawals=(data[4] as List).map((v)=>BackendSnapshot.withdrawal(Map<String,dynamic>.from(v as Map))).toList();
+      final snapshotTransactions=(data[5] as List).map((v)=>BackendSnapshot.transaction(Map<String,dynamic>.from(v as Map))).toList();
+      final snapshotReturns=(data[6] as List).map((v)=>BackendSnapshot.payout(Map<String,dynamic>.from(v as Map))).toList();
       // Commit one coherent server snapshot; successful empty collections clear stale data.
       currentUser.value = user;
       serverTotalInvested.value = BackendSnapshot.number(portfolio['totalInvested']);
       serverTotalReturns.value = BackendSnapshot.number(portfolio['totalReturns']);
       availableBalance.value = BackendSnapshot.number(portfolio['availableBalance']);
-      projects.assignAll((data[2] as List).map((v) => ProjectModel.fromBackend(Map<String, dynamic>.from(v as Map))));
-      investments.assignAll((data[3] as List).map((v) => BackendSnapshot.investment(Map<String, dynamic>.from(v as Map))));
-      withdrawals.assignAll((data[4] as List).map((v) => BackendSnapshot.withdrawal(Map<String, dynamic>.from(v as Map))));
-      transactions.assignAll((data[5] as List).map((v) => BackendSnapshot.transaction(Map<String, dynamic>.from(v as Map))));
-      returns.assignAll((data[6] as List).map((v) => BackendSnapshot.payout(Map<String, dynamic>.from(v as Map))));
+      projects.assignAll(snapshotProjects);
+      investments.assignAll(snapshotInvestments);
+      withdrawals.assignAll(snapshotWithdrawals);
+      transactions.assignAll(snapshotTransactions);
+      returns.assignAll(snapshotReturns);
     } catch (error) {
       ApiDiagnostics.log(error);
       if(generation!=_generation||session!=_api.sessionVersion)rethrow;

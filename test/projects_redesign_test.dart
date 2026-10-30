@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Response;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:investpro/app/controllers/auth_controller.dart';
 import 'package:investpro/app/controllers/investment_controller.dart';
@@ -62,6 +62,7 @@ class ProjectsApi extends ApiService {
   };
   Completer<ProjectPage>? pending;
   String? detailId;
+  int? detailFailureStatus;
   Map<String, dynamic>? detail = record('p1');
 
   @override
@@ -86,6 +87,7 @@ class ProjectsApi extends ApiService {
   @override
   Future<Map<String, dynamic>?> getProject(String id) async {
     detailId = id;
+    if(detailFailureStatus!=null){final options=RequestOptions(path:'/mobile/projects/$id');throw DioException(requestOptions:options,response:Response(requestOptions:options,statusCode:detailFailureStatus),type:DioExceptionType.badResponse);}
     return detail;
   }
 }
@@ -407,6 +409,15 @@ void main() {
     },
   );
 
+  test('background project detail retains only safe transient cache', () async {
+    controller.selectProject(ProjectModel.fromBackend(record('p1')));api.detailFailureStatus=503;
+    await controller.loadDetails('p1',background:true);expect(controller.selectedProject.value?.id,'p1');
+    api.detailFailureStatus=404;await controller.loadDetails('p1',background:true);expect(controller.selectedProject.value,isNull);
+  });
+  testWidgets('initial Projects mount and local filter rebuild issue only one page request',(tester)async{
+    await mount(tester,const Size(390,844));expect(api.requests.length,1);
+    controller.setFilter('Active');await tester.pumpAndSettle();expect(api.requests.length,1);
+  });
   testWidgets('failed background and pull refresh retain valid project cards', (tester) async {
     await mount(tester,const Size(390,844));expect(find.byType(ProjectListingCard),findsOneWidget);
     api.fail=true;await controller.refreshProjects(background:true);await tester.pumpAndSettle();expect(find.byType(ProjectListingCard),findsOneWidget);expect(find.textContaining('Synchronization unavailable'),findsNothing);expect(controller.errorMessage.value,isNotEmpty);

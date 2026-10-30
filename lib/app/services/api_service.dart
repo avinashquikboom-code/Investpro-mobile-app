@@ -447,17 +447,7 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
-  Future<Map<String, dynamic>?> getProject(String id) async {
-    try {
-      final response = await dio.get('/mobile/projects/$id');
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return response.data['data'] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] getProject error: $e');
-    }
-    return null;
-  }
+  Future<Map<String,dynamic>?> getProject(String id)=>object('/mobile/projects/$id');
 
   Future<List<dynamic>?> getInvestments() async => collection('/mobile/investments');
 

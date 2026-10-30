@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 
 import '../routes/app_routes.dart';
 
@@ -29,10 +30,11 @@ class ProjectController extends GetxController {
   bool hasAttempted=false;
   int _page = 0;
   int _request = 0;
+  int _detailRequest=0;
   Timer? _searchTimer;
 
   void clearForSession(){
-    _request++;_searchTimer?.cancel();
+    _request++;_detailRequest++;_searchTimer?.cancel();
     remoteProjects.clear();categories.clear();selectedProject.value=null;
     selectedCategory.value='All Categories';searchQuery.value='';selectedFilter.value='All Projects';
     hasLoaded=false;hasAttempted=false;_page=0;hasMore.value=false;
@@ -75,6 +77,7 @@ class ProjectController extends GetxController {
   void onClose() {
     _searchTimer?.cancel();
     _request++;
+    _detailRequest++;
     super.onClose();
   }
 
@@ -157,8 +160,9 @@ class ProjectController extends GetxController {
       if (selectedId != null && Get.currentRoute == AppRoutes.projectDetails) {
         await loadDetails(selectedId, background: true);
       }
-    } catch (_) {
+    } catch (error) {
       if (request == _request && !isClosed) {
+        if(error is DioException&&[401,403,404].contains(error.response?.statusCode))remoteProjects.clear();
         hasMore.value=previousHasMore;
         errorMessage.value =
             'Unable to load projects and categories. Please retry.';
@@ -228,6 +232,7 @@ class ProjectController extends GetxController {
   }
 
   void selectProject(ProjectModel project) {
+    _detailRequest++;
     selectedProject.value = project;
     detailError.value = '';
   }
@@ -236,20 +241,24 @@ class ProjectController extends GetxController {
     if (_api == null) {
       return;
     }
+    final request=++_detailRequest;
     if (!background) isDetailLoading.value = true;
     detailError.value = '';
     if (!background) selectedProject.value = null;
     try {
       final data = await _api.getProject(id);
+      if(isClosed||request!=_detailRequest)return;
       if (data == null) {
+        selectedProject.value=null;
         throw Exception('Unavailable');
       }
       selectedProject.value = ProjectModel.fromBackend(data);
-    } catch (_) {
-      if(!background)selectedProject.value = null;
+    } catch (error) {
+      if(isClosed||request!=_detailRequest)return;
+      if(!background || error is DioException&&[401,403,404].contains(error.response?.statusCode))selectedProject.value = null;
       detailError.value = 'This project is unavailable or could not be loaded.';
     } finally {
-      if (!isClosed) isDetailLoading.value = false;
+      if (!isClosed&&request==_detailRequest) isDetailLoading.value = false;
     }
   }
 }
