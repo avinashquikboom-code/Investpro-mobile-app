@@ -536,7 +536,11 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (bytes != null) ...[
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 Container(
                   padding:
@@ -568,7 +572,6 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
-                const Spacer(),
                 Text(
                   '${((_selectedFileSize ?? 0) / 1024).toStringAsFixed(1)} KB',
                   style: GoogleFonts.poppins(
@@ -637,7 +640,7 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
               )
             else
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.surfaceDarkElevated
@@ -650,17 +653,20 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
                     Icon(
                       isPdf ? Remix.file_pdf_2_line : Remix.file_text_line,
                       color: isPdf ? AppColors.error : AppColors.primary,
-                      size: 32,
+                      size: 28,
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      isPdf ? 'PDF Document Ready' : 'Document Attached',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                    Flexible(
+                      child: Text(
+                        isPdf ? 'PDF Document Ready' : 'Document Attached',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

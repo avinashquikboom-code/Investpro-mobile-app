@@ -276,17 +276,17 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       await tester.scrollUntilVisible(
-        find.text('Submit documents'),
+        find.text('Submit PAN Card'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
       expect(tester.takeException(), isNull);
-      await tester.tap(find.text('Submit documents'));
+      await tester.tap(find.text('Submit PAN Card'));
       await tester.pumpAndSettle();
       expect(api.sent, 1);
       expect(
         find.text(
-          'KYC documents submitted successfully. Your verification is pending admin review.',
+          'PAN Card submitted successfully. Your document is pending verification.',
         ),
         findsOneWidget,
       );
