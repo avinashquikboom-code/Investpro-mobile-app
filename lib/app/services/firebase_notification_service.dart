@@ -52,7 +52,7 @@ class FirebaseNotificationService extends GetxService {
       // Listen for token registration & refresh events
       _messaging.onRegistered.listen((newToken) {
         if (kDebugMode) {
-          print('[FCM] Token registered/refreshed: $newToken');
+          print('[FCM] Device token refreshed');
         }
         _fcmToken = newToken;
         syncToken(newToken);
@@ -117,6 +117,8 @@ class FirebaseNotificationService extends GetxService {
 
   Future<void> requestPermissions() async {
     try {
+      final current = await _messaging.getNotificationSettings();
+      if (current.authorizationStatus != AuthorizationStatus.notDetermined) return;
       final settings = await _messaging.requestPermission(
         alert: true,
         announcement: false,
@@ -258,7 +260,7 @@ class FirebaseNotificationService extends GetxService {
       await _api.registerDeviceToken(token: token, platform: platform);
 
       if (kDebugMode) {
-        print('[FCM] Device token registered successfully: $token');
+        print('[FCM] Device token registered successfully');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -290,7 +292,9 @@ class FirebaseNotificationService extends GetxService {
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
 
-    if (type.contains('PROJECT')) {
+    if (data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
+      Get.toNamed(AppRoutes.kyc);
+    } else if (type.contains('PROJECT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
         Get.toNamed(
           AppRoutes.projectDetails,

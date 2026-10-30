@@ -31,6 +31,9 @@ class UserModel {
 
   String get name => fullName;
   String get phone => mobileNumber;
+  bool get isKycVerified =>
+      kycStatus.toUpperCase() == 'APPROVED' ||
+      kycStatus.toUpperCase() == 'VERIFIED';
   UserModel copyWith({
     String? id,
     String? fullName,

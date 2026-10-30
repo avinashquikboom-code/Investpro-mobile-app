@@ -6,7 +6,10 @@ import 'package:get/get.dart';
 
 import '../views/auth/forgot_password_view.dart';
 import '../views/auth/login_view.dart';
+import '../views/kyc/kyc_view.dart';
 import '../views/auth/register_view.dart';
+import '../views/bank/bank_account_view.dart';
+import '../views/help/help_support_view.dart';
 import '../views/home/main_navigation_shell.dart';
 import '../views/investments/invest_now_view.dart';
 import '../views/investments/investment_details_view.dart';
@@ -139,6 +142,24 @@ class AppPages {
       middlewares: [DemoSessionGuard()],
       name: AppRoutes.settings,
       page: () => const SettingsView(),
+      transition: Transition.native,
+    ),
+    GetPage(
+      middlewares: [DemoSessionGuard()],
+      name: AppRoutes.bankDetails,
+      page: () => const BankAccountView(),
+      transition: Transition.native,
+    ),
+    GetPage(
+      middlewares: [DemoSessionGuard()],
+      name: AppRoutes.helpSupport,
+      page: () => const HelpSupportView(),
+      transition: Transition.native,
+    ),
+    GetPage(
+      middlewares: [DemoSessionGuard()],
+      name: AppRoutes.kyc,
+      page: () => const KycView(),
       transition: Transition.native,
     ),
   ];

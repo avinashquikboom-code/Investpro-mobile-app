@@ -152,8 +152,12 @@ class ApiService extends getx.GetxService {
   Future<Map<String, dynamic>> paymentOrder(String investmentId) async => Map<String, dynamic>.from((await dio.post('/payments/orders', data: {'investmentId': investmentId})).data['data'] as Map);
   Future<Map<String, dynamic>> verifyPayment(Map<String, dynamic> data) async => Map<String, dynamic>.from((await dio.post('/payments/verify', data: data)).data['data'] as Map);
   Future<List<dynamic>> kyc() => collection('/mobile/kyc');
-  Future<void> submitKyc(String type, List<int> bytes, String name) async {
-    await dio.post('/mobile/kyc', data: FormData.fromMap({'documentType': type, 'document': MultipartFile.fromBytes(bytes, filename: name)}));
+  Future<Map<String, dynamic>> kycConfig() => object('/mobile/kyc/config');
+  Future<Map<String, dynamic>> kycStatus() => object('/mobile/kyc/status');
+  Future<Map<String, dynamic>> submitKyc(String type, List<int> bytes, String name, {void Function(int, int)? onSendProgress}) async {
+    final response = await dio.post('/mobile/kyc', data: FormData.fromMap({'documentType': type, 'document': MultipartFile.fromBytes(bytes, filename: name)}), options: Options(contentType: 'multipart/form-data', sendTimeout: const Duration(minutes: 2), receiveTimeout: const Duration(minutes: 2)), onSendProgress: onSendProgress);
+    if (response.data['success'] != true || response.data['data']?['id'] == null) throw StateError('The server did not confirm KYC persistence');
+    return Map<String, dynamic>.from(response.data['data'] as Map);
   }
   Future<String> kycDocumentUrl(String id) async => (await object('/mobile/kyc/$id/document'))['url'] as String;
   Future<void> changePassword(String current, String next) async { await dio.post('/auth/change-password', data: {'currentPassword': current, 'newPassword': next}); }

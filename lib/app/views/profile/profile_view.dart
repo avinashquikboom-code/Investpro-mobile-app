@@ -564,7 +564,7 @@ class ProfileView extends StatelessWidget {
             subtitle: 'Verify your identity',
             isDark: isDark,
             onTap: () {
-              Get.to(() => const KycView())?.then((_) => profileCtrl.refreshProfile());
+              Get.toNamed(AppRoutes.kyc)?.then((_) => profileCtrl.refreshProfile());
             },
           ),
         ),
@@ -577,11 +577,11 @@ class ProfileView extends StatelessWidget {
             icon: Icons.add_card_outlined,
             iconColor: AppColors.primary,
             iconBg: AppColors.lightMint,
-            title: 'Add Bank Account',
+            title: 'Bank Accounts',
             subtitle: 'Manage withdrawals',
             isDark: isDark,
             onTap: () {
-              Get.to(() => const BankAccountView())?.then((_) => profileCtrl.refreshProfile());
+              Get.toNamed(AppRoutes.bankDetails)?.then((_) => profileCtrl.refreshProfile());
             },
           ),
         ),
@@ -695,7 +695,7 @@ class ProfileView extends StatelessWidget {
             title: 'bankDetails'.tr,
             subtitle: 'Manage your bank accounts',
             isDark: isDark,
-            onTap: () => _showBankDetailsDialog(context, profileCtrl),
+            onTap: () => Get.toNamed(AppRoutes.bankDetails)?.then((_) => profileCtrl.refreshProfile()),
           ),
           _buildDivider(isDark),
 
@@ -741,7 +741,7 @@ class ProfileView extends StatelessWidget {
             title: 'helpSupport'.tr,
             subtitle: 'Get help and contact support',
             isDark: isDark,
-            onTap: () => _showHelpSupportDialog(context),
+            onTap: () => Get.toNamed(AppRoutes.helpSupport),
           ),
           _buildDivider(isDark),
 

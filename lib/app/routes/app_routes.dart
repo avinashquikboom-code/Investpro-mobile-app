@@ -20,4 +20,7 @@ abstract class AppRoutes {
   static const editProfile = '/edit-profile';
   static const notifications = '/notifications';
   static const settings = '/settings';
+  static const bankDetails = '/bank-details';
+  static const helpSupport = '/help-support';
+  static const kyc = '/kyc';
 }
