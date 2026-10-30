@@ -64,6 +64,10 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
       setState(() {
         wallet = data[0];
         workspace = data[1];
+        if (projectId != null &&
+            !projects.any((p) => p['projectId'] == projectId)) {
+          projectId = null;
+        }
         error = null;
         bankId =
             banks.firstWhereOrNull((b) => b['isPrimary'] == true)?['id'] ??
@@ -201,6 +205,7 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
                       ),
                       const SizedBox(height: 20),
                       DropdownButtonFormField<String>(
+                        key: ValueKey('project-${projectId ?? 'all'}'),
                         initialValue: projectId ?? 'all',
                         isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Project'),
@@ -249,6 +254,7 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
                         )
                       else
                         DropdownButtonFormField<String>(
+                          key: ValueKey('bank-$bankId'),
                           initialValue: bankId,
                           isExpanded: true,
                           decoration: const InputDecoration(
