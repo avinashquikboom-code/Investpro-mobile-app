@@ -12,8 +12,6 @@ import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/app_app_bar.dart';
-import '../bank/bank_account_view.dart';
-import '../kyc/kyc_view.dart';
 
 class ProfileView extends StatelessWidget {
   final bool isTab;

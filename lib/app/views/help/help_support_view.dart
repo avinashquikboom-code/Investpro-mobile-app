@@ -293,7 +293,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                                 setSheetState(() => busy = true);
                                 await Future.delayed(const Duration(milliseconds: 600));
 
-                                Navigator.of(context).pop();
+                                Get.back();
                                 final ticketId = 'TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
                                 Get.snackbar(
                                   'Ticket Submitted (#$ticketId)',
