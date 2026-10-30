@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:investpro/app/widgets/app_logo.dart';
@@ -72,7 +73,7 @@ void main() {
 
     expect(find.text('Test Title'), findsOneWidget);
     expect(find.byType(AppBackButton), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(find.byIcon(Remix.arrow_left_line), findsOneWidget);
 
     await tester.tap(find.byType(AppBackButton));
     await tester.pump();

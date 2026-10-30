@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -21,15 +22,15 @@ class RecentActivityItem extends StatelessWidget {
     switch (transaction.type) {
       case TransactionType.returnReceived:
       case TransactionType.deposit:
-        return Icons.arrow_downward_rounded;
+        return Remix.arrow_down_line;
       case TransactionType.withdrawal:
-        return Icons.account_balance_wallet_outlined;
+        return Remix.wallet_3_line;
       case TransactionType.investment:
-        return Icons.arrow_upward_rounded;
+        return Remix.arrow_up_line;
       case TransactionType.refund:
-        return Icons.replay_rounded;
+        return Remix.restart_line;
       case TransactionType.fee:
-        return Icons.receipt_outlined;
+        return Remix.receipt_line;
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -106,13 +107,13 @@ class HomeView extends StatelessWidget {
                                                   user.avatarUrl!,
                                                   fit: BoxFit.cover,
                                                   errorBuilder: (context, error, stackTrace) => const Icon(
-                                                    Icons.person_rounded,
+                                                    Remix.user_3_line,
                                                     color: Colors.white,
                                                     size: 26,
                                                   ),
                                                 )
                                               : const Icon(
-                                                  Icons.person_rounded,
+                                                  Remix.user_3_line,
                                                   color: Colors.white,
                                                   size: 26,
                                                 ),
@@ -172,7 +173,7 @@ class HomeView extends StatelessWidget {
                                   alignment: Alignment.center,
                                   children: [
                                     const Icon(
-                                      Icons.notifications_outlined,
+                                      Remix.notification_line,
                                       color: Colors.white,
                                       size: 22,
                                     ),
@@ -232,7 +233,7 @@ class HomeView extends StatelessWidget {
                             return Obx(() {
                               final cards = [
                                 DashboardMetricCard(
-                                  icon: Icons.trending_up_rounded,
+                                  icon: Remix.stock_line,
                                   iconColor: AppColors.primary,
                                   iconBg: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalInvested'.tr,
@@ -240,7 +241,7 @@ class HomeView extends StatelessWidget {
                                   isDark: isDark,
                                 ),
                                 DashboardMetricCard(
-                                  icon: Icons.payments_outlined,
+                                  icon: Remix.secure_payment_line,
                                   iconColor: AppColors.success,
                                   iconBg: AppColors.success.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalReturns'.tr,
@@ -248,7 +249,7 @@ class HomeView extends StatelessWidget {
                                   isDark: isDark,
                                 ),
                                 DashboardMetricCard(
-                                  icon: Icons.folder_outlined,
+                                  icon: Remix.folder_line,
                                   iconColor: AppColors.info,
                                   iconBg: AppColors.info.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'totalProjects'.tr,
@@ -256,7 +257,7 @@ class HomeView extends StatelessWidget {
                                   isDark: isDark,
                                 ),
                                 DashboardMetricCard(
-                                  icon: Icons.check_circle_outline_rounded,
+                                  icon: Remix.checkbox_circle_line,
                                   iconColor: AppColors.accent,
                                   iconBg: AppColors.accent.withValues(alpha: isDark ? 0.2 : 0.1),
                                   title: 'Active Projects',
@@ -439,7 +440,7 @@ class HomeView extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.folder_open_rounded,
+              Remix.folder_open_line,
               color: AppColors.primary,
               size: 28,
             ),
@@ -515,7 +516,7 @@ class HomeView extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.receipt_long_outlined,
+              Remix.receipt_line,
               color: AppColors.textSecondary,
               size: 28,
             ),

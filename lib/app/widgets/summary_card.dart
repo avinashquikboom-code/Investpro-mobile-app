@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -64,8 +65,8 @@ class PortfolioSummaryCard extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 8, bottom: 2),
                     child: Icon(
                       isHideBalance
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
+                          ? Remix.eye_off_line
+                          : Remix.eye_line,
                       color: Colors.white70,
                       size: 20,
                     ),
@@ -111,8 +112,8 @@ class PortfolioSummaryCard extends StatelessWidget {
                     children: [
                       Icon(
                         growth!.startsWith('-')
-                            ? Icons.arrow_downward_rounded
-                            : Icons.arrow_upward_rounded,
+                            ? Remix.arrow_down_line
+                            : Remix.arrow_up_line,
                         color: Colors.white,
                         size: 14,
                       ),

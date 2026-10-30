@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -135,7 +136,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           ),
           child: const Center(
             child: Icon(
-              Icons.lock_reset_rounded,
+              Remix.lock_password_line,
               color: Color(0xFF00854B),
               size: 28,
             ),
@@ -171,7 +172,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           label: 'Email or Mobile Number',
           hintText: 'e.g. investor@example.com or 9876543210',
           prefixIcon: const Icon(
-            Icons.person_outline_rounded,
+            Remix.user_3_line,
             size: 20,
             color: Color(0xFF00854B),
           ),
@@ -207,7 +208,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               }
             },
             icon: const Icon(
-              Icons.arrow_back_rounded,
+              Remix.arrow_left_line,
               size: 16,
               color: Color(0xFF00854B),
             ),
@@ -240,7 +241,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           ),
           child: const Center(
             child: Icon(
-              Icons.shield_outlined,
+              Remix.shield_line,
               color: Color(0xFF00854B),
               size: 28,
             ),
@@ -278,7 +279,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           label: 'Verification Code',
           hintText: 'Enter code',
           prefixIcon: const Icon(
-            Icons.pin_rounded,
+            Remix.lock_password_line,
             size: 20,
             color: Color(0xFF00854B),
           ),
@@ -353,7 +354,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           ),
           child: const Center(
             child: Icon(
-              Icons.lock_outline_rounded,
+              Remix.lock_2_line,
               color: Color(0xFF00854B),
               size: 28,
             ),
@@ -390,7 +391,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             hintText: 'Enter at least 8 characters',
             obscureText: !_controller.isPasswordVisible.value,
             prefixIcon: const Icon(
-              Icons.lock_outline_rounded,
+              Remix.lock_2_line,
               size: 20,
               color: Color(0xFF00854B),
             ),
@@ -398,8 +399,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             suffixIcon: IconButton(
               icon: Icon(
                 _controller.isPasswordVisible.value
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                    ? Remix.eye_line
+                    : Remix.eye_off_line,
                 size: 20,
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -419,7 +420,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             hintText: 'Re-enter your new password',
             obscureText: !_controller.isConfirmVisible.value,
             prefixIcon: const Icon(
-              Icons.lock_outline_rounded,
+              Remix.lock_2_line,
               size: 20,
               color: Color(0xFF00854B),
             ),
@@ -427,8 +428,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             suffixIcon: IconButton(
               icon: Icon(
                 _controller.isConfirmVisible.value
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                    ? Remix.eye_line
+                    : Remix.eye_off_line,
                 size: 20,
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -476,7 +477,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               ),
               child: const Center(
                 child: Icon(
-                  Icons.check_circle_rounded,
+                  Remix.checkbox_circle_line,
                   color: Color(0xFF00854B),
                   size: 48,
                 ),

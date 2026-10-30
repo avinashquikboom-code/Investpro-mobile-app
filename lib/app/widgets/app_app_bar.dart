@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -93,7 +94,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (drawer != null) {
         effectiveLeading = IconButton(
           tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-          icon: const Icon(Icons.menu),
+          icon: const Icon(Remix.menu_line),
           onPressed: drawer!.openDrawer,
         );
       }

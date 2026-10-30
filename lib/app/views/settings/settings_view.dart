@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -106,7 +107,7 @@ class SettingsView extends StatelessWidget {
                           ),
                         ),
                         trailing: isSelected
-                            ? const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22)
+                            ? const Icon(Remix.checkbox_circle_line, color: AppColors.primary, size: 22)
                             : null,
                         onTap: () {
                           controller.setLanguage(lang['code']!);
@@ -164,7 +165,7 @@ class SettingsView extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(Remix.close_line),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -217,7 +218,7 @@ class SettingsView extends StatelessWidget {
                   color: AppColors.errorLight,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 28),
+                child: const Icon(Remix.logout_box_r_line, color: AppColors.error, size: 28),
               ),
               const SizedBox(height: 16),
               Text(
@@ -311,7 +312,7 @@ class SettingsView extends StatelessWidget {
                   isDark: isDark,
                   children: [
                     _buildSettingsTile(
-                      icon: Icons.person_outline_rounded,
+                      icon: Remix.user_3_line,
                       title: 'Personal Information',
                       subtitle: 'Name, email, contact & residential address',
                       isDark: isDark,
@@ -319,7 +320,7 @@ class SettingsView extends StatelessWidget {
                     ),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.shield_outlined,
+                      icon: Remix.shield_line,
                       title: 'KYC Documents',
                       subtitle: 'Government ID verification for investments',
                       trailing: Obx(() {
@@ -334,7 +335,7 @@ class SettingsView extends StatelessWidget {
                     ),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.account_balance_outlined,
+                      icon: Remix.bank_line,
                       title: 'Bank Accounts',
                       subtitle: 'Manage linked accounts for returns & withdrawals',
                       trailing: Obx(() {
@@ -358,7 +359,7 @@ class SettingsView extends StatelessWidget {
                   isDark: isDark,
                   children: [
                     _buildSettingsTile(
-                      icon: Icons.vpn_key_outlined,
+                      icon: Remix.key_2_line,
                       title: 'changePassword'.tr,
                       subtitle: 'Update your account login password',
                       isDark: isDark,
@@ -375,7 +376,7 @@ class SettingsView extends StatelessWidget {
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
+                          child: const Icon(Remix.fingerprint_line, color: AppColors.primary, size: 20),
                         ),
                         title: Text(
                           'biometricLogin'.tr,
@@ -399,7 +400,7 @@ class SettingsView extends StatelessWidget {
                     }),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.verified_user_outlined,
+                      icon: Remix.shield_check_line,
                       title: 'Two-Factor Authentication',
                       subtitle: 'Mandatory OTP on logins and withdrawals',
                       trailing: _buildBadge('Active', AppColors.success),
@@ -425,7 +426,7 @@ class SettingsView extends StatelessWidget {
                     Obx(() {
                       final currentLang = settingsCtrl.selectedLanguage.value;
                       return _buildSettingsTile(
-                        icon: Icons.language_rounded,
+                        icon: Remix.translate_2,
                         title: 'language'.tr,
                         subtitle: 'Change interface display language',
                         trailing: Row(
@@ -441,7 +442,7 @@ class SettingsView extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Icon(
-                              Icons.chevron_right_rounded,
+                              Remix.arrow_right_s_line,
                               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                               size: 18,
                             ),
@@ -462,7 +463,7 @@ class SettingsView extends StatelessWidget {
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.notifications_none_rounded, color: AppColors.primary, size: 20),
+                          child: const Icon(Remix.notification_line, color: AppColors.primary, size: 20),
                         ),
                         title: Text(
                           'notifications'.tr,
@@ -495,7 +496,7 @@ class SettingsView extends StatelessWidget {
                   isDark: isDark,
                   children: [
                     _buildSettingsTile(
-                      icon: Icons.help_outline_rounded,
+                      icon: Remix.question_line,
                       title: 'helpSupport'.tr,
                       subtitle: 'FAQs, concierge assistance & ticket status',
                       isDark: isDark,
@@ -503,7 +504,7 @@ class SettingsView extends StatelessWidget {
                     ),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.description_outlined,
+                      icon: Remix.file_text_line,
                       title: 'Terms of Service',
                       subtitle: 'Investor terms, platform usage & agreements',
                       isDark: isDark,
@@ -516,7 +517,7 @@ class SettingsView extends StatelessWidget {
                     ),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.privacy_tip_outlined,
+                      icon: Remix.shield_keyhole_line,
                       title: 'Privacy Policy',
                       subtitle: 'How we protect your financial & KYC data',
                       isDark: isDark,
@@ -529,7 +530,7 @@ class SettingsView extends StatelessWidget {
                     ),
                     _buildDivider(isDark),
                     _buildSettingsTile(
-                      icon: Icons.info_outline_rounded,
+                      icon: Remix.information_line,
                       title: 'appVersion'.tr,
                       subtitle: 'Production release channel',
                       trailing: Text(
@@ -571,7 +572,7 @@ class SettingsView extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
+                            const Icon(Remix.logout_box_r_line, color: AppColors.error, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               'logout'.tr,
@@ -650,7 +651,7 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
+            icon: const Icon(Remix.edit_line, size: 20, color: AppColors.primary),
             tooltip: 'Edit Profile',
             onPressed: () => Get.toNamed(AppRoutes.editProfile),
           ),
@@ -723,7 +724,7 @@ class SettingsView extends StatelessWidget {
       ),
       trailing: trailing ??
           Icon(
-            Icons.chevron_right_rounded,
+            Remix.arrow_right_s_line,
             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             size: 20,
           ),

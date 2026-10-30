@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 
 import '../models/project_model.dart';
@@ -20,10 +21,10 @@ class ProjectListingCard extends StatelessWidget {
   });
 
   IconData get _icon => switch (project.iconType.toLowerCase()) {
-    'code' => Icons.code_rounded,
-    'mobile' => Icons.phone_android_rounded,
-    'gear' || 'ai' => Icons.settings_suggest_rounded,
-    _ => Icons.business_center_rounded,
+    'code' => Remix.code_s_slash_line,
+    'mobile' => Remix.smartphone_line,
+    'gear' || 'ai' => Remix.settings_5_line,
+    _ => Remix.briefcase_line,
   };
 
   Widget _metric(
@@ -160,7 +161,7 @@ class ProjectListingCard extends StatelessWidget {
                                 const WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
                                   child: Icon(
-                                    Icons.location_on_outlined,
+                                    Remix.map_pin_line,
                                     size: 16,
                                     color: AppColors.textSecondary,
                                   ),

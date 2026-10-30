@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,14 +21,14 @@ class InvestmentDetailsView extends StatelessWidget {
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
-        return Icons.code_rounded;
+        return Remix.code_s_slash_line;
       case 'mobile':
-        return Icons.phone_android_rounded;
+        return Remix.smartphone_line;
       case 'gear':
       case 'ai':
-        return Icons.settings_suggest_rounded;
+        return Remix.settings_5_line;
       default:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
     }
   }
 

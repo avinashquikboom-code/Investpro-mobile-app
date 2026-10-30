@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -78,8 +79,8 @@ class _LoginViewState extends State<LoginView> {
           labelText: (password ? 'password' : 'emailOrMobile').tr,
           prefixIcon: Icon(
             password
-                ? Icons.lock_outline_rounded
-                : Icons.person_outline_rounded,
+                ? Remix.lock_2_line
+                : Remix.user_3_line,
           ),
           suffixIcon: password
               ? IconButton(
@@ -87,8 +88,8 @@ class _LoginViewState extends State<LoginView> {
                   onPressed: auth.togglePasswordVisibility,
                   icon: Icon(
                     auth.isPasswordVisible.value
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+                        ? Remix.eye_line
+                        : Remix.eye_off_line,
                   ),
                 )
               : (_identity.text.isNotEmpty && !auth.isLoading.value
@@ -99,7 +100,7 @@ class _LoginViewState extends State<LoginView> {
                           setState(() {});
                         },
                         icon: const Icon(
-                          Icons.clear_rounded,
+                          Remix.close_line,
                           size: 20,
                           color: AppColors.textSecondary,
                         ),
@@ -195,7 +196,7 @@ class _LoginViewState extends State<LoginView> {
                                       _passwordFocus.unfocus();
                                       setState(() => _passwordStep = false);
                                     },
-                                    icon: const Icon(Icons.edit_outlined),
+                                    icon: const Icon(Remix.edit_line),
                                   ),
                               ],
                             ),

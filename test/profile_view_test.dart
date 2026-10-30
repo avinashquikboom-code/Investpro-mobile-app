@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -77,12 +78,12 @@ void main() {
     // 1. Header checks
     expect(find.text('Profile'), findsWidgets);
     expect(find.text('Manage your account information'), findsOneWidget);
-    expect(find.byIcon(Icons.settings_outlined), findsOneWidget); // Menu list row only (removed from header)
+    expect(find.byIcon(Remix.settings_3_line), findsOneWidget); // Menu list row only (removed from header)
 
     // 2. Profile Card checks
     expect(find.text('John Investor'), findsOneWidget);
     expect(find.textContaining('inv-usr-12345678-abcd'), findsOneWidget);
-    expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
+    expect(find.byIcon(Remix.file_copy_line), findsOneWidget);
     expect(find.text('Account: Active'), findsOneWidget);
     expect(find.text('KYC: Not Submitted'), findsOneWidget);
 

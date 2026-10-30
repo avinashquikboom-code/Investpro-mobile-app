@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import '../../widgets/unsaved_changes_guard.dart';
 
 import 'package:flutter/material.dart';
@@ -153,7 +154,7 @@ class WithdrawalView extends StatelessWidget {
                         child: const Row(
                           children: [
                             Icon(
-                              Icons.warning_amber_rounded,
+                              Remix.alert_line,
                               color: AppColors.warning,
                             ),
                             SizedBox(width: 12),
@@ -199,7 +200,7 @@ class WithdrawalView extends StatelessWidget {
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.account_balance_rounded,
+                            Remix.bank_line,
                             color: AppColors.primary,
                             size: 22,
                           ),
@@ -242,7 +243,7 @@ class WithdrawalView extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.check_circle_rounded,
+                                  Remix.checkbox_circle_line,
                                   color: Color(0xFF00854B),
                                   size: 14,
                                 ),
@@ -579,7 +580,7 @@ class WithdrawalView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.info_outline_rounded,
+                          Remix.information_line,
                           size: 16,
                           color: Color(0xFF00854B),
                         ),
@@ -682,7 +683,7 @@ class WithdrawalView extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.receipt_long_outlined,
+                                  Remix.receipt_line,
                                   size: 48,
                                   color: isDark
                                       ? AppColors.textSecondaryDark

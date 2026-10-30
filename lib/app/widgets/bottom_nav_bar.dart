@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,7 +41,8 @@ class CustomBottomNavBar extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 0,
-                  icon: Icons.home_rounded,
+                  icon: Remix.home_4_line,
+                  activeIcon: Remix.home_4_fill,
                   label: 'homeTab'.tr,
                   isSelected: navCtrl.currentIndex.value == 0,
                   onTap: () => navCtrl.changeTab(0),
@@ -48,7 +50,8 @@ class CustomBottomNavBar extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 1,
-                  icon: Icons.grid_view_rounded,
+                  icon: Remix.apps_line,
+                  activeIcon: Remix.apps_fill,
                   label: 'projectsTab'.tr,
                   isSelected: navCtrl.currentIndex.value == 1,
                   onTap: () => navCtrl.changeTab(1),
@@ -56,7 +59,8 @@ class CustomBottomNavBar extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 2,
-                  icon: Icons.account_balance_wallet_rounded,
+                  icon: Remix.wallet_3_line,
+                  activeIcon: Remix.wallet_3_fill,
                   label: 'investmentsTab'.tr,
                   isSelected: navCtrl.currentIndex.value == 2,
                   onTap: () => navCtrl.changeTab(2),
@@ -64,7 +68,8 @@ class CustomBottomNavBar extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 3,
-                  icon: Icons.cached_rounded,
+                  icon: Remix.exchange_line,
+                  activeIcon: Remix.exchange_fill,
                   label: 'returnsTab'.tr,
                   isSelected: navCtrl.currentIndex.value == 3,
                   onTap: () => navCtrl.changeTab(3),
@@ -72,7 +77,8 @@ class CustomBottomNavBar extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 4,
-                  icon: Icons.person_rounded,
+                  icon: Remix.user_3_line,
+                  activeIcon: Remix.user_3_fill,
                   label: 'profileTab'.tr,
                   isSelected: navCtrl.currentIndex.value == 4,
                   onTap: () => navCtrl.changeTab(4),
@@ -89,6 +95,7 @@ class CustomBottomNavBar extends StatelessWidget {
     required BuildContext context,
     required int index,
     required IconData icon,
+    required IconData activeIcon,
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
@@ -105,7 +112,7 @@ class CustomBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              icon,
+              isSelected ? activeIcon : icon,
               size: 24,
               color: isSelected ? activeColor : inactiveColor,
             ),

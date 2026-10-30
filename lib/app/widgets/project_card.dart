@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,22 +21,22 @@ class MyProjectCard extends StatelessWidget {
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
-        return Icons.code_rounded;
+        return Remix.code_s_slash_line;
       case 'mobile':
-        return Icons.phone_android_rounded;
+        return Remix.smartphone_line;
       case 'gear':
       case 'ai':
-        return Icons.settings_suggest_rounded;
+        return Remix.settings_5_line;
       case 'real-estate':
       case 'building':
-        return Icons.apartment_rounded;
+        return Remix.building_2_line;
       case 'solar':
       case 'energy':
-        return Icons.solar_power_rounded;
+        return Remix.sun_line;
       case 'agriculture':
-        return Icons.agriculture_rounded;
+        return Remix.plant_line;
       default:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
     }
   }
 
@@ -145,14 +146,14 @@ class ProjectCard extends StatelessWidget {
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
-        return Icons.code_rounded;
+        return Remix.code_s_slash_line;
       case 'mobile':
-        return Icons.phone_android_rounded;
+        return Remix.smartphone_line;
       case 'gear':
       case 'ai':
-        return Icons.settings_suggest_rounded;
+        return Remix.settings_5_line;
       default:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
     }
   }
 

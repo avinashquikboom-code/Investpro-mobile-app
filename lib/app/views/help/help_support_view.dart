@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -154,7 +155,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded),
+                          icon: const Icon(Remix.close_line),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
@@ -376,7 +377,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   children: [
                     Expanded(
                       child: _buildContactChannel(
-                        icon: Icons.email_outlined,
+                        icon: Remix.mail_line,
                         title: 'Email',
                         subtitle: 'support@investpro.app',
                         isDark: isDark,
@@ -386,7 +387,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _buildContactChannel(
-                        icon: Icons.phone_outlined,
+                        icon: Remix.phone_line,
                         title: 'Toll-Free',
                         subtitle: '1800-482-900',
                         isDark: isDark,
@@ -421,10 +422,10 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       fontSize: 12.5,
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     ),
-                    prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
+                    prefixIcon: const Icon(Remix.search_line, size: 20, color: AppColors.primary),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            icon: const Icon(Remix.close_line, size: 18),
                             onPressed: () {
                               _searchCtrl.clear();
                               setState(() => _searchQuery = '');
@@ -544,7 +545,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.headset_mic_rounded, color: Color(0xFF4ADE80), size: 22),
+                child: const Icon(Remix.customer_service_2_line, color: Color(0xFF4ADE80), size: 22),
               ),
               const SizedBox(width: 10),
               Text(

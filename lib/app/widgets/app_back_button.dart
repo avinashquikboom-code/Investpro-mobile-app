@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +37,7 @@ class AppBackButton extends StatelessWidget {
               }
             : null);
     final glyph = Icon(
-      icon ?? (ios ? CupertinoIcons.back : Icons.arrow_back),
+      icon ?? (ios ? Remix.arrow_left_s_line : Remix.arrow_left_line),
       size: iconSize,
       color: color,
     );

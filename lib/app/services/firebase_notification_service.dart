@@ -121,7 +121,14 @@ class FirebaseNotificationService extends GetxService {
   Future<void> requestPermissions() async {
     try {
       final current = await _messaging.getNotificationSettings();
-      if (current.authorizationStatus != AuthorizationStatus.notDetermined) return;
+      final requested = _storage.read('push_permission_requested') == true;
+      if (requested ||
+          (current.authorizationStatus != AuthorizationStatus.notDetermined &&
+              !(Platform.isAndroid &&
+                  current.authorizationStatus == AuthorizationStatus.denied))) {
+        return;
+      }
+      await _storage.write('push_permission_requested', true);
       final settings = await _messaging.requestPermission(
         alert: true,
         announcement: false,
@@ -176,7 +183,9 @@ class FirebaseNotificationService extends GetxService {
 
       // Add to in-app notification list
       _notificationService.addNotification(
-        type: _mapType(typeStr),
+        type: message.data['resource'] == 'KYC'
+            ? NotificationType.kyc
+            : _mapType(typeStr),
         title: title,
         description: body,
         relatedId: message.data['referenceId'] ?? message.data['targetId'],
@@ -326,9 +335,20 @@ class FirebaseNotificationService extends GetxService {
   }
 
   void flushKyc() {
-    if (!_pendingKyc || Get.context == null || !Get.isRegistered<AuthController>() || !Get.find<AuthController>().isLoggedIn.value || Get.currentRoute == AppRoutes.splash || Get.currentRoute == AppRoutes.login) return;
+    if (!_pendingKyc ||
+        Get.context == null ||
+        !Get.isRegistered<AuthController>() ||
+        !Get.find<AuthController>().isLoggedIn.value ||
+        Get.currentRoute == AppRoutes.splash ||
+        Get.currentRoute == AppRoutes.login) {
+      return;
+    }
     _pendingKyc = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (Get.find<AuthController>().isLoggedIn.value) Get.toNamed(AppRoutes.kyc); });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.find<AuthController>().isLoggedIn.value) {
+        Get.toNamed(AppRoutes.kyc);
+      }
+    });
     WidgetsBinding.instance.scheduleFrame();
   }
 

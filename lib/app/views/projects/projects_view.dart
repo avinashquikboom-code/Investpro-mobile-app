@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -157,7 +158,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                             decoration: InputDecoration(
                               hintText: 'Search projects by name or location...',
                               prefixIcon: const Icon(
-                                Icons.search_rounded,
+                                Remix.search_line,
                                 color: AppColors.textSecondary,
                               ),
                               suffixIcon: Obx(
@@ -166,7 +167,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                                     : IconButton(
                                         tooltip: 'Clear search',
                                         icon: const Icon(
-                                          Icons.close_rounded,
+                                          Remix.close_line,
                                         ),
                                         onPressed: () {
                                           _search.clear();
@@ -202,7 +203,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(
-                                Icons.cloud_off_rounded,
+                                Remix.cloud_off_line,
                                 color: AppColors.textSecondary,
                                 size: 36,
                               ),
@@ -224,7 +225,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                     if (list.isEmpty) {
                       return SliverToBoxAdapter(
                         child: EmptyStateWidget(
-                          icon: Icons.folder_open_rounded,
+                          icon: Remix.folder_open_line,
                           title: 'No Projects Found',
                           message: 'No matching projects are currently visible to investors. Only published, active opportunities are available from the current catalog.',
                           buttonText: 'Show All Projects',

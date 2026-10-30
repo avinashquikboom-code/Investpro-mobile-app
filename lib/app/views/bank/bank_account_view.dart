@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -157,7 +158,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                         ),
                         const SizedBox(width: 8),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded),
+                          icon: const Icon(Remix.close_line),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
@@ -226,7 +227,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       controller: bankNameCtrl,
                       label: 'Bank Name',
                       hint: 'e.g. HDFC Bank, SBI',
-                      icon: Icons.account_balance_rounded,
+                      icon: Remix.bank_line,
                       isDark: isDark,
                     ),
                     const SizedBox(height: 12),
@@ -236,7 +237,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       controller: holderCtrl,
                       label: 'Account Holder Name',
                       hint: 'As printed on bank records',
-                      icon: Icons.person_outline_rounded,
+                      icon: Remix.user_3_line,
                       isDark: isDark,
                       capitalization: TextCapitalization.words,
                     ),
@@ -247,7 +248,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       controller: accNumCtrl,
                       label: 'Account Number',
                       hint: 'Enter 9 to 18 digit account number',
-                      icon: Icons.pin_outlined,
+                      icon: Remix.lock_password_line,
                       isDark: isDark,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -259,7 +260,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       controller: confirmAccNumCtrl,
                       label: 'Re-enter Account Number',
                       hint: 'Confirm account number',
-                      icon: Icons.lock_outline_rounded,
+                      icon: Remix.lock_2_line,
                       isDark: isDark,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -271,7 +272,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       controller: ifscCtrl,
                       label: 'IFSC Code',
                       hint: '11-character code (e.g. HDFC0001234)',
-                      icon: Icons.qr_code_rounded,
+                      icon: Remix.qr_code_line,
                       isDark: isDark,
                       capitalization: TextCapitalization.characters,
                       inputFormatters: [
@@ -352,7 +353,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 16),
+                            const Icon(Remix.error_warning_line, color: AppColors.error, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -540,7 +541,7 @@ class _BankAccountViewState extends State<BankAccountView> {
         showBackButton: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+            icon: const Icon(Remix.add_circle_line, color: AppColors.primary),
             tooltip: 'Add Bank Account',
             onPressed: () => _openAddAccountSheet(context),
           ),
@@ -581,7 +582,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                       const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _openAddAccountSheet(context),
-                        icon: const Icon(Icons.add_rounded, size: 18),
+                        icon: const Icon(Remix.add_line, size: 18),
                         label: const Text('Add Account'),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
@@ -642,7 +643,7 @@ class _BankAccountViewState extends State<BankAccountView> {
               color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.security_rounded, color: AppColors.primary, size: 20),
+            child: const Icon(Remix.shield_check_line, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -830,7 +831,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                 const SizedBox(width: 8),
                 IconButton(
                   icon: Icon(
-                    isRevealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    isRevealed ? Remix.eye_off_line : Remix.eye_line,
                     color: account.isPrimary
                         ? Colors.white.withValues(alpha: 0.8)
                         : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -933,7 +934,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    account.isVerified ? Icons.verified_rounded : Icons.schedule_rounded,
+                    account.isVerified ? Remix.verified_badge_line : Remix.time_line,
                     size: 15,
                     color: account.isVerified
                         ? (account.isPrimary ? const Color(0xFF4ADE80) : AppColors.success)
@@ -975,7 +976,7 @@ class _BankAccountViewState extends State<BankAccountView> {
               color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 36),
+            child: const Icon(Remix.bank_line, color: AppColors.primary, size: 36),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1004,7 +1005,7 @@ class _BankAccountViewState extends State<BankAccountView> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => _openAddAccountSheet(context),
-            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+            icon: const Icon(Remix.add_line, color: Colors.white, size: 18),
             label: Text(
               'Add Primary Bank Account',
               style: GoogleFonts.poppins(
@@ -1039,7 +1040,7 @@ class _BankAccountViewState extends State<BankAccountView> {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary),
+              const Icon(Remix.information_line, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

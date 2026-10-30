@@ -159,7 +159,29 @@ class ApiService extends getx.GetxService {
   Future<Map<String, dynamic>> kycConfig() => object('/mobile/kyc/config');
   Future<Map<String, dynamic>> kycStatus() => object('/mobile/kyc/status');
   Future<Map<String, dynamic>> submitKyc(String type, List<int> bytes, String name, {void Function(int, int)? onSendProgress}) async {
-    final response = await dio.post('/mobile/kyc', data: FormData.fromMap({'documentType': type, 'document': MultipartFile.fromBytes(bytes, filename: name)}), options: Options(contentType: 'multipart/form-data', sendTimeout: const Duration(minutes: 2), receiveTimeout: const Duration(minutes: 2)), onSendProgress: onSendProgress);
+    String? mimeType;
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.pdf')) {
+      mimeType = 'application/pdf';
+    } else if (lower.endsWith('.png')) {
+      mimeType = 'image/png';
+    } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+      mimeType = 'image/jpeg';
+    }
+    final file = MultipartFile.fromBytes(
+      bytes,
+      filename: name,
+      contentType: mimeType != null ? DioMediaType.parse(mimeType) : null,
+    );
+    final response = await dio.post(
+      '/mobile/kyc',
+      data: FormData.fromMap({'documentType': type, 'document': file}),
+      options: Options(
+        sendTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+      ),
+      onSendProgress: onSendProgress,
+    );
     if (response.data['success'] != true || response.data['data']?['id'] == null) throw StateError('The server did not confirm KYC persistence');
     return Map<String, dynamic>.from(response.data['data'] as Map);
   }

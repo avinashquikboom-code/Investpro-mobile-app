@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -110,7 +111,7 @@ class ReturnsView extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       const Icon(
-                                        Icons.arrow_upward_rounded,
+                                        Remix.arrow_up_line,
                                         size: 14,
                                         color: AppColors.primary,
                                       ),
@@ -330,7 +331,7 @@ class ReturnsView extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.calendar_month_rounded,
+                        Remix.calendar_2_line,
                         color: AppColors.primary,
                         size: 22,
                       ),

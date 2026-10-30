@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import '../../widgets/unsaved_changes_guard.dart';
 
 import 'package:flutter/material.dart';
@@ -18,11 +19,11 @@ class PaymentConfirmationView extends StatelessWidget {
     final invCtrl = Get.find<InvestmentController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final paymentMethods = invCtrl.isLive ? [{'name': 'Razorpay Checkout', 'icon': Icons.lock_outline}] : [
-      {'name': 'Demo UPI', 'icon': Icons.qr_code_rounded},
-      {'name': 'Demo Net Banking', 'icon': Icons.account_balance_rounded},
-      {'name': 'Demo Card', 'icon': Icons.credit_card_rounded},
-      {'name': 'Demo Wallet', 'icon': Icons.wallet_rounded},
+    final paymentMethods = invCtrl.isLive ? [{'name': 'Razorpay Checkout', 'icon': Remix.lock_2_line}] : [
+      {'name': 'Demo UPI', 'icon': Remix.qr_code_line},
+      {'name': 'Demo Net Banking', 'icon': Remix.bank_line},
+      {'name': 'Demo Card', 'icon': Remix.bank_card_line},
+      {'name': 'Demo Wallet', 'icon': Remix.wallet_3_line},
     ];
 
     return UnsavedChangesGuard(

@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,17 +15,17 @@ class NotificationsView extends StatelessWidget {
   IconData _getNotificationIcon(NotificationType type) {
     switch (type) {
       case NotificationType.investmentSuccess:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
       case NotificationType.returnReceived:
-        return Icons.arrow_upward_rounded;
+        return Remix.arrow_up_line;
       case NotificationType.withdrawalApproved:
-        return Icons.check_circle_outline_rounded;
+        return Remix.checkbox_circle_line;
       case NotificationType.projectUpdate:
-        return Icons.update_rounded;
+        return Remix.history_line;
       case NotificationType.newProject:
-        return Icons.rocket_launch_rounded;
+        return Remix.rocket_line;
       case NotificationType.kyc:
-        return Icons.shield_outlined;
+        return Remix.shield_line;
     }
   }
 

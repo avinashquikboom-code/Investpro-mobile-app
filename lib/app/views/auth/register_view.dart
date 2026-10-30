@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import '../../widgets/unsaved_changes_guard.dart';
 
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ class _RegisterViewState extends State<RegisterView> {
                     label: 'fullName'.tr,
                     hintText: 'enterFullName'.tr,
                     prefixIcon: const Icon(
-                      Icons.person_outline_rounded,
+                      Remix.user_3_line,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -105,7 +106,7 @@ class _RegisterViewState extends State<RegisterView> {
                     hintText: 'enterEmail'.tr,
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: const Icon(
-                      Icons.mail_outline_rounded,
+                      Remix.mail_line,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -118,7 +119,7 @@ class _RegisterViewState extends State<RegisterView> {
                     hintText: 'enterMobileNumber'.tr,
                     keyboardType: TextInputType.phone,
                     prefixIcon: const Icon(
-                      Icons.phone_outlined,
+                      Remix.phone_line,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -132,14 +133,14 @@ class _RegisterViewState extends State<RegisterView> {
                       hintText: 'enterPassword'.tr,
                       obscureText: !authCtrl.isPasswordVisible.value,
                       prefixIcon: const Icon(
-                        Icons.lock_outline_rounded,
+                        Remix.lock_2_line,
                         color: AppColors.textSecondary,
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           authCtrl.isPasswordVisible.value
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? Remix.eye_line
+                              : Remix.eye_off_line,
                           color: AppColors.textSecondary,
                           size: 20,
                         ),

@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 
 import '../models/transaction_model.dart';
@@ -23,26 +24,26 @@ class TransactionTile extends StatelessWidget {
 
     switch (transaction.type) {
       case TransactionType.returnReceived:
-        icon = Icons.arrow_upward_rounded;
+        icon = Remix.arrow_up_line;
         iconColor = AppColors.success;
         iconBg = AppColors.successLight;
         isCredit = true;
         break;
       case TransactionType.refund:
       case TransactionType.deposit:
-        icon = Icons.add_rounded;
+        icon = Remix.add_line;
         iconColor = AppColors.success;
         iconBg = AppColors.successLight;
         isCredit = true;
         break;
       case TransactionType.withdrawal:
-        icon = Icons.arrow_downward_rounded;
+        icon = Remix.arrow_down_line;
         iconColor = AppColors.error;
         iconBg = AppColors.errorLight;
         break;
       case TransactionType.fee:
       case TransactionType.investment:
-        icon = Icons.business_center_rounded;
+        icon = Remix.briefcase_line;
         iconColor = AppColors.primary;
         iconBg = const Color(0xFFE8F2EC);
         break;

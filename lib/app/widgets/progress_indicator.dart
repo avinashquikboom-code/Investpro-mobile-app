@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -60,7 +61,7 @@ class TimelineStepWidget extends StatelessWidget {
 
     if (isCompleted) {
       circleColor = AppColors.primary;
-      innerIcon = const Icon(Icons.check, size: 14, color: Colors.white);
+      innerIcon = const Icon(Remix.check_line, size: 14, color: Colors.white);
     } else if (isActive) {
       circleColor = AppColors.accent;
       innerIcon = Container(

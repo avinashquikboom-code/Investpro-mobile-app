@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -30,7 +31,7 @@ class ProfileView extends StatelessWidget {
       duration: const Duration(seconds: 2),
       margin: const EdgeInsets.all(16),
       borderRadius: 12,
-      icon: const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 20),
+      icon: const Icon(Remix.checkbox_circle_line, color: AppColors.accent, size: 20),
     );
   }
 
@@ -159,13 +160,13 @@ class ProfileView extends StatelessWidget {
                             user.avatarUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.person_rounded,
+                              Remix.user_3_line,
                               size: 38,
                               color: AppColors.primary,
                             ),
                           )
                         : const Icon(
-                            Icons.person_rounded,
+                            Remix.user_3_line,
                             size: 38,
                             color: AppColors.primary,
                           ),
@@ -189,7 +190,7 @@ class ProfileView extends StatelessWidget {
                         border: Border.all(color: Colors.white, width: 2),
                       ),
                       child: const Icon(
-                        Icons.edit_rounded,
+                        Remix.edit_line,
                         size: 12,
                         color: Colors.white,
                       ),
@@ -249,7 +250,7 @@ class ProfileView extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           const Icon(
-                            Icons.copy_rounded,
+                            Remix.file_copy_line,
                             size: 12,
                             color: AppColors.primary,
                           ),
@@ -353,7 +354,7 @@ class ProfileView extends StatelessWidget {
         Expanded(
           child: _buildActionCard(
             context: context,
-            icon: Icons.shield_outlined,
+            icon: Remix.shield_line,
             iconColor: AppColors.primary,
             iconBg: AppColors.lightMint,
             title: 'KYC Documents',
@@ -370,7 +371,7 @@ class ProfileView extends StatelessWidget {
         Expanded(
           child: _buildActionCard(
             context: context,
-            icon: Icons.add_card_outlined,
+            icon: Remix.bank_card_line,
             iconColor: AppColors.primary,
             iconBg: AppColors.lightMint,
             title: 'Bank Accounts',
@@ -474,7 +475,7 @@ class ProfileView extends StatelessWidget {
         children: [
           // 1. Personal Information
           _buildMenuRow(
-            icon: Icons.person_outline_rounded,
+            icon: Remix.user_3_line,
             title: 'personalInformation'.tr,
             subtitle: 'View and update your details',
             isDark: isDark,
@@ -487,7 +488,7 @@ class ProfileView extends StatelessWidget {
 
           // 2. Bank Details
           _buildMenuRow(
-            icon: Icons.account_balance_outlined,
+            icon: Remix.bank_line,
             title: 'bankDetails'.tr,
             subtitle: 'Manage your bank accounts',
             isDark: isDark,
@@ -497,7 +498,7 @@ class ProfileView extends StatelessWidget {
 
           // 3. Investment History
           _buildMenuRow(
-            icon: Icons.history_rounded,
+            icon: Remix.history_line,
             title: 'investmentHistory'.tr,
             subtitle: 'View your investments',
             isDark: isDark,
@@ -513,7 +514,7 @@ class ProfileView extends StatelessWidget {
 
           // 4. Withdrawal History
           _buildMenuRow(
-            icon: Icons.account_balance_wallet_outlined,
+            icon: Remix.wallet_3_line,
             title: 'withdrawalHistory'.tr,
             subtitle: 'Track your withdrawal requests',
             isDark: isDark,
@@ -523,7 +524,7 @@ class ProfileView extends StatelessWidget {
 
           // 5. Settings
           _buildMenuRow(
-            icon: Icons.settings_outlined,
+            icon: Remix.settings_3_line,
             title: 'settings'.tr,
             subtitle: 'App preferences and security',
             isDark: isDark,
@@ -533,7 +534,7 @@ class ProfileView extends StatelessWidget {
 
           // 6. Help & Support
           _buildMenuRow(
-            icon: Icons.help_outline_rounded,
+            icon: Remix.question_line,
             title: 'helpSupport'.tr,
             subtitle: 'Get help and contact support',
             isDark: isDark,
@@ -543,7 +544,7 @@ class ProfileView extends StatelessWidget {
 
           // 7. Logout
           _buildMenuRow(
-            icon: Icons.logout_rounded,
+            icon: Remix.logout_box_r_line,
             title: 'logout'.tr,
             subtitle: 'Sign out of your account',
             isDark: isDark,
@@ -600,7 +601,7 @@ class ProfileView extends StatelessWidget {
       ),
       trailing: showChevron
           ? Icon(
-              Icons.chevron_right_rounded,
+              Remix.arrow_right_s_line,
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               size: 20,
             )

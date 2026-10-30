@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -37,14 +38,14 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
-        return Icons.code_rounded;
+        return Remix.code_s_slash_line;
       case 'mobile':
-        return Icons.phone_android_rounded;
+        return Remix.smartphone_line;
       case 'gear':
       case 'ai':
-        return Icons.settings_suggest_rounded;
+        return Remix.settings_5_line;
       default:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
     }
   }
 
@@ -353,7 +354,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Icon(
-                              Icons.info_outline_rounded,
+                              Remix.information_line,
                               size: 16,
                               color: AppColors.warning,
                             ),
@@ -394,7 +395,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
-                          Icons.check_circle_outline_rounded,
+                          Remix.checkbox_circle_line,
                           size: 16,
                           color: AppColors.success,
                         ),

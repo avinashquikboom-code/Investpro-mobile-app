@@ -26,7 +26,9 @@ class KycController extends GetxController {
         return 'Your session expired. Sign in again.';
       }
       final data = exception.response?.data;
-      if (data is Map && data['message'] is String) return data['message'];
+      if (data is Map && data['message'] is String && (data['message'] as String).isNotEmpty) {
+        return data['message'] as String;
+      }
       if ([
         DioExceptionType.connectionTimeout,
         DioExceptionType.sendTimeout,
@@ -34,8 +36,23 @@ class KycController extends GetxController {
       ].contains(exception.type)) {
         return 'The upload timed out. Refresh your KYC status before retrying.';
       }
+      if (exception.type == DioExceptionType.connectionError) {
+        return 'Unable to reach the server. Please check your internet connection.';
+      }
+      if (exception.response?.statusCode == 409) {
+        return 'This document is already pending or verified.';
+      }
+      if (exception.response?.statusCode == 413) {
+        return 'Document file exceeds the allowed size limit (max 5 MB).';
+      }
+      if (exception.response?.statusCode == 415) {
+        return 'Unsupported document type. Only PDF, PNG, and JPEG are supported.';
+      }
+      if (exception.response?.statusCode == 503) {
+        return 'Document storage is temporarily unavailable. Retry or contact support.';
+      }
     }
-    return 'Unable to complete the KYC request. Check your connection and retry.';
+    return 'Failed to submit document. Please check connection and retry.';
   }
 
   Future<void> load() async {

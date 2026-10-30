@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -57,20 +58,20 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
     switch (iconType.toLowerCase()) {
       case 'code':
       case 'technology':
-        return Icons.code_rounded;
+        return Remix.code_s_slash_line;
       case 'mobile':
       case 'telecom':
-        return Icons.phone_android_rounded;
+        return Remix.smartphone_line;
       case 'real estate':
       case 'infrastructure':
-        return Icons.domain_rounded;
+        return Remix.building_4_line;
       case 'energy':
       case 'clean energy':
-        return Icons.solar_power_rounded;
+        return Remix.sun_line;
       case 'agriculture':
-        return Icons.eco_rounded;
+        return Remix.leaf_line;
       default:
-        return Icons.business_center_rounded;
+        return Remix.briefcase_line;
     }
   }
 
@@ -95,7 +96,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                     height: 18,
                     child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
                   )
-                : const Icon(Icons.refresh_rounded, color: AppColors.primary),
+                : const Icon(Remix.refresh_line, color: AppColors.primary),
             tooltip: 'Refresh Investments',
             onPressed: _isRefreshing ? null : _refresh,
           ),
@@ -164,10 +165,10 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                             fontSize: 12.5,
                             color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           ),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
+                          prefixIcon: const Icon(Remix.search_line, size: 20, color: AppColors.primary),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.clear_rounded, size: 18),
+                                  icon: const Icon(Remix.close_line, size: 18),
                                   onPressed: () => _searchCtrl.clear(),
                                 )
                               : null,
@@ -284,7 +285,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                     SliverFillRemaining(
                       hasScrollBody: false,
                       child: EmptyStateWidget(
-                        icon: Icons.savings_outlined,
+                        icon: Remix.safe_2_line,
                         title: _searchQuery.isNotEmpty
                             ? 'No Matching Investments'
                             : 'No ${invCtrl.myInvestmentsFilter.value} Investments',
@@ -383,7 +384,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.trending_up_rounded, color: Color(0xFF4ADE80), size: 14),
+                    const Icon(Remix.stock_line, color: Color(0xFF4ADE80), size: 14),
                     const SizedBox(width: 4),
                     Text(
                       'Live Tracking',

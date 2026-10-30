@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -132,7 +133,7 @@ void main() {
     // 1. Header checks
     expect(find.text('Hello, Rohit Sharma'), findsOneWidget);
     expect(find.text('Welcome to InvestPro'), findsOneWidget);
-    expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+    expect(find.byIcon(Remix.notification_line), findsOneWidget);
 
     // 2. Portfolio Summary Card
     expect(find.text('Total Portfolio Value'), findsOneWidget);
@@ -165,21 +166,21 @@ void main() {
     await mount(tester);
 
     // By default, visibility is on
-    expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+    expect(find.byIcon(Remix.eye_line), findsOneWidget);
     expect(find.text('••••••••'), findsNothing);
 
     // Tap eye icon to hide balance
-    await tester.tap(find.byIcon(Icons.visibility_outlined));
+    await tester.tap(find.byIcon(Remix.eye_line));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+    expect(find.byIcon(Remix.eye_off_line), findsOneWidget);
     expect(find.text('••••••••'), findsOneWidget);
 
     // Tap again to restore balance
-    await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+    await tester.tap(find.byIcon(Remix.eye_off_line));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+    expect(find.byIcon(Remix.eye_line), findsOneWidget);
     expect(find.text('••••••••'), findsNothing);
   });
 

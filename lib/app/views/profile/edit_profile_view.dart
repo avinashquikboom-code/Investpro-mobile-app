@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import '../../widgets/unsaved_changes_guard.dart';
 
 import 'package:flutter/material.dart';
@@ -52,7 +53,7 @@ class EditProfileView extends StatelessWidget {
                           border: Border.all(color: AppColors.accent, width: 3),
                         ),
                         child: const Icon(
-                          Icons.person_rounded,
+                          Remix.user_3_line,
                           size: 54,
                           color: Colors.white,
                         ),
@@ -66,7 +67,7 @@ class EditProfileView extends StatelessWidget {
                           border: Border.all(color: Colors.white, width: 2),
                         ),
                         child: const Icon(
-                          Icons.person_rounded,
+                          Remix.user_3_line,
                           color: Colors.white,
                           size: 14,
                         ),
@@ -81,7 +82,7 @@ class EditProfileView extends StatelessWidget {
                     label: 'fullName'.tr,
                     hintText: 'enterFullName'.tr,
                     prefixIcon: const Icon(
-                      Icons.person_outline_rounded,
+                      Remix.user_3_line,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -95,7 +96,7 @@ class EditProfileView extends StatelessWidget {
                     hintText: 'enterEmail'.tr,
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: const Icon(
-                      Icons.mail_outline_rounded,
+                      Remix.mail_line,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -108,7 +109,7 @@ class EditProfileView extends StatelessWidget {
                     hintText: 'enterMobileNumber'.tr,
                     keyboardType: TextInputType.phone,
                     prefixIcon: const Icon(
-                      Icons.phone_outlined,
+                      Remix.phone_line,
                       color: AppColors.textSecondary,
                     ),
                   ),

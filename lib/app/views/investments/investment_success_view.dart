@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import '../../widgets/app_system_ui.dart';
 
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class InvestmentSuccessView extends StatelessWidget {
                         ),
                         child: const Center(
                           child: Icon(
-                            Icons.check_rounded,
+                            Remix.check_line,
                             size: 52,
                             color: AppColors.primary,
                           ),

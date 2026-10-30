@@ -1,3 +1,4 @@
+import 'package:remixicon/remixicon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,7 +23,7 @@ void main() {
                 actions: [
                   IconButton(
                     tooltip: 'Refresh',
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Remix.refresh_line),
                     onPressed: () {},
                   ),
                 ],
@@ -35,8 +36,8 @@ void main() {
         expect(
           find.byIcon(
             platform == TargetPlatform.iOS
-                ? CupertinoIcons.back
-                : Icons.arrow_back,
+                ? Remix.arrow_left_s_line
+                : Remix.arrow_left_line,
           ),
           findsOneWidget,
         );
@@ -68,7 +69,7 @@ void main() {
         ),
       );
       expect(find.byType(AppBackButton), findsNothing);
-      await tester.tap(find.byIcon(Icons.menu));
+      await tester.tap(find.byIcon(Remix.menu_line));
       await tester.pumpAndSettle();
       expect(find.text('Drawer content'), findsOneWidget);
     },
@@ -132,7 +133,7 @@ void main() {
                 subtitle: 'Manage your account information',
                 showBackButton: true,
                 actions: [
-                  IconButton(icon: const Icon(Icons.refresh), onPressed: () {}),
+                  IconButton(icon: const Icon(Remix.refresh_line), onPressed: () {}),
                 ],
               ),
             ),
@@ -165,7 +166,7 @@ void main() {
       ),
     );
     expect(tester.widget<AppBar>(find.byType(AppBar)).centerTitle, false);
-    expect(find.byIcon(CupertinoIcons.back), findsOneWidget);
+    expect(find.byIcon(Remix.arrow_left_s_line), findsOneWidget);
   });
 
   testWidgets('GetX native route preserves arguments and iOS swipe back', (
