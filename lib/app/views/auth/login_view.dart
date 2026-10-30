@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
-import '../../services/local_storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
 
@@ -23,8 +22,8 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    final storage = Get.find<LocalStorageService>();
-    if (storage.rememberMe) _identity.text = storage.userEmail ?? '';
+    _identity.clear();
+    _password.clear();
     _identity.addListener(() {
       if (mounted) setState(() {});
     });
@@ -40,10 +39,14 @@ class _LoginViewState extends State<LoginView> {
 
   void _login() {
     FocusManager.instance.primaryFocus?.unfocus();
-    Get.find<AuthController>().login(_identity.text.trim(), _password.text);
+    final identity = _identity.text.trim();
+    final password = _password.text;
+    _password.clear();
+    Get.find<AuthController>().login(identity, password);
   }
 
   void _next() {
+    _password.clear();
     setState(() => _passwordStep = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _passwordFocus.requestFocus();
@@ -63,6 +66,9 @@ class _LoginViewState extends State<LoginView> {
             ? TextInputType.visiblePassword
             : TextInputType.emailAddress,
         textInputAction: password ? TextInputAction.done : TextInputAction.next,
+        autofillHints: null,
+        enableSuggestions: false,
+        autocorrect: false,
         onFieldSubmitted: (_) {
           if (password) {
             _login();
@@ -72,9 +78,6 @@ class _LoginViewState extends State<LoginView> {
             _passwordFocus.requestFocus();
           }
         },
-        autofillHints: password
-            ? const [AutofillHints.password]
-            : const [AutofillHints.username],
         style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
         decoration: InputDecoration(
           labelText: (password ? 'password' : 'emailOrMobile').tr,

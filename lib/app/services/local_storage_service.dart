@@ -77,9 +77,7 @@ class LocalStorageService implements LocalStore {
   // Clear Session
   Future<void> clearSession() async {
     await setLoggedIn(false);
-    if (!rememberMe) {
-      await setUserEmail(null);
-    }
+    await setUserEmail(null);
   }
 
   Future<void> clearAll() => _box.erase();

@@ -9,6 +9,7 @@ import 'package:investpro/app/controllers/navigation_controller.dart';
 import 'package:investpro/app/controllers/profile_controller.dart';
 import 'package:investpro/app/controllers/theme_controller.dart';
 import 'package:investpro/app/models/user_model.dart';
+import 'package:investpro/app/routes/app_routes.dart';
 import 'package:investpro/app/services/demo_repository.dart';
 import 'package:investpro/app/services/local_storage_service.dart';
 import 'package:investpro/app/services/notification_service.dart';
@@ -56,7 +57,14 @@ void main() {
         theme: AppTheme.lightTheme,
         translations: AppTranslations(),
         locale: const Locale('en', 'US'),
-        home: const ProfileView(),
+        getPages: [
+          GetPage(name: '/', page: () => const ProfileView()),
+          GetPage(name: AppRoutes.bankDetails, page: () => const Scaffold(body: Text('Bank Details Screen'))),
+          GetPage(name: AppRoutes.helpSupport, page: () => const Scaffold(body: Text('Help & Support Screen'))),
+          GetPage(name: AppRoutes.kyc, page: () => const Scaffold(body: Text('KYC Screen'))),
+          GetPage(name: AppRoutes.editProfile, page: () => const Scaffold(body: Text('Edit Profile Screen'))),
+          GetPage(name: AppRoutes.myInvestments, page: () => const Scaffold(body: Text('My Investments Screen'))),
+        ],
       ),
     );
     await tester.pumpAndSettle();
@@ -90,7 +98,7 @@ void main() {
     // 3. Quick Action Cards
     expect(find.text('KYC Documents'), findsOneWidget);
     expect(find.text('Verify your identity'), findsOneWidget);
-    expect(find.text('Add Bank Account'), findsOneWidget);
+    expect(find.text('Bank Accounts'), findsOneWidget);
     expect(find.text('Manage withdrawals'), findsOneWidget);
 
     // 4. Account Management Section
@@ -120,7 +128,7 @@ void main() {
     expect(find.text('KYC: Verified'), findsOneWidget);
   });
 
-  testWidgets('Opens Bank Details dialog upon tap', (tester) async {
+  testWidgets('Opens Bank Details screen upon tap', (tester) async {
     repo.currentUser.value = const UserModel(
       id: 'inv-usr-bank-test',
       fullName: 'Bank Tester',
@@ -138,15 +146,10 @@ void main() {
     await tester.tap(bankDetailsTile);
     await tester.pumpAndSettle();
 
-    expect(find.text('HDFC Bank'), findsOneWidget);
-    expect(find.text('HDFC0001234'), findsOneWidget);
-
-    // Close dialog
-    await tester.tap(find.text('Close'));
-    await tester.pumpAndSettle();
+    expect(find.text('Bank Details Screen'), findsOneWidget);
   });
 
-  testWidgets('Opens Help & Support dialog upon tap', (tester) async {
+  testWidgets('Opens Help & Support screen upon tap', (tester) async {
     repo.currentUser.value = const UserModel(
       id: 'inv-usr-support-test',
       fullName: 'Support Tester',
@@ -161,13 +164,7 @@ void main() {
     await tester.tap(helpTile);
     await tester.pumpAndSettle();
 
-    expect(find.text('Email Support'), findsOneWidget);
-    expect(find.text('support@investpro.app'), findsOneWidget);
-
-    // Close dialog
-    await tester.tap(find.text('Close'));
-    await tester.pumpAndSettle();
-    expect(find.text('Email Support'), findsNothing);
+    expect(find.text('Help & Support Screen'), findsOneWidget);
   });
 
   testWidgets('No layout overflow across diverse screen sizes', (tester) async {

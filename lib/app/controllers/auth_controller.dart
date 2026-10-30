@@ -48,7 +48,7 @@ class AuthController extends GetxController {
     await _repo.syncFromBackend();
     await _storage.setRememberMe(rememberMe.value);
     await _storage.setLoggedIn(rememberMe.value);
-    await _storage.setUserEmail(rememberMe.value ? _repo.currentUser.value.email : null);
+    await _storage.setUserEmail(null);
     isLoggedIn.value = true;
     if (Get.isRegistered<FirebaseNotificationService>()) Get.find<FirebaseNotificationService>().syncToken().catchError((_) {});
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().refreshFromBackend().catchError((_) {});
@@ -78,7 +78,10 @@ class AuthController extends GetxController {
       isLoggedIn.value = false;
       Get.snackbar('Unable to sign in', 'Check your credentials and connection. No offline login was created.');
       return false;
-    } finally { isLoading.value = false; }
+    } finally {
+      isLoading.value = false;
+      isPasswordVisible.value = false;
+    }
   }
   Future<bool> register({required String fullName, required String email, required String mobileNumber, required String password}) async {
     if (isLoading.value) return false;
@@ -145,6 +148,7 @@ class AuthController extends GetxController {
 
     if (confirmed == true) {
       isLoggedIn.value = false;
+      isPasswordVisible.value = false;
       _repo.clearLiveData();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear();
       try {

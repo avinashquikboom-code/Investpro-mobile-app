@@ -61,6 +61,17 @@ class DemoRepository extends GetxService {
   String newReference(String prefix) =>
       '$prefix-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}';
 
+  String _paymentIntentKey(ProjectModel project,double amount)=>'payment_intent_${currentUser.value.id}_${project.id}_${minor(amount)}';
+  Future<String> paymentRequestId(ProjectModel project,double amount) async {
+    final key=_paymentIntentKey(project,amount);
+    final previous=_storage.read(key);
+    if(previous is String&&previous.isNotEmpty)return previous;
+    final request=newReference('INV');
+    await _storage.write(key,request);
+    return request;
+  }
+  Future<void> clearPaymentRequest(ProjectModel project,double amount)=>_storage.remove(_paymentIntentKey(project,amount));
+
   static int minor(double amount) => (amount * 100).round();
 
   double get totalInvested => isLive ? serverTotalInvested.value :
@@ -106,6 +117,7 @@ class DemoRepository extends GetxService {
       if (!amount.isFinite || amount <= 0) return 'Enter a positive amount';
       if (amount < project.minInvestment || (project.maxInvestment != null && amount > project.maxInvestment!)) return 'Amount is outside the project investment limits';
       if (project.status != 'Active') return 'Project is not available';
+      if (minor(amount) > minor(project.targetAmount)-minor(project.raisedAmount)) return 'Amount exceeds the remaining project funding';
       return null;
     }
     if (!amount.isFinite ||

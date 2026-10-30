@@ -1,3 +1,4 @@
+import '../services/payment_error.dart';
 import 'dart:async';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../services/api_service.dart';
@@ -12,11 +13,12 @@ import '../services/demo_repository.dart';
 import '../services/investment_calculator.dart';
 import '../utils/validators.dart';
 
-class InvestmentController extends GetxController {
+class InvestmentController extends GetxController with WidgetsBindingObserver {
+  final Razorpay Function() _checkoutFactory;
   final DemoRepository _repo;
   bool get isLive => _repo.isLive;
 
-  InvestmentController(this._repo) { if (_repo.isLive) myInvestmentsFilter.value = 'All'; }
+  InvestmentController(this._repo,{Razorpay Function()? checkoutFactory}) : _checkoutFactory=checkoutFactory??Razorpay.new { if (_repo.isLive) myInvestmentsFilter.value = 'All'; }
 
   // Form & Calculations State
   final RxDouble investmentAmount = 5000.0.obs;
@@ -56,6 +58,7 @@ class InvestmentController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if(isLive)WidgetsBinding.instance.addObserver(this);
     amountTextController.addListener(() {
       final parsed =
           double.tryParse(
@@ -74,6 +77,7 @@ class InvestmentController extends GetxController {
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _checkout?.clear();
     if (_payment?.isCompleted == false) _payment!.complete(false);
     amountTextController.dispose();
@@ -200,47 +204,79 @@ class InvestmentController extends GetxController {
       );
       return true;
     } catch (e) {
-      paymentError.value = e.toString();
+      paymentError.value = PaymentError.message(e);
       return false;
     } finally {
       isProcessingPayment.value = false;
     }
   }
 
+  Future<bool> _acceptVerified(Map<String,dynamic> verified) async {
+    if(!['ACTIVE','MATURED'].contains(verified['status'])||verified['paymentVerified']!=true) return false;
+    if(lastSuccessfulInvestment.value?.id==verified['id'])return true;
+    final record=BackendSnapshot.investment(verified);
+    lastSuccessfulInvestment.value=record;
+    _repo.investments.removeWhere((item)=>item.id==record.id);
+    _repo.investments.insert(0,record);
+    // A refresh failure must not turn a confirmed captured payment into a failed payment.
+    try {await _repo.syncFromBackend();} catch(_) {}
+    try {await _repo.clearPaymentRequest(currentProject.value!,record.investedAmount);}catch(_) {}
+    if(!isClosed)Get.offNamedUntil(AppRoutes.investmentSuccess,(route)=>route.settings.name==AppRoutes.home);
+    return true;
+  }
+  @override void didChangeAppLifecycleState(AppLifecycleState state) {
+    if(state==AppLifecycleState.resumed&&_pendingId!=null&&_payment?.isCompleted==false){unawaited(_recoverCaptured());}
+  }
+  Future<void> _recoverCaptured() async {
+    final completion=_payment;
+    try {
+      final result=await Get.find<ApiService>().object('/mobile/investments/$_pendingId');
+      if(isClosed||completion!=_payment||completion?.isCompleted!=false)return;
+      if(await _acceptVerified(result)){if(completion?.isCompleted==false)completion!.complete(true);}
+    } catch(_) { /* Checkout callback or the next safe retry can reconcile later. */ }
+  }
   Future<bool> _payVerified() async {
-    final api = Get.find<ApiService>();
-    if (_pendingId == null) {
-      final pending = await _repo.createInvestment(project: currentProject.value!,
-        amount: investmentAmount.value, paymentMethod: 'UPI', requestId: _requestId);
-      _pendingId = pending.id;
+    final api=Get.find<ApiService>();
+    if(_pendingId==null){
+      _requestId=await _repo.paymentRequestId(currentProject.value!,investmentAmount.value);
+      final pending=await _repo.createInvestment(project:currentProject.value!,amount:investmentAmount.value,paymentMethod:'UPI',requestId:_requestId);
+      _pendingId=pending.id;
     }
-    final investmentId = _pendingId!;
-    final order = await api.paymentOrder(investmentId);
-    _payment = Completer<bool>();
-    _checkout?.clear();
-    _checkout = Razorpay();
-    _checkout!.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) async {
+    final investmentId=_pendingId!;
+    final current=await api.object('/mobile/investments/$investmentId');
+    if(await _acceptVerified(current))return true;
+    if(current['status']!='PENDING_PAYMENT')throw const PaymentFailure('This investment is not awaiting payment. Refresh your investment history.');
+    final order=await api.paymentOrder(investmentId);
+    final amount=order['amount'];
+    if(order['investmentId']!=investmentId||order['orderId'] is! String||!(order['orderId'] as String).startsWith('order_')||order['keyId'] is! String||!RegExp(r'^rzp_(test|live)_').hasMatch(order['keyId'] as String)||amount is! int||amount<=0||amount!=DemoRepository.minor((current['amount'] as num).toDouble())||order['currency']!='INR')throw const PaymentFailure('The payment order is invalid. Please retry or contact support.');
+    final completion=Completer<bool>();_payment=completion;
+    _checkout?.clear();_checkout=_checkoutFactory();
+    var verifying=false;
+    bool inactive()=>isClosed||completion.isCompleted||_payment!=completion;
+    _checkout!.on(Razorpay.EVENT_PAYMENT_SUCCESS,(PaymentSuccessResponse response)async{
+      if(inactive()||verifying)return;verifying=true;
       try {
-        final verified = await api.verifyPayment({'investmentId': investmentId,
-          'orderId': response.orderId, 'paymentId': response.paymentId, 'signature': response.signature});
-        if (verified['status'] != 'ACTIVE' || verified['paymentVerified'] != true) {
-          throw StateError('Payment requires backend reconciliation. Check your investment history.');
-        }
-        lastSuccessfulInvestment.value = BackendSnapshot.investment(verified);
-        await _repo.syncFromBackend();
-        if (_payment?.isCompleted == false) _payment!.complete(true);
-        Get.offNamedUntil(AppRoutes.investmentSuccess, (route) => route.settings.name == AppRoutes.home);
-      } catch (_) {
-        paymentError.value = 'Payment verification is pending. Refresh your investments before retrying.';
-        if (_payment?.isCompleted == false) _payment!.complete(false);
+        if(response.orderId!=order['orderId']||response.paymentId==null||response.paymentId!.isEmpty||response.signature==null||!RegExp(r'^[a-f0-9]{64}$',caseSensitive:false).hasMatch(response.signature!))throw const PaymentFailure('Checkout returned incomplete payment details. Refresh your investment history.');
+        final verified=await api.verifyPayment({'investmentId':investmentId,'orderId':response.orderId,'paymentId':response.paymentId,'signature':response.signature});
+        if(inactive())return;
+        if(!await _acceptVerified(verified))throw const PaymentFailure('Payment verification is pending. Refresh your investments before retrying.');
+        if(!completion.isCompleted)completion.complete(true);
+      } catch(error) {
+        if(!inactive()){paymentError.value=PaymentError.message(error,fallback:'Payment verification is pending. Refresh your investments before retrying.');completion.complete(false);}
       }
     });
-    _checkout!.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
-      paymentError.value = response.message ?? 'Checkout cancelled or unsuccessful. Your request remains pending.';
-      if (_payment?.isCompleted == false) _payment!.complete(false);
+    _checkout!.on(Razorpay.EVENT_PAYMENT_ERROR,(PaymentFailureResponse response){
+      if(inactive()||verifying)return;
+      paymentError.value='Checkout was cancelled or unsuccessful. Your investment remains pending; you can retry safely.';
+      completion.complete(false);
     });
-    _checkout!.open({'key': order['keyId'], 'order_id': order['orderId'],
-      'amount': order['amount'], 'currency': order['currency'], 'name': 'InvestPro'});
-    return _payment!.future;
+    _checkout!.on(Razorpay.EVENT_EXTERNAL_WALLET,(ExternalWalletResponse response){
+      if(inactive()||verifying)return;
+      paymentError.value='External wallet selected. Return to the app and refresh your investment before retrying.';
+      completion.complete(false);
+    });
+    try {_checkout!.open({'key':order['keyId'],'order_id':order['orderId'],'amount':amount,'currency':'INR','name':'InvestPro'});}
+    catch(_){if(!completion.isCompleted)completion.complete(false);throw const PaymentFailure('Unable to open secure checkout. Please retry.');}
+    try{return await completion.future;}finally{_checkout?.clear();}
   }
 }

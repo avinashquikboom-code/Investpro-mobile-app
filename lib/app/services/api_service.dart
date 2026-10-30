@@ -1,3 +1,4 @@
+import 'payment_error.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:dio/dio.dart';
@@ -157,8 +158,20 @@ class ApiService extends getx.GetxService {
     if (response.data['success'] != true || response.data['data'] is! Map) throw Exception('Unable to load account data');
     return Map<String, dynamic>.from(response.data['data'] as Map);
   }
-  Future<Map<String, dynamic>> paymentOrder(String investmentId) async => Map<String, dynamic>.from((await dio.post('/payments/orders', data: {'investmentId': investmentId})).data['data'] as Map);
-  Future<Map<String, dynamic>> verifyPayment(Map<String, dynamic> data) async => Map<String, dynamic>.from((await dio.post('/payments/verify', data: data)).data['data'] as Map);
+  Future<Map<String,dynamic>> _paymentPost(String path,Map<String,dynamic> data,{String? requestId}) async {
+    try {
+      final response=await dio.post(path,data:data,options:Options(headers:{'Idempotency-Key':?requestId},receiveTimeout:const Duration(seconds:30)));
+      if(response.data is! Map || response.data['success']!=true || response.data['data'] is! Map)throw const PaymentFailure('The payment service returned an invalid response. Retry safely.');
+      return Map<String,dynamic>.from(response.data['data'] as Map);
+    } catch(error) {
+      final message=PaymentError.message(error);
+      if(kDebugMode){final status=error is DioException?error.response?.statusCode:null;debugPrint('Payment request failed method=POST url=${dio.options.baseUrl}$path status=${status??'network/invalid response'} response=${jsonEncode({'message':PaymentError.diagnostic(message)})}');}
+      throw PaymentFailure(message);
+    }
+  }
+  Future<Map<String,dynamic>> paymentOrder(String investmentId)=>_paymentPost('/payments/orders',{'investmentId':investmentId});
+  Future<Map<String,dynamic>> verifyPayment(Map<String,dynamic> data)=>_paymentPost('/payments/verify',data);
+
   Future<List<dynamic>> kyc() => collection('/mobile/kyc');
   Future<Map<String, dynamic>> kycConfig() => object('/mobile/kyc/config');
   Future<Map<String, dynamic>> kycStatus() => object('/mobile/kyc/status');
@@ -440,26 +453,7 @@ class ApiService extends getx.GetxService {
     String? idempotencyKey,
     String paymentMethod = 'BANK_TRANSFER',
   }) async {
-    try {
-      final response = await dio.post(
-        '/mobile/investments',
-        options: Options(headers: {'Idempotency-Key': ?idempotencyKey}),
-        data: {
-          'projectId': projectId,
-          'amount': amount,
-          'paymentMethod': paymentMethod,
-        },
-      );
-
-      if ((response.statusCode == 200 || response.statusCode == 201) &&
-          response.data['success'] == true) {
-        return response.data['data'] as Map<String, dynamic>;
-      }
-    } catch (e) {
-      debugPrint('[ApiService] createInvestment error: $e');
-      rethrow;
-    }
-    return null;
+    return _paymentPost('/mobile/investments',{'projectId':projectId,'amount':amount,'paymentMethod':paymentMethod},requestId:idempotencyKey);
   }
 
   Future<List<dynamic>?> getReturns() async => collection('/mobile/returns');

@@ -38,9 +38,10 @@ class _InvestorRequestsViewState extends State<InvestorRequestsView> {
       );
       final target = Get.arguments;
       Map<String, dynamic>? selected;
-      if (!next && target is String)
+      if (!next && target is String) {
         selected = await Get.find<ApiService>().requestDetail(target);
-      if (mounted)
+      }
+      if (mounted) {
         setState(() {
           if (!next) {
             page = 1;
@@ -50,16 +51,19 @@ class _InvestorRequestsViewState extends State<InvestorRequestsView> {
           }
           records.addAll(rows.map((r) => Map<String, dynamic>.from(r as Map)));
           if (selected != null &&
-              !records.any((r) => r['id'] == selected!['id']))
+              !records.any((r) => r['id'] == selected!['id'])) {
             records.insert(0, selected);
+          }
           more = rows.length == 25;
           error = '';
         });
+      }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => error = 'Unable to load request history. Pull to refresh.',
         );
+      }
     }
   }
 
@@ -84,11 +88,12 @@ class _InvestorRequestsViewState extends State<InvestorRequestsView> {
       key = ApiService.newRequestKey();
       await load();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => error =
               'Submission not confirmed. Check your connection and retry.',
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
