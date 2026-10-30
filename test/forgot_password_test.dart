@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:investpro/app/controllers/forgot_password_controller.dart';
 import 'package:investpro/app/services/api_service.dart';
 import 'package:investpro/app/views/auth/forgot_password_view.dart';

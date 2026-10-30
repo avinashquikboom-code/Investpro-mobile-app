@@ -27,11 +27,10 @@ class DemoRepository extends GetxService {
   DemoRepository(this._storage, this._notificationService, [this._api]);
 
   final currentUser = const UserModel(
-    id: 'INV001',
-    fullName: 'Rohit Sharma',
-    email: 'rohit.sharma@example.com',
-    mobileNumber: '9876543210',
-    isBankVerified: true,
+    id: '',
+    fullName: '',
+    email: '',
+    mobileNumber: '',
   ).obs;
 
   final projects = <ProjectModel>[].obs;

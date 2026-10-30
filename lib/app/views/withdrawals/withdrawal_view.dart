@@ -98,55 +98,120 @@ class WithdrawalView extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Linked Bank Account
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.surfaceDarkElevated
-                          : const Color(0xFFF3F8F5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.border,
-                        width: 1,
-                      ),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.account_balance_rounded,
-                          color: AppColors.primary,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Demo Bank •••• 4829',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Demo account • not verified',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
+                  Obx(() {
+                    final bankName = controller.linkedBankName;
+                    final accountNumber = controller.linkedAccountNumber;
+                    final hasBankAccount = controller.hasBankAccount;
+                    final isLive = controller.isLive;
+
+                    if (isLive && !hasBankAccount) {
+                      return Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.surfaceDarkElevated
+                              : const Color(0xFFFFF8E1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.warning,
+                            width: 1,
                           ),
                         ),
-                        Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.success,
-                          size: 20,
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.warning,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'No bank account linked',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Add a bank account from your Profile before withdrawing.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      );
+                    }
+
+                    final displayBank = isLive
+                        ? (bankName.isNotEmpty ? bankName : 'Primary bank account')
+                        : 'Primary bank account';
+                    final displayAccount = isLive
+                        ? (accountNumber.isNotEmpty ? accountNumber : '•••• ****')
+                        : '•••• ****';
+                    final verifiedLabel = isLive
+                        ? (controller.hasBankAccount ? 'Verified' : 'Unverified')
+                        : 'Offline — no real transfer';
+
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceDarkElevated
+                            : const Color(0xFFF3F8F5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppColors.borderDark : AppColors.border,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.account_balance_rounded,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$displayBank $displayAccount',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  verifiedLabel,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isLive && controller.hasBankAccount)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: AppColors.success,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 24),
 
                   Obx(

@@ -275,9 +275,15 @@ class InvestNowView extends StatelessWidget {
                         invCtrl.amountError!,
                         style: const TextStyle(color: AppColors.error),
                       ),
-                    const Text(
-                      'Full-term projections only. Returns are not guaranteed. Demo payment only.',
-                    ),
+                    if (!invCtrl.isLive)
+                      const Text(
+                        'Full-term projections only. Returns are not guaranteed. Demo payment only.',
+                      ),
+                    if (invCtrl.isLive)
+                      const Text(
+                        'Full-term projections only. Returns are not guaranteed.',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
                     // Security Footer
                     Center(
                       child: Row(

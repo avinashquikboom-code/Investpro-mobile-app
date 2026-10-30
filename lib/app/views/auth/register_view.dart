@@ -19,12 +19,10 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  final _fullNameController = TextEditingController(text: 'Rohit Sharma');
-  final _emailController = TextEditingController(
-    text: 'rohit.sharma@example.com',
-  );
-  final _mobileController = TextEditingController(text: '9876543210');
-  final _passwordController = TextEditingController(text: 'invest123');
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {

@@ -18,6 +18,18 @@ class WithdrawalController extends GetxController {
 
   double get availableBalance => _repo.availableBalance.value;
 
+  /// Real bank name from authenticated profile (empty string if none linked).
+  String get linkedBankName => _repo.currentUser.value.bankName;
+
+  /// Masked account number from authenticated profile (e.g. "•••• 1234").
+  String get linkedAccountNumber => _repo.currentUser.value.accountNumber;
+
+  /// True when the authenticated user has a primary bank account linked.
+  bool get hasBankAccount => _repo.currentUser.value.bankAccountId != null;
+
+  /// True when the app is connected to a live backend.
+  bool get isLive => _repo.isLive;
+
   List<TransactionModel> get filteredTransactions {
     final txns = _repo.isLive ? [
       ..._repo.withdrawals.map((request) => TransactionModel(id: request.id, type: TransactionType.withdrawal, title: 'Withdrawal request', subtitle: '${request.bankName} ${request.accountNumber}', amount: request.amount, date: request.requestDate, status: request.status, direction: 'DEBIT', referenceId: request.referenceId)),
