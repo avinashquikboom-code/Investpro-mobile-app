@@ -75,7 +75,6 @@ class SettingsView extends StatelessWidget {
                       color: isSelected
                           ? AppColors.primary.withValues(alpha: 0.08)
                           : (isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF7FAF8)),
-                      borderRadius: BorderRadius.circular(14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(
@@ -678,7 +677,6 @@ class SettingsView extends StatelessWidget {
   Widget _buildCardGroup({required List<Widget> children, required bool isDark}) {
     return Material(
       color: isDark ? AppColors.surfaceDark : Colors.white,
-      borderRadius: BorderRadius.circular(18),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),

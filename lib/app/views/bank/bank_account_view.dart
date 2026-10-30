@@ -143,14 +143,19 @@ class _BankAccountViewState extends State<BankAccountView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Add Bank Account',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        Expanded(
+                          child: Text(
+                            'Add Bank Account',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.close_rounded),
                           onPressed: () => Navigator.of(context).pop(),
@@ -277,7 +282,10 @@ class _BankAccountViewState extends State<BankAccountView> {
                     const SizedBox(height: 12),
 
                     // Account Type Selector (Savings vs Current)
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           'Account Type:',
@@ -287,7 +295,6 @@ class _BankAccountViewState extends State<BankAccountView> {
                             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(width: 12),
                         ChoiceChip(
                           label: const Text('Savings'),
                           selected: selectedType == 'SAVINGS',
@@ -300,7 +307,6 @@ class _BankAccountViewState extends State<BankAccountView> {
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         ChoiceChip(
                           label: const Text('Current'),
                           selected: selectedType == 'CURRENT',
@@ -560,20 +566,28 @@ class _BankAccountViewState extends State<BankAccountView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Linked Bank Accounts',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      Expanded(
+                        child: Text(
+                          'Linked Bank Accounts',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _openAddAccountSheet(context),
                         icon: const Icon(Icons.add_rounded, size: 18),
                         label: const Text('Add Account'),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           textStyle: GoogleFonts.poppins(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
@@ -780,35 +794,40 @@ class _BankAccountViewState extends State<BankAccountView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ACCOUNT NUMBER',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.8,
-                        color: account.isPrimary
-                            ? Colors.white.withValues(alpha: 0.7)
-                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ACCOUNT NUMBER',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
+                          color: account.isPrimary
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      displayedAccNum,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.5,
-                        color: account.isPrimary
-                            ? Colors.white
-                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                      const SizedBox(height: 4),
+                      Text(
+                        displayedAccNum,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                          color: account.isPrimary
+                              ? Colors.white
+                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 IconButton(
                   icon: Icon(
                     isRevealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -868,6 +887,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -1021,12 +1041,14 @@ class _BankAccountViewState extends State<BankAccountView> {
             children: [
               const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
-              Text(
-                'Important Banking Guidelines',
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  'Important Banking Guidelines',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],

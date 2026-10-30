@@ -58,6 +58,10 @@ class ApiService extends getx.GetxService {
               error.requestOptions.extra['retry'] = true;
               error.requestOptions.headers['Authorization'] = 'Bearer $token';
               try {
+                // A finalized multipart stream must be cloned before replay after token refresh.
+                if (error.requestOptions.data is FormData) {
+                  error.requestOptions.data = (error.requestOptions.data as FormData).clone();
+                }
                 final response = await dio.fetch(error.requestOptions);
                 return handler.resolve(response);
               } catch (e) {

@@ -82,33 +82,28 @@ class _ProjectsViewState extends State<ProjectsView> {
     }
   }
 
-  Widget _chips(
-    List<String> ids,
-    String selected,
-    String Function(String) label,
-    void Function(String) onSelected,
-  ) => SingleChildScrollView(
+  Widget _statusChips(ProjectController projects) => SingleChildScrollView(
     scrollDirection: Axis.horizontal,
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Row(
-      children: ids
+      children: projects.statusFilters
           .map(
             (id) => Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
-                label: Text(label(id)),
-                selected: selected == id,
-                onSelected: (_) => onSelected(id),
+                label: Text(id),
+                selected: projects.selectedFilter.value == id,
+                onSelected: (_) => projects.setFilter(id),
                 showCheckmark: false,
                 selectedColor: AppColors.primaryDark,
                 backgroundColor: AppColors.surface,
                 side: BorderSide(
-                  color: selected == id
+                  color: projects.selectedFilter.value == id
                       ? AppColors.primaryDark
                       : AppColors.border,
                 ),
                 labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: selected == id
+                  color: projects.selectedFilter.value == id
                       ? Theme.of(context).colorScheme.onPrimary
                       : AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -143,7 +138,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -152,97 +147,34 @@ class _ProjectsViewState extends State<ProjectsView> {
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: AppColors.textSecondary),
                           ),
-                          const SizedBox(height: 18),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _search,
-                                  onChanged: projects.setSearchQuery,
-                                  textInputAction: TextInputAction.search,
-                                  onSubmitted: (_) =>
-                                      projects.refreshProjects(),
-                                  decoration: InputDecoration(
-                                    hintText: 'Search projects by name or location...',
-                                    prefixIcon: const Icon(
-                                      Icons.search_rounded,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    suffixIcon: Obx(
-                                      () => projects.searchQuery.value.isEmpty
-                                          ? const SizedBox.shrink()
-                                          : IconButton(
-                                              tooltip: 'Clear search',
-                                              icon: const Icon(
-                                                Icons.close_rounded,
-                                              ),
-                                              onPressed: () {
-                                                _search.clear();
-                                                projects.setSearchQuery('');
-                                              },
-                                            ),
-                                    ),
-                                  ),
-                                ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _search,
+                            onChanged: projects.setSearchQuery,
+                            textInputAction: TextInputAction.search,
+                            onSubmitted: (_) =>
+                                projects.refreshProjects(),
+                            decoration: InputDecoration(
+                              hintText: 'Search projects by name or location...',
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: AppColors.textSecondary,
                               ),
-                              const SizedBox(width: 8),
-                              IconButton.outlined(
-                                tooltip: 'Filter projects',
-                                icon: const Icon(
-                                  Icons.tune_rounded,
-                                  color: AppColors.primary,
-                                ),
-                                onPressed: () {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  showModalBottomSheet<void>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (_) => SafeArea(
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 24,
+                              suffixIcon: Obx(
+                                () => projects.searchQuery.value.isEmpty
+                                    ? const SizedBox.shrink()
+                                    : IconButton(
+                                        tooltip: 'Clear search',
+                                        icon: const Icon(
+                                          Icons.close_rounded,
                                         ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Filter projects',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Obx(
-                                              () => _chips(
-                                                projects.statusFilters,
-                                                projects.selectedFilter.value,
-                                                (id) => id,
-                                                projects.setFilter,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Obx(
-                                              () => _chips(
-                                                projects.availableCategories,
-                                                projects.selectedCategory.value,
-                                                projects.categoryLabel,
-                                                projects.setCategory,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 16),
-                                            TextButton(
-                                              onPressed: () => Get.back(),
-                                              child: const Text('Done'),
-                                            ),
-                                          ],
-                                        ),
+                                        onPressed: () {
+                                          _search.clear();
+                                          projects.setSearchQuery('');
+                                        },
                                       ),
-                                    ),
-                                  );
-                                },
                               ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
@@ -250,23 +182,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                   ),
                   SliverToBoxAdapter(
                     child: Obx(
-                      () => _chips(
-                        projects.statusFilters,
-                        projects.selectedFilter.value,
-                        (id) => id,
-                        projects.setFilter,
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                  SliverToBoxAdapter(
-                    child: Obx(
-                      () => _chips(
-                        projects.availableCategories,
-                        projects.selectedCategory.value,
-                        projects.categoryLabel,
-                        projects.setCategory,
-                      ),
+                      () => _statusChips(projects),
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -316,7 +232,6 @@ class _ProjectsViewState extends State<ProjectsView> {
                             _search.clear();
                             projects.setSearchQuery('');
                             projects.setFilter('All Projects');
-                            projects.setCategory('All Categories');
                           },
                         ),
                       );

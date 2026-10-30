@@ -469,7 +469,6 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(18),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),

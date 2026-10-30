@@ -417,8 +417,8 @@ void main() {
       await tester.tap(find.text('Retry'));
       await tester.pumpAndSettle();
       expect(find.byType(ProjectListingCard), findsOneWidget);
-      expect(find.text('abc'), findsWidgets);
-      expect(find.text('test (2)'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'All Projects'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'Active'), findsOneWidget);
     },
   );
 
@@ -456,20 +456,16 @@ void main() {
         tester.widget<TextField>(find.byType(TextField)).controller?.text,
         '',
       );
-      await tester.tap(find.text('test (2)'));
-      await tester.pumpAndSettle();
-      expect(api.requests.last.category, 'other-id');
-      await tester.tap(find.text('All Categories'));
-      await tester.pumpAndSettle();
+      // Category chips and filter icon are removed
+      expect(find.text('All Categories'), findsNothing);
+      expect(find.byTooltip('Filter projects'), findsNothing);
+      // Status tabs work
       await tester.tap(find.text('Upcoming'));
       await tester.pumpAndSettle();
       expect(find.text('No Projects Found'), findsOneWidget);
       await tester.tap(find.text('Active'));
       await tester.pumpAndSettle();
       expect(find.byType(ProjectListingCard), findsOneWidget);
-      await tester.tap(find.byTooltip('Filter projects'));
-      await tester.pumpAndSettle();
-      expect(find.text('Done'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

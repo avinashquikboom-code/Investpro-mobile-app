@@ -53,7 +53,6 @@ class TransactionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: BorderSide(

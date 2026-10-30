@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/navigation_controller.dart';
+import '../../services/firebase_notification_service.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../investments/my_investments_view.dart';
 import '../profile/profile_view.dart';
@@ -14,6 +15,7 @@ class MainNavigationShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (Get.isRegistered<FirebaseNotificationService>()) Get.find<FirebaseNotificationService>().flushKyc();
     final navCtrl = Get.find<NavigationController>();
 
     final pages = [

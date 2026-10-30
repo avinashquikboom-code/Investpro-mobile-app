@@ -3,10 +3,12 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
 import '../models/notification_model.dart';
+import '../controllers/auth_controller.dart';
 import '../routes/app_routes.dart';
 import 'api_service.dart';
 import 'local_storage_service.dart';
@@ -34,6 +36,7 @@ class FirebaseNotificationService extends GetxService {
   static const String channelDescription =
       'High-priority transaction, investment and update notifications';
 
+  bool _pendingKyc = false;
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
@@ -293,7 +296,8 @@ class FirebaseNotificationService extends GetxService {
         ?.toString();
 
     if (data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
-      Get.toNamed(AppRoutes.kyc);
+      _pendingKyc = true;
+      flushKyc();
     } else if (type.contains('PROJECT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
         Get.toNamed(
@@ -321,8 +325,16 @@ class FirebaseNotificationService extends GetxService {
     }
   }
 
+  void flushKyc() {
+    if (!_pendingKyc || Get.context == null || !Get.isRegistered<AuthController>() || !Get.find<AuthController>().isLoggedIn.value || Get.currentRoute == AppRoutes.splash || Get.currentRoute == AppRoutes.login) return;
+    _pendingKyc = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (Get.find<AuthController>().isLoggedIn.value) Get.toNamed(AppRoutes.kyc); });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
   NotificationType _mapType(String typeStr) {
     final upper = typeStr.toUpperCase();
+    if (upper.contains('KYC')) return NotificationType.kyc;
     if (upper.contains('INVESTMENT')) return NotificationType.investmentSuccess;
     if (upper.contains('RETURN')) return NotificationType.returnReceived;
     if (upper.contains('WITHDRAWAL')) {

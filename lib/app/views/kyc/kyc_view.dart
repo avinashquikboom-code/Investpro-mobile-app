@@ -458,7 +458,6 @@ class _KycViewState extends State<KycView> {
             color: isSelected
                 ? AppColors.primary.withValues(alpha: 0.08)
                 : (isDark ? AppColors.surfaceDark : Colors.white),
-            borderRadius: BorderRadius.circular(14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(
@@ -699,7 +698,6 @@ class _KycViewState extends State<KycView> {
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
@@ -817,6 +815,7 @@ class _KycViewState extends State<KycView> {
                 children: [
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
+                      minimumSize: Size.zero,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,

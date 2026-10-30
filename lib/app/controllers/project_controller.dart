@@ -29,27 +29,11 @@ class ProjectController extends GetxController {
   int _request = 0;
   Timer? _searchTimer;
 
-  List<String> get statusFilters => [
+  List<String> get statusFilters => const [
     'All Projects',
     'Active',
     'Upcoming',
     'Completed',
-    'Funded',
-    'Cancelled',
-    'Draft',
-    ...remoteProjects
-        .map((p) => p.statusLabel)
-        .where(
-          (s) => ![
-            'Active',
-            'Upcoming',
-            'Completed',
-            'Funded',
-            'Cancelled',
-            'Draft',
-          ].contains(s),
-        )
-        .toSet(),
   ];
 
   String? investmentUnavailableReason(

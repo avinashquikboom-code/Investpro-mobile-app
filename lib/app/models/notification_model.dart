@@ -4,6 +4,7 @@ enum NotificationType {
   withdrawalApproved,
   projectUpdate,
   newProject,
+  kyc,
 }
 
 class NotificationModel {
@@ -65,30 +66,37 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     NotificationType parsedType;
     final typeVal = json['type']?.toString().toUpperCase() ?? 'INVESTMENT';
-    switch (typeVal) {
-      case 'INVESTMENT':
-      case 'INVESTMENTSUCCESS':
-        parsedType = NotificationType.investmentSuccess;
-        break;
-      case 'RETURN':
-      case 'RETURNRECEIVED':
-        parsedType = NotificationType.returnReceived;
-        break;
-      case 'WITHDRAWAL':
-      case 'WITHDRAWALAPPROVED':
-        parsedType = NotificationType.withdrawalApproved;
-        break;
-      case 'PROJECT_UPDATE':
-      case 'PROJECTUPDATE':
-        parsedType = NotificationType.projectUpdate;
-        break;
-      case 'NEWPROJECT':
-      default:
-        parsedType = NotificationType.values.firstWhere(
-          (e) => e.name.toLowerCase() == typeVal.toLowerCase(),
-          orElse: () => NotificationType.newProject,
-        );
-        break;
+    final targetType = json['targetType']?.toString().toUpperCase() ?? '';
+    final title = (json['title'] ?? '').toString().toUpperCase();
+
+    if (typeVal.contains('KYC') || targetType == 'KYC' || title.contains('KYC')) {
+      parsedType = NotificationType.kyc;
+    } else {
+      switch (typeVal) {
+        case 'INVESTMENT':
+        case 'INVESTMENTSUCCESS':
+          parsedType = NotificationType.investmentSuccess;
+          break;
+        case 'RETURN':
+        case 'RETURNRECEIVED':
+          parsedType = NotificationType.returnReceived;
+          break;
+        case 'WITHDRAWAL':
+        case 'WITHDRAWALAPPROVED':
+          parsedType = NotificationType.withdrawalApproved;
+          break;
+        case 'PROJECT_UPDATE':
+        case 'PROJECTUPDATE':
+          parsedType = NotificationType.projectUpdate;
+          break;
+        case 'NEWPROJECT':
+        default:
+          parsedType = NotificationType.values.firstWhere(
+            (e) => e.name.toLowerCase() == typeVal.toLowerCase(),
+            orElse: () => NotificationType.newProject,
+          );
+          break;
+      }
     }
 
     String? relatedId =

@@ -23,6 +23,8 @@ class NotificationsView extends StatelessWidget {
         return Icons.update_rounded;
       case NotificationType.newProject:
         return Icons.rocket_launch_rounded;
+      case NotificationType.kyc:
+        return Icons.shield_outlined;
     }
   }
 
@@ -37,6 +39,8 @@ class NotificationsView extends StatelessWidget {
         return const Color(0xFFF3E8FF);
       case NotificationType.newProject:
         return AppColors.badgeAmberBg;
+      case NotificationType.kyc:
+        return AppColors.badgeGreenBg;
     }
   }
 
@@ -51,6 +55,8 @@ class NotificationsView extends StatelessWidget {
         return const Color(0xFF9333EA);
       case NotificationType.newProject:
         return AppColors.badgeAmberText;
+      case NotificationType.kyc:
+        return AppColors.primary;
     }
   }
 
@@ -113,7 +119,6 @@ class NotificationsView extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 10),
                     child: Material(
                       color: isDark ? AppColors.surfaceDark : Colors.white,
-                      borderRadius: BorderRadius.circular(14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                         side: BorderSide(

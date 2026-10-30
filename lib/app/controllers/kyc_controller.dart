@@ -22,16 +22,18 @@ class KycController extends GetxController {
   int _request = 0;
   String safeError(Object exception) {
     if (exception is DioException) {
-      if (exception.response?.statusCode == 401)
+      if (exception.response?.statusCode == 401) {
         return 'Your session expired. Sign in again.';
+      }
       final data = exception.response?.data;
       if (data is Map && data['message'] is String) return data['message'];
       if ([
         DioExceptionType.connectionTimeout,
         DioExceptionType.sendTimeout,
         DioExceptionType.receiveTimeout,
-      ].contains(exception.type))
+      ].contains(exception.type)) {
         return 'The upload timed out. Refresh your KYC status before retrying.';
+      }
     }
     return 'Unable to complete the KYC request. Check your connection and retry.';
   }
@@ -62,16 +64,19 @@ class KycController extends GetxController {
   }
 
   String? get selectionError {
-    if (maxBytes == null || types.isEmpty)
+    if (maxBytes == null || types.isEmpty) {
       return 'Load the upload requirements first.';
+    }
     if (bytes.value == null) return 'Select a document.';
-    if (bytes.value!.isEmpty || bytes.value!.length > maxBytes!)
+    if (bytes.value!.isEmpty || bytes.value!.length > maxBytes!) {
       return 'Select a document within the upload size limit.';
+    }
     final latest = rows.firstWhereOrNull(
       (r) => r['documentType'] == selectedType.value,
     );
-    if (latest != null && ['PENDING', 'VERIFIED'].contains(latest['status']))
+    if (latest != null && ['PENDING', 'VERIFIED'].contains(latest['status'])) {
       return 'This document is already pending or verified.';
+    }
     return null;
   }
 
@@ -133,8 +138,9 @@ class KycController extends GetxController {
       fileName.value = '';
       status.value = 'PENDING';
       await load();
-      if (Get.isRegistered<DemoRepository>())
+      if (Get.isRegistered<DemoRepository>()) {
         Get.find<DemoRepository>().syncFromBackend().catchError((_) {});
+      }
       return true;
     } catch (e) {
       error.value = safeError(e);

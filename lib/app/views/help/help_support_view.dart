@@ -590,7 +590,6 @@ class _HelpSupportViewState extends State<HelpSupportView> {
   }) {
     return Material(
       color: isDark ? AppColors.surfaceDark : Colors.white,
-      borderRadius: BorderRadius.circular(16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
@@ -674,6 +673,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
           const SizedBox(width: 10),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
+              minimumSize: Size.zero,
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -696,37 +696,40 @@ class _HelpSupportViewState extends State<HelpSupportView> {
   Widget _buildFaqTile(Map<String, String> faq, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
+      child: Material(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          iconColor: AppColors.primary,
-          collapsedIconColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-          title: Text(
-            faq['question']!,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-            ),
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text(
-                faq['answer']!,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                  height: 1.45,
-                ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            iconColor: AppColors.primary,
+            collapsedIconColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            title: Text(
+              faq['question']!,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
-          ],
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  faq['answer']!,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

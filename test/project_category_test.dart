@@ -58,7 +58,7 @@ void main() {
     const Size(844, 390),
     const Size(1024, 1366),
   ]) {
-    testWidgets('category labels show backend names rather than IDs at $size', (
+    testWidgets('category chips are removed and status tabs are displayed at $size', (
       tester,
     ) async {
       tester.view.physicalSize = size;
@@ -72,8 +72,12 @@ void main() {
       Get.put(InvestmentController(repo));
       await tester.pumpWidget(const GetMaterialApp(home: ProjectsView()));
       await tester.pumpAndSettle();
-      expect(find.text('Backend category (0)'), findsOneWidget);
-      expect(find.text('type-1'), findsNothing);
+      expect(find.text('Backend category (0)'), findsNothing);
+      expect(find.text('All Categories'), findsNothing);
+      expect(find.text('All Projects'), findsOneWidget);
+      expect(find.text('Active'), findsOneWidget);
+      expect(find.text('Upcoming'), findsOneWidget);
+      expect(find.text('Completed'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
