@@ -70,10 +70,11 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
             banks.firstOrNull?['id'];
       });
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => error = 'Unable to load eligible returns and verified banks. Please retry.',
         );
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -148,12 +149,13 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
       }
     } catch (e) {
       final message = e is DioException ? e.response?.data : null;
-      if (mounted)
+      if (mounted) {
         setState(
           () => error = message is Map && message['message'] is String
               ? message['message']
               : 'Request could not be confirmed. Retry with the same amount to safely recover it.',
         );
+      }
     } finally {
       if (mounted) setState(() => submitting = false);
     }

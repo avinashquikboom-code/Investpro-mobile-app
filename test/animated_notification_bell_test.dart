@@ -102,8 +102,6 @@ void main() {
                 unreadCount: 1,
                 size: 22,
                 containerSize: 42,
-                badgeTop: 9,
-                badgeRight: 9,
               ),
             ),
           ),
@@ -113,11 +111,9 @@ void main() {
       final iconRect = tester.getRect(find.byIcon(Remix.notification_line));
       final badgeWidget = tester.widget<Positioned>(find.byType(Positioned));
 
-      // In a 42x42 container, icon (size 22) is centered (x: 10..32, y: 10..32)
-      // Badge top is 9, right is 9 (x: 25..33, y: 9..17)
-      // Badge must be at the top-right corner of the bell, not inside its center
-      expect(badgeWidget.top, equals(9.0));
-      expect(badgeWidget.right, equals(9.0));
+      // Badge must be positioned at the top-right corner of the bell icon (-2.0, -2.0 relative to 22x22 icon)
+      expect(badgeWidget.top, equals(-2.0));
+      expect(badgeWidget.right, equals(-2.0));
       expect(iconRect.width, equals(22.0));
       expect(iconRect.height, equals(22.0));
     });

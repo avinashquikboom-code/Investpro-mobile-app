@@ -147,12 +147,8 @@ class _AnimatedNotificationBellState extends State<AnimatedNotificationBell>
 
   @override
   Widget build(BuildContext context) {
-    final double defaultBadgeTop = widget.containerSize != null
-        ? (widget.containerSize! - widget.size) / 2 - 1.0
-        : -1.0;
-    final double defaultBadgeRight = widget.containerSize != null
-        ? (widget.containerSize! - widget.size) / 2 - 1.0
-        : -1.0;
+    const double defaultBadgeTop = -2.0;
+    const double defaultBadgeRight = -2.0;
 
     final double effectiveTop = widget.badgeTop ?? defaultBadgeTop;
     final double effectiveRight = widget.badgeRight ?? defaultBadgeRight;
@@ -191,6 +187,19 @@ class _AnimatedNotificationBellState extends State<AnimatedNotificationBell>
               )
             : null;
 
+        final bellWithBadge = SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              bellIcon,
+              ?badge,
+            ],
+          ),
+        );
+
         if (widget.containerSize != null) {
           return Container(
             width: widget.containerSize,
@@ -199,24 +208,12 @@ class _AnimatedNotificationBellState extends State<AnimatedNotificationBell>
               color: widget.backgroundColor,
               shape: BoxShape.circle,
             ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Center(child: bellIcon),
-                ?badge,
-              ],
-            ),
+            alignment: Alignment.center,
+            child: bellWithBadge,
           );
         }
 
-        return Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            bellIcon,
-            ?badge,
-          ],
-        );
+        return bellWithBadge;
       },
     );
 

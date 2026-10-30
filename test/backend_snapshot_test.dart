@@ -45,6 +45,14 @@ void main() {
     expect(BackendSnapshot.investment({...raw,'status':'PENDING_PAYMENT'}).status, 'Pending payment');
     expect(BackendSnapshot.investment(raw).expectedReturn, 6);
   });
+  test('return display separates earned profit from principal and uses actual credit date', () {
+    final paid = BackendSnapshot.payout({'id':'s','investmentId':'i','status':'PAID','dueDate':'2026-01-01T00:00:00Z','paidAt':'2026-02-01T00:00:00Z','profitAmount':'12.34','totalAmount':'1012.34'});
+    expect(paid.amount, 12.34);
+    expect(paid.payoutDate.month, 2);
+    final scheduled = BackendSnapshot.payout({'id':'future','investmentId':'i','status':'SCHEDULED','dueDate':'2030-01-01','profitAmount':'20','totalAmount':'1020'});
+    expect(scheduled.status, 'Scheduled');
+    expect(scheduled.amount, 20);
+  });
   test('does not invent bank details or verification', () {
     final user = BackendSnapshot.user({'id':'i','fullName':'Investor','user':{'status':'ACTIVE'}});
     expect(user.bankAccountId, isNull);

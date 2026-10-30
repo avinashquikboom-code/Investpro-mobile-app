@@ -182,12 +182,11 @@ class HomeView extends StatelessWidget {
                                 color: Colors.white,
                                 size: 22,
                                 badgeColor: AppColors.error,
+                                badgeBorderColor: const Color(0xFF0D4734),
                                 backgroundColor: Colors.white.withValues(
                                   alpha: 0.15,
                                 ),
                                 containerSize: 42,
-                                badgeTop: 9,
-                                badgeRight: 9,
                               );
                             }),
                           ],
