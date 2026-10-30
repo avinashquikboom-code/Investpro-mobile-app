@@ -29,6 +29,10 @@ class NotificationController extends GetxController {
     final relatedId = notif.relatedId;
 
     switch (notif.type) {
+      case NotificationType.requestUpdate:
+        Get.toNamed(AppRoutes.requests,arguments:notif.relatedId);
+        break;
+      case NotificationType.investorWelcome:
       case NotificationType.kyc:
         Get.toNamed(AppRoutes.kyc);
         break;

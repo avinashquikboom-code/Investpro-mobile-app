@@ -21,6 +21,7 @@ abstract class AppRoutes {
   static const notifications = '/notifications';
   static const settings = '/settings';
   static const bankDetails = '/bank-details';
+  static const requests = '/requests';
   static const helpSupport = '/help-support';
   static const kyc = '/kyc';
 }

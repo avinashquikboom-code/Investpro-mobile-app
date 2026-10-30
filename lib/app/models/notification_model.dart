@@ -1,4 +1,6 @@
 enum NotificationType {
+  investorWelcome,
+  requestUpdate,
   investmentSuccess,
   returnReceived,
   withdrawalApproved,
@@ -69,7 +71,20 @@ class NotificationModel {
     final targetType = json['targetType']?.toString().toUpperCase() ?? '';
     final title = (json['title'] ?? '').toString().toUpperCase();
 
-    if (typeVal.contains('KYC') || targetType == 'KYC' || title.contains('KYC')) {
+    final metadata = json['data'] is Map ? json['data'] as Map : const {};
+    final event = (metadata['event'] ?? metadata['type'] ?? '')
+        .toString()
+        .toUpperCase();
+    if (targetType == 'REQUEST' || typeVal == 'REQUESTUPDATE' || typeVal == 'REQUEST_UPDATED') {
+      parsedType=NotificationType.requestUpdate;
+    } else if (typeVal == 'INVESTOR_WELCOME' ||
+        typeVal == 'INVESTORWELCOME' ||
+        event == 'INVESTOR_WELCOME' ||
+        targetType == 'INVESTOR_WELCOME') {
+      parsedType = NotificationType.investorWelcome;
+    } else if (typeVal.contains('KYC') ||
+        targetType == 'KYC' ||
+        title.contains('KYC')) {
       parsedType = NotificationType.kyc;
     } else {
       switch (typeVal) {

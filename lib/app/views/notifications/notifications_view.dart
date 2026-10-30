@@ -14,6 +14,8 @@ class NotificationsView extends StatelessWidget {
 
   IconData _getNotificationIcon(NotificationType type) {
     switch (type) {
+      case NotificationType.investorWelcome:
+        return Remix.gift_line;
       case NotificationType.investmentSuccess:
         return Remix.briefcase_line;
       case NotificationType.returnReceived:
@@ -24,6 +26,7 @@ class NotificationsView extends StatelessWidget {
         return Remix.history_line;
       case NotificationType.newProject:
         return Remix.rocket_line;
+      case NotificationType.requestUpdate:
       case NotificationType.kyc:
         return Remix.shield_line;
     }
@@ -40,6 +43,8 @@ class NotificationsView extends StatelessWidget {
         return const Color(0xFFF3E8FF);
       case NotificationType.newProject:
         return AppColors.badgeAmberBg;
+      case NotificationType.investorWelcome:
+      case NotificationType.requestUpdate:
       case NotificationType.kyc:
         return AppColors.badgeGreenBg;
     }
@@ -56,6 +61,8 @@ class NotificationsView extends StatelessWidget {
         return const Color(0xFF9333EA);
       case NotificationType.newProject:
         return AppColors.badgeAmberText;
+      case NotificationType.investorWelcome:
+      case NotificationType.requestUpdate:
       case NotificationType.kyc:
         return AppColors.primary;
     }

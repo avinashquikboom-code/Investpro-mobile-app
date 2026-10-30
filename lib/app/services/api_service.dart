@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -543,6 +545,16 @@ class ApiService extends getx.GetxService {
     }
     return null;
   }
+
+  static String newRequestKey() => base64UrlEncode(List.generate(24, (_) => Random.secure().nextInt(256)));
+  Future<Map<String,dynamic>> submitRequest({required String kind, required String title, required String message, required String key}) async {
+    final result = await dio.post('/mobile/requests',data:{'kind':kind,'title':title,'message':message},options:Options(headers:{'Idempotency-Key':key}));
+    return Map<String,dynamic>.from(result.data['data'] as Map);
+  }
+  Future<List<dynamic>> requestHistory({int page=1}) async {
+    final result=await dio.get('/mobile/requests',queryParameters:{'page':page});return result.data['data'] as List;
+  }
+  Future<Map<String,dynamic>> requestDetail(String id) => object('/mobile/requests/${Uri.encodeComponent(id)}');
 
   Future<List<dynamic>?> getNotifications() async {
     final result = await object('/mobile/notifications');

@@ -1,3 +1,4 @@
+import '../views/help/investor_requests_view.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/auth_controller.dart';
@@ -162,6 +163,7 @@ class AppPages {
       page: () => const KycView(),
       transition: Transition.native,
     ),
+    GetPage(middlewares:[DemoSessionGuard()],name:AppRoutes.requests,page:()=>const InvestorRequestsView()),
   ];
 }
 

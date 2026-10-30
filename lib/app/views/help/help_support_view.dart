@@ -1,3 +1,5 @@
+import '../../services/api_service.dart';
+import '../../routes/app_routes.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,6 +108,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
     final messageCtrl = TextEditingController();
     String category = 'Investment Inquiry';
     bool busy = false;
+    final requestKey = ApiService.newRequestKey();
 
     showModalBottomSheet(
       context: context,
@@ -280,7 +283,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                             : () async {
                                 final subj = subjectCtrl.text.trim();
                                 final msg = messageCtrl.text.trim();
-                                if (subj.length < 3 || msg.length < 5) {
+                                if (subj.length < 3 || msg.length < 10) {
                                   Get.snackbar(
                                     'Incomplete Ticket',
                                     'Please provide both a subject and details for your request.',
@@ -292,18 +295,14 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                                 }
 
                                 setSheetState(() => busy = true);
-                                await Future.delayed(const Duration(milliseconds: 600));
-
-                                Get.back();
-                                final ticketId = 'TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-                                Get.snackbar(
-                                  'Ticket Submitted (#$ticketId)',
-                                  'Our concierge team is investigating and will notify you shortly.',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: AppColors.success,
-                                  colorText: Colors.white,
-                                  duration: const Duration(seconds: 4),
-                                );
+                                try {
+                                  await Get.find<ApiService>().submitRequest(kind:'SUPPORT',title:subj,message:'[$category] $msg',key:requestKey);
+                                  Get.back();
+                                  Get.snackbar('Ticket Submitted','Your support request is saved. Track responses in Request History.',snackPosition:SnackPosition.BOTTOM);
+                                } catch (_) {
+                                  if(context.mounted) setSheetState(() => busy=false);
+                                  Get.snackbar('Submission failed','Your request was not confirmed. Check your connection and retry.',snackPosition:SnackPosition.BOTTOM);
+                                }
                               },
                         child: busy
                             ? const SizedBox(
@@ -349,6 +348,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
       appBar: CustomAppBar(
         title: 'helpSupport'.tr,
         showBackButton: true,
+        actions:[IconButton(tooltip:'Request History',onPressed:()=>Get.toNamed(AppRoutes.requests),icon:const Icon(Remix.file_list_3_line))],
       ),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(

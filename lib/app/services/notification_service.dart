@@ -12,7 +12,13 @@ class NotificationService extends GetxService {
 
   NotificationService(this._storage, [this._api]);
 
-  int get unreadCount => notifications.where((n) => !n.isRead).length;
+  final RxnInt _serverUnreadCount = RxnInt();
+  int get unreadCount => _serverUnreadCount.value ?? notifications.where((n) => !n.isRead).length;
+
+  void clear() {
+    notifications.clear();
+    _serverUnreadCount.value = null;
+  }
 
   Future<NotificationService> init() async {
     if (_api == null) { loadNotifications(); } else { notifications.clear(); }
@@ -24,8 +30,9 @@ class NotificationService extends GetxService {
     try {
       final session = _api.sessionVersion;
       final token = await _api.getAccessToken();
-      if (token == null || token.isEmpty) { notifications.clear(); return; }
+      if (token == null || token.isEmpty) { clear(); return; }
       final list = await _api.getNotifications();
+      final count = await _api.getUnreadNotificationCount();
       if (session != _api.sessionVersion) return;
       if (list != null) {
         final parsed = list
@@ -36,6 +43,7 @@ class NotificationService extends GetxService {
             )
             .toList();
         notifications.value = parsed;
+        _serverUnreadCount.value = count;
         _saveToStorage();
       }
     } catch (_) { rethrow; }
@@ -105,6 +113,7 @@ class NotificationService extends GetxService {
   void markAsRead(String id) {
     final idx = notifications.indexWhere((n) => n.id == id);
     if (idx != -1) {
+      if (!notifications[idx].isRead && _serverUnreadCount.value != null && _serverUnreadCount.value! > 0) _serverUnreadCount.value = _serverUnreadCount.value! - 1;
       notifications[idx] = notifications[idx].copyWith(isRead: true);
       _saveToStorage();
     }
@@ -112,6 +121,7 @@ class NotificationService extends GetxService {
   }
 
   void markAllAsRead() {
+    _serverUnreadCount.value = _api == null ? null : 0;
     notifications.value = notifications
         .map((n) => n.copyWith(isRead: true))
         .toList();
@@ -136,6 +146,7 @@ class NotificationService extends GetxService {
       isRead: false,
       relatedId: relatedId,
     );
+    if (_serverUnreadCount.value != null) _serverUnreadCount.value = _serverUnreadCount.value! + 1;
     notifications.insert(0, newNotif);
     _saveToStorage();
   }

@@ -27,9 +27,9 @@ class FirebaseNotificationService extends GetxService {
   final ApiService _api;
   final NotificationService _notificationService;
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  final FirebaseMessaging _messaging;
+  final FlutterLocalNotificationsPlugin _localNotifications;
+  final Set<String> _welcomeShown = {};
 
   static const String channelId = 'investpro_high_importance_channel';
   static const String channelName = 'InvestPro Push Notifications';
@@ -43,14 +43,19 @@ class FirebaseNotificationService extends GetxService {
   FirebaseNotificationService(
     this._storage,
     this._api,
-    this._notificationService,
-  );
+    this._notificationService, {
+    FirebaseMessaging? messaging,
+    FlutterLocalNotificationsPlugin? localNotifications,
+  }) : _messaging = messaging ?? FirebaseMessaging.instance,
+       _localNotifications = localNotifications ?? FlutterLocalNotificationsPlugin();
 
   Future<FirebaseNotificationService> init() async {
     try {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       await _setupLocalNotifications();
       await requestPermissions();
+      // Foreground presentation is owned by the local plugin, avoiding two iOS alerts.
+      await _messaging.setForegroundNotificationPresentationOptions(alert: false, badge: false, sound: false);
       _setupMessageListeners();
       // Listen for token registration & refresh events
       _messaging.onRegistered.listen((newToken) {
@@ -101,6 +106,12 @@ class FirebaseNotificationService extends GetxService {
         }
       },
     );
+
+    final launch = await _localNotifications.getNotificationAppLaunchDetails();
+    final payload = launch?.notificationResponse?.payload;
+    if (launch?.didNotificationLaunchApp == true && payload != null) {
+      try { handleNotificationRouting(Map<String, dynamic>.from(jsonDecode(payload) as Map)); } catch (_) {}
+    }
 
     // Create high importance notification channel on Android
     const androidChannel = AndroidNotificationChannel(
@@ -158,42 +169,7 @@ class FirebaseNotificationService extends GetxService {
 
   void _setupMessageListeners() {
     // 1. Foreground message listener
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print('[FCM] Foreground push received: ${message.data}');
-      }
-
-      final notification = message.notification;
-      final title =
-          notification?.title ?? message.data['title'] ?? 'InvestPro Notice';
-      final body =
-          notification?.body ??
-          message.data['body'] ??
-          message.data['message'] ??
-          '';
-      final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
-
-      // Show local heads-up notification
-      _showLocalNotification(
-        id: message.hashCode,
-        title: title,
-        body: body,
-        payload: jsonEncode(message.data),
-      );
-
-      // Add to in-app notification list
-      _notificationService.addNotification(
-        type: message.data['resource'] == 'KYC'
-            ? NotificationType.kyc
-            : _mapType(typeStr),
-        title: title,
-        description: body,
-        relatedId: message.data['referenceId'] ?? message.data['targetId'],
-      );
-
-      // Also trigger a background sync with backend
-      _notificationService.refreshFromBackend();
-    });
+    FirebaseMessaging.onMessage.listen(handleForegroundMessage);
 
     // 2. Notification opened from background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -214,6 +190,55 @@ class FirebaseNotificationService extends GetxService {
         handleNotificationRouting(message.data);
       }
     });
+  }
+
+  Future<void> handleForegroundMessage(RemoteMessage message) async {
+    if (kDebugMode) {
+      print('[FCM] Foreground push received: ${message.data}');
+    }
+
+    final notification = message.notification;
+    final title =
+        notification?.title ?? message.data['title'] ?? 'InvestPro Notice';
+    final body =
+        notification?.body ??
+        message.data['body'] ??
+        message.data['message'] ??
+        '';
+    final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
+
+    final welcome = typeStr.toUpperCase() == 'INVESTOR_WELCOME' || message.data['event'] == 'INVESTOR_WELCOME';
+    if (welcome) {
+      // The server record is authoritative: never insert a second synthetic history row.
+      _notificationService.refreshFromBackend().catchError((_) {});
+      final id = message.data['notificationId']?.toString() ?? message.messageId;
+      if (id == null || (_welcomeShown.add(id) && _storage.read('welcome_push_seen_$id') != true)) {
+        if (id != null) await _storage.write('welcome_push_seen_$id', true);
+        await _showLocalNotification(id: message.hashCode, title: title, body: body, payload: jsonEncode(message.data)).catchError((_) {});
+      }
+      return;
+    }
+
+    // Show local heads-up notification
+    _showLocalNotification(
+      id: message.hashCode,
+      title: title,
+      body: body,
+      payload: jsonEncode(message.data),
+    );
+
+    // Add to in-app notification list
+    _notificationService.addNotification(
+      type: message.data['resource'] == 'KYC'
+          ? NotificationType.kyc
+          : _mapType(typeStr),
+      title: title,
+      description: body,
+      relatedId: message.data['referenceId'] ?? message.data['targetId'],
+    );
+
+    // Also trigger a background sync with backend
+    _notificationService.refreshFromBackend();
   }
 
   Future<void> _showLocalNotification({
@@ -254,6 +279,8 @@ class FirebaseNotificationService extends GetxService {
 
   Future<void> syncToken([String? explicitToken]) async {
     try {
+      final accessToken = await _api.getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) return;
       String? token = explicitToken ?? _fcmToken;
       if (token == null || token.isEmpty) {
         try {
@@ -269,7 +296,8 @@ class FirebaseNotificationService extends GetxService {
       _storage.write('fcm_device_token', token);
 
       final platform = Platform.isIOS ? 'ios' : 'android';
-      await _api.registerDeviceToken(token: token, platform: platform);
+      final registered = await _api.registerDeviceToken(token: token, platform: platform);
+      if (!registered) return;
 
       if (kDebugMode) {
         print('[FCM] Device token registered successfully');
@@ -304,9 +332,11 @@ class FirebaseNotificationService extends GetxService {
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
 
-    if (data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
+    if (type == 'INVESTOR_WELCOME' || data['event'] == 'INVESTOR_WELCOME' || data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
       _pendingKyc = true;
       flushKyc();
+    } else if (data['resource'] == 'REQUEST' || type == 'REQUEST_UPDATED') {
+      Get.toNamed(AppRoutes.requests,arguments:relatedId);
     } else if (type.contains('PROJECT')) {
       if (relatedId != null && relatedId.isNotEmpty) {
         Get.toNamed(
@@ -354,6 +384,8 @@ class FirebaseNotificationService extends GetxService {
 
   NotificationType _mapType(String typeStr) {
     final upper = typeStr.toUpperCase();
+    if (upper == 'REQUEST_UPDATED') return NotificationType.requestUpdate;
+    if (upper == 'INVESTOR_WELCOME') return NotificationType.investorWelcome;
     if (upper.contains('KYC')) return NotificationType.kyc;
     if (upper.contains('INVESTMENT')) return NotificationType.investmentSuccess;
     if (upper.contains('RETURN')) return NotificationType.returnReceived;

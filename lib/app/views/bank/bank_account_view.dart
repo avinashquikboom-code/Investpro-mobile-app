@@ -429,7 +429,7 @@ class _BankAccountViewState extends State<BankAccountView> {
                                     _loadBankAccounts();
                                     Get.snackbar(
                                       'Bank Account Added',
-                                      '$bName ending in ${accNum.substring(accNum.length - 4)} linked successfully.',
+                                      '$bName ending in ${accNum.substring(accNum.length - 4)} saved. Administrator verification is pending.',
                                       snackPosition: SnackPosition.BOTTOM,
                                       backgroundColor: AppColors.success,
                                       colorText: Colors.white,
