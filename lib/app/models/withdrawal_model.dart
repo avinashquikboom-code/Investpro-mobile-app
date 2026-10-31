@@ -1,4 +1,5 @@
 import '../utils/display_value.dart';
+
 class WithdrawalModel {
   final String id;
   final double amount;
@@ -38,7 +39,10 @@ class WithdrawalModel {
       accountNumber: json['accountNumber'] as String,
       requestDate: DateTime.parse(json['requestDate'] as String),
       status: json['status'] as String? ?? 'Processing',
-      referenceId: DisplayValue.reference(json['referenceId'], internalId: json['id']),
+      referenceId: DisplayValue.reference(
+        json['referenceId'],
+        internalId: json['id'],
+      ),
     );
   }
 }
