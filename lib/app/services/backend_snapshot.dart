@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../models/investment_model.dart';
@@ -32,13 +33,13 @@ class BackendSnapshot {
     final project = row['project'] as Map? ?? {};
     final status = '${row['status']}';
     final verified = row['paymentVerified'] == true;
-    final ref = '${row['investmentReference'] ?? row['reference'] ?? ''}';
+    final ref = DisplayValue.reference(row['invoiceNumber'] ?? row['investmentReference'] ?? row['reference'], internalId: row['id']);
     final projectName = '${row['projectName'] ?? project['title'] ?? ''}';
     return InvestmentModel(
       id: '${row['id']}',
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
-      projectName: projectName,
+      projectName: DisplayValue.text(projectName),
       iconType: 'folder',
       investedAmount: number(row['amount']),
       returnRatePercent: number(row['agreedRoi']),
@@ -59,7 +60,7 @@ class BackendSnapshot {
   static WithdrawalModel withdrawal(Map<String, dynamic> row) {
     final bank = row['bankAccount'] as Map? ?? {};
     final account = '${bank['accountNumber'] ?? ''}';
-    final ref = '${row['withdrawalReference'] ?? row['reference'] ?? ''}';
+    final ref = DisplayValue.reference(row['withdrawalReference'] ?? row['reference'], internalId: row['id']);
     return WithdrawalModel(
       id: '${row['id']}',
       amount: number(row['amount']),
@@ -81,7 +82,7 @@ class BackendSnapshot {
     final type = '${row['type']}';
     final kind = type == 'REFUND' ? TransactionType.refund : type == 'FEE' ? TransactionType.fee : type.contains('RETURN') ? TransactionType.returnReceived : type.contains('WITHDRAWAL') ? TransactionType.withdrawal : type.contains('DEPOSIT') ? TransactionType.deposit : TransactionType.investment;
     final pName = row['projectName'] as String? ?? row['investment']?['project']?['title'] as String?;
-    final txRef = '${row['transactionReference'] ?? row['reference'] ?? ''}';
+    final txRef = DisplayValue.reference(row['transactionNumber'] ?? row['transactionReference'] ?? row['reference'], internalId: row['id']);
     return TransactionModel(
       id: '${row['id']}',
       type: kind,
@@ -92,7 +93,7 @@ class BackendSnapshot {
       status: label(row['status']),
       direction: '${row['direction'] ?? ''}',
       projectId: row['investment']?['projectId'] as String? ?? row['projectId'] as String?,
-      projectName: pName,
+      projectName: DisplayValue.text(pName),
       referenceId: txRef.isNotEmpty ? txRef : 'N/A',
     );
   }

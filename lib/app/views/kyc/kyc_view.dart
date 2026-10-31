@@ -815,7 +815,7 @@ class _KycViewState extends State<KycView> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'ID: ${id.length > 8 ? id.substring(0, 8) : id}',
+                          'Private identity document',
                           style: const TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 11,

@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -1833,7 +1834,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView>
             ),
             const SizedBox(height: 12),
             SelectableText(
-              'Request: ${_submittedData!['id'] ?? ''}\nStatus: ${_submittedData!['status'] ?? ''}',
+              'Invoice: ${DisplayValue.reference(_submittedData!['investment']?['invoiceNumber'] ?? _submittedData!['investment']?['investmentReference'])}\nStatus: ${_submittedData!['status'] ?? ''}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

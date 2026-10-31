@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -87,7 +88,7 @@ class ReturnsOverview extends StatelessWidget {
                   ('Project', '${payout['projectName'] ?? 'Not available'}'),
                   (
                     'Investment reference',
-                    '${payout['investmentReference'] ?? 'Not provided by server'}',
+                    DisplayValue.reference(payout['invoiceNumber'] ?? payout['investmentReference']),
                   ),
                   ('Return amount', money(payout['profitAmount'])),
                   ('Scheduled date', date(payout['dueDate'])),

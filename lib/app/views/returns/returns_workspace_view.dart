@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -306,7 +307,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
               if (number(p['principalAmount']) > 0)
                 Text('Principal returned: ${money(p['principalAmount'])}'),
               Text('Wallet credit: ${money(p['totalAmount'])}'),
-              SelectableText('${p['reference']}'),
+              SelectableText(DisplayValue.reference(p['reference'])),
             ],
           ),
         ),

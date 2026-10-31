@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -80,7 +81,7 @@ class _OfflinePaymentRequestsViewState
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SelectableText(
-                'Request: ${row['id']}\n₹${row['investment']['amount']}\nUTR: ${row['utrNumber']}\nStatus: ${row['status']}\nSubmitted: ${row['submittedAt']}',
+                'Invoice: ${DisplayValue.reference(row['investment']?['invoiceNumber'] ?? row['investment']?['investmentReference'])}\n₹${row['investment']['amount']}\nUTR: ${row['utrNumber']}\nStatus: ${row['status']}\nSubmitted: ${row['submittedAt']}',
               ),
               if (row['rejectionReason'] != null)
                 Text('Rejection reason: ${row['rejectionReason']}'),

@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 enum TransactionType { investment, returnReceived, withdrawal, deposit, refund, fee }
 
 class TransactionModel {
@@ -58,11 +59,7 @@ class TransactionModel {
       direction: json['direction'] as String? ?? '',
       projectId: json['projectId'] as String?,
       projectName: json['projectName'] as String?,
-      referenceId:
-          json['transactionReference'] as String? ??
-          json['referenceId'] as String? ??
-          json['reference'] as String? ??
-          'N/A',
+      referenceId: DisplayValue.reference(json['transactionNumber'] ?? json['transactionReference'] ?? json['referenceId'] ?? json['reference'], internalId: json['id']),
     );
   }
 }

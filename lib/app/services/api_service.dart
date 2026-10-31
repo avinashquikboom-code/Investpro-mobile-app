@@ -560,6 +560,16 @@ class ApiService extends getx.GetxService {
     return null;
   }
 
+  Future<List<Map<String, dynamic>>> getSubscriptionHistory() async {
+    final response = await dio.get('/mobile/subscription/history');
+    if (response.data['success'] == true && response.data['data'] is List) {
+      return (response.data['data'] as List)
+          .map((v) => Map<String, dynamic>.from(v as Map))
+          .toList();
+    }
+    return [];
+  }
+
   Future<Map<String, dynamic>> getSubscriptionEligibility() async {
     final response = await dio.get('/mobile/subscription/eligibility');
     if (response.data['success'] == true && response.data['data'] is Map) {

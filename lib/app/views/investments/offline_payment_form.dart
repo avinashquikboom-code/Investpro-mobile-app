@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:io';
@@ -203,7 +204,7 @@ class _OfflinePaymentFormState extends State<OfflinePaymentForm> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SelectableText(
-                'Request: ${submitted!['id']}\nStatus: ${submitted!['status']}',
+                'Invoice: ${DisplayValue.reference(submitted!['investment']?['invoiceNumber'] ?? submitted!['investment']?['investmentReference'])}\nStatus: ${submitted!['status']}',
               ),
               const Text(
                 'Your investment remains pending until an administrator verifies receipt. Do not pay again.',

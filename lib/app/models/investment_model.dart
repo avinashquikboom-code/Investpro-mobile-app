@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 import '../services/investment_calculator.dart';
 
 class InvestmentModel {
@@ -98,9 +99,7 @@ class InvestmentModel {
   factory InvestmentModel.fromJson(Map<String, dynamic> json) {
     return InvestmentModel(
       id: json['id'] as String,
-      reference: json['investmentReference'] as String? ??
-          json['reference'] as String? ??
-          '',
+      reference: DisplayValue.reference(json['invoiceNumber'] ?? json['investmentReference'] ?? json['reference'], internalId: json['id']),
       projectId: json['projectId'] as String,
       projectName: json['projectName'] as String,
       iconType: json['iconType'] as String? ?? 'code',

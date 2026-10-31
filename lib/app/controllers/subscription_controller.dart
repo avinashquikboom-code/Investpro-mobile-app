@@ -23,6 +23,7 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
       writeIntent = writeIntent ?? ((key, value) => const FlutterSecureStorage().write(key: key, value: value));
   final plans = <SubscriptionPlanModel>[].obs;
   final current = Rxn<Map<String, dynamic>>();
+  final history = <Map<String, dynamic>>[].obs;
   final loading = false.obs, purchasing = false.obs;
   final error = ''.obs;
   Razorpay? _checkout;
@@ -56,6 +57,36 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
   DateTime? get currentStartDate => DateTime.tryParse('${current.value?['startDate']}');
   DateTime? get currentEndDate => DateTime.tryParse('${current.value?['endDate']}');
   String get currentPlanName => current.value?['plan']?['name']?.toString() ?? 'Plan';
+  SubscriptionPlanModel? get currentPlan {
+    final raw = current.value?['plan'];
+    if (raw is Map) return SubscriptionPlanModel.fromJson(Map<String, dynamic>.from(raw));
+    return null;
+  }
+  double get currentPrice {
+    final paid = current.value?['amountPaid'];
+    if (paid is num) return paid.toDouble();
+    final pPrice = current.value?['plan']?['price'];
+    if (pPrice is num) return pPrice.toDouble();
+    return 0.0;
+  }
+  String get currentBillingCycle {
+    final cycle = current.value?['billingCycle']?.toString().toUpperCase();
+    if (cycle == 'MONTHLY') return 'Monthly';
+    if (cycle == 'YEARLY') return 'Yearly';
+    final months = (current.value?['durationMonths'] as num?)?.toInt() ?? currentPlan?.durationMonths ?? 0;
+    if (months == 1) return 'Monthly';
+    if (months == 12) return 'Yearly';
+    return months > 0 ? '$months Months' : 'Annual';
+  }
+  double get validityProgress {
+    final start = currentStartDate;
+    final end = currentEndDate;
+    if (start == null || end == null) return 0.0;
+    final total = end.difference(start).inSeconds;
+    if (total <= 0) return 1.0;
+    final elapsed = DateTime.now().difference(start).inSeconds;
+    return (elapsed / total).clamp(0.0, 1.0);
+  }
   Future<void>? _inFlightLoad;
   @override
   void onInit() { super.onInit(); WidgetsBinding.instance.addObserver(this); }
@@ -90,6 +121,10 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
       plans.assignAll((result[0] as List<Map<String, dynamic>>).map(SubscriptionPlanModel.fromJson).where((p) => p.isActive && p.price >= 1 && p.durationMonths > 0));
       current.value = result[1] as Map<String, dynamic>?;
       final owner = result[2] as Map<String, dynamic>?;
+      try {
+        final hist = await api.getSubscriptionHistory();
+        if (!isClosed && request == _request) history.assignAll(hist);
+      } catch (_) {}
       if (current.value != null && owner?['id'] != null) {
         final pointer = 'subscription_pending_${owner!['id']}_${current.value!['plan']?['id']}';
         try {
@@ -121,6 +156,12 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
     if (purchasing.value) return;
     final session = api.sessionVersion, request = _request;
     try { final active = await api.getCurrentSubscription(); if (!isClosed && !purchasing.value && session == api.sessionVersion && request == _request) current.value = active; } catch (_) {}
+  }
+  Future<void> loadHistory() async {
+    try {
+      final list = await api.getSubscriptionHistory();
+      if (!isClosed) history.assignAll(list);
+    } catch (_) {}
   }
   void clearForSession() {
     _request++;

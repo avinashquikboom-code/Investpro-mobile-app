@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -140,6 +141,8 @@ class InvestmentDetailsView extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
+                        _buildSummaryRow(context: context, label: 'Invoice Number', value: DisplayValue.reference(investment.reference, internalId: investment.id)),
+                        const Divider(height: 22, color: AppColors.border),
                         _buildSummaryRow(
                           context: context,
                           label: 'amountInvested'.tr,

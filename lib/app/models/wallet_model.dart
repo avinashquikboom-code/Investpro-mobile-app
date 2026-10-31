@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 /// Financial values arrive as decimal strings and are held in integer paise.
 int moneyPaise(dynamic value) {
   final text = '$value';
@@ -86,13 +87,13 @@ class WalletTransaction {
       type = json['type'] as String,
       status = json['status'] as String,
       direction = json['direction'] as String,
-      reference = json['transactionReference'] as String,
+      reference = DisplayValue.reference(json['transactionNumber'] ?? json['transactionReference'], internalId: json['id']),
       description = json['description'] as String? ?? '',
       amount = moneyPaise(json['amount']),
       created = DateTime.parse(json['createdAt'] as String).toLocal(),
       updated = DateTime.parse(json['updatedAt'] as String).toLocal(),
-      projectName = json['projectName'] as String?,
-      investmentReference = json['investmentReference'] as String?,
+      projectName = DisplayValue.text(json['projectName']),
+      investmentReference = DisplayValue.reference(json['invoiceNumber'] ?? json['investmentReference']),
       withdrawal = json['withdrawal'] == null
           ? null
           : Map<String, dynamic>.from(json['withdrawal'] as Map);
