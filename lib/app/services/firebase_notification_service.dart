@@ -37,6 +37,11 @@ class FirebaseNotificationService extends GetxService {
   static const String channelDescription =
       'High-priority transaction, investment and update notifications';
 
+  static const String campaignChannelId = 'investpro_campaigns';
+  static const String campaignChannelName = 'InvestPro Campaigns & Promotions';
+  static const String campaignChannelDescription =
+      'Special investment campaigns, project launches, promotions and announcements';
+
   bool _pendingKyc = false;
   String? _pendingRequest;
   String? _fcmToken;
@@ -115,8 +120,8 @@ class FirebaseNotificationService extends GetxService {
       try { handleNotificationRouting(Map<String, dynamic>.from(jsonDecode(payload) as Map)); } catch (_) {}
     }
 
-    // Create high importance notification channel on Android
-    const androidChannel = AndroidNotificationChannel(
+    // Create high importance notification channels on Android
+    const defaultChannel = AndroidNotificationChannel(
       channelId,
       channelName,
       description: channelDescription,
@@ -124,11 +129,20 @@ class FirebaseNotificationService extends GetxService {
       playSound: true,
     );
 
-    await _localNotifications
+    const campaignChannel = AndroidNotificationChannel(
+      campaignChannelId,
+      campaignChannelName,
+      description: campaignChannelDescription,
+      importance: Importance.max,
+      playSound: true,
+    );
+
+    final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(androidChannel);
+        >();
+    await androidPlugin?.createNotificationChannel(defaultChannel);
+    await androidPlugin?.createNotificationChannel(campaignChannel);
   }
 
   Future<void> requestPermissions() async {
@@ -208,6 +222,13 @@ class FirebaseNotificationService extends GetxService {
         message.data['message'] ??
         '';
     final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
+    final isCampaign = typeStr.toUpperCase() == 'CAMPAIGN' ||
+        message.data['type']?.toString().toUpperCase() == 'CAMPAIGN' ||
+        message.data['campaignId'] != null;
+
+    final targetChannelId = isCampaign ? campaignChannelId : channelId;
+    final targetChannelName = isCampaign ? campaignChannelName : channelName;
+    final targetChannelDesc = isCampaign ? campaignChannelDescription : channelDescription;
 
     final welcome = typeStr.toUpperCase() == 'INVESTOR_WELCOME' || message.data['event'] == 'INVESTOR_WELCOME';
     if (welcome || message.data['resource']=='REQUEST') {
@@ -216,7 +237,15 @@ class FirebaseNotificationService extends GetxService {
       final id = message.data['notificationId']?.toString() ?? message.messageId;
       if (id == null || (_welcomeShown.add(id) && _storage.read('welcome_push_seen_$id') != true)) {
         if (id != null) await _storage.write('welcome_push_seen_$id', true);
-        await _showLocalNotification(id: message.hashCode, title: title, body: body, payload: jsonEncode(message.data)).catchError((_) {});
+        await _showLocalNotification(
+          id: message.hashCode,
+          title: title,
+          body: body,
+          payload: jsonEncode(message.data),
+          channel: targetChannelId,
+          channelName: targetChannelName,
+          channelDesc: targetChannelDesc,
+        ).catchError((_) {});
       }
       return;
     }
@@ -227,6 +256,9 @@ class FirebaseNotificationService extends GetxService {
       title: title,
       body: body,
       payload: jsonEncode(message.data),
+      channel: targetChannelId,
+      channelName: targetChannelName,
+      channelDesc: targetChannelDesc,
     );
 
     // Add to in-app notification list
@@ -251,11 +283,18 @@ class FirebaseNotificationService extends GetxService {
     required String title,
     required String body,
     String? payload,
+    String? channel,
+    String? channelName,
+    String? channelDesc,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: channelDescription,
+    final effectiveChannelId = channel ?? channelId;
+    final effectiveChannelName = channelName ?? FirebaseNotificationService.channelName;
+    final effectiveChannelDesc = channelDesc ?? channelDescription;
+
+    final androidDetails = AndroidNotificationDetails(
+      effectiveChannelId,
+      effectiveChannelName,
+      channelDescription: effectiveChannelDesc,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
@@ -268,7 +307,7 @@ class FirebaseNotificationService extends GetxService {
       presentSound: true,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -337,6 +376,26 @@ class FirebaseNotificationService extends GetxService {
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
 
+    // 1. Process custom deep link if present
+    final deepLink = (data['deepLink'] ?? '').toString();
+    if (deepLink.isNotEmpty && _handleDeepLinkRouting(deepLink, data)) {
+      return;
+    }
+
+    // 2. Campaign routing
+    if (type == 'CAMPAIGN' || data['campaignId'] != null) {
+      final projectId = (data['projectId'] ?? data['targetId'])?.toString();
+      if (projectId != null && projectId.isNotEmpty) {
+        Get.toNamed(
+          AppRoutes.projectDetails,
+          arguments: {'projectId': projectId},
+        );
+        return;
+      }
+      Get.toNamed(AppRoutes.notifications);
+      return;
+    }
+
     if (data['resource'] == 'OFFLINE_PAYMENT' || data['targetType'] == 'OFFLINE_PAYMENT') {
       Get.toNamed(AppRoutes.offlinePayments, arguments: relatedId);
     } else if (type == 'INVESTOR_WELCOME' || data['event'] == 'INVESTOR_WELCOME' || data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
@@ -372,6 +431,59 @@ class FirebaseNotificationService extends GetxService {
     }
   }
 
+  bool _handleDeepLinkRouting(String deepLink, Map<String, dynamic> data) {
+    var path = deepLink.trim();
+    if (path.isEmpty) return false;
+
+    if (path.contains('://')) {
+      final uri = Uri.tryParse(path);
+      if (uri != null) {
+        path = uri.path;
+      }
+    }
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+    if (segments.isEmpty) return false;
+
+    final first = segments[0].toLowerCase();
+    if (first == 'projects' || first == 'project') {
+      if (segments.length > 1) {
+        final projectId = segments[1];
+        Get.toNamed(AppRoutes.projectDetails, arguments: {'projectId': projectId});
+      } else {
+        Get.toNamed(AppRoutes.projects);
+      }
+      return true;
+    } else if (first == 'investments' || first == 'investment') {
+      if (segments.length > 1) {
+        Get.toNamed(AppRoutes.investmentDetails, arguments: {'investmentId': segments[1]});
+      } else {
+        Get.toNamed(AppRoutes.myInvestments);
+      }
+      return true;
+    } else if (first == 'returns' || first == 'return') {
+      Get.toNamed(AppRoutes.returns);
+      return true;
+    } else if (first == 'withdrawals' || first == 'withdrawal') {
+      Get.toNamed(AppRoutes.withdrawals);
+      return true;
+    } else if (first == 'kyc') {
+      Get.toNamed(AppRoutes.kyc);
+      return true;
+    } else if (first == 'notifications' || first == 'notification') {
+      Get.toNamed(AppRoutes.notifications);
+      return true;
+    } else if (first == 'offline-payments' || first == 'offline_payments') {
+      Get.toNamed(AppRoutes.offlinePayments);
+      return true;
+    }
+
+    return false;
+  }
+
   void flushKyc() {
     if ((!_pendingKyc && _pendingRequest == null) ||
         Get.context == null ||
@@ -394,6 +506,7 @@ class FirebaseNotificationService extends GetxService {
 
   NotificationType _mapType(String typeStr) {
     final upper = typeStr.toUpperCase();
+    if (upper == 'CAMPAIGN') return NotificationType.projectUpdate;
     if (upper == 'REQUEST_UPDATED') return NotificationType.requestUpdate;
     if (upper == 'INVESTOR_WELCOME') return NotificationType.investorWelcome;
     if (upper.contains('KYC')) return NotificationType.kyc;
