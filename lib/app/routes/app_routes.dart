@@ -9,6 +9,7 @@ abstract class AppRoutes {
   static const projects = '/projects';
   static const projectDetails = '/project-details';
   static const investNow = '/invest-now';
+  static const offlinePayments = '/offline-payments';
   static const paymentConfirmation = '/payment-confirmation';
   static const investmentSuccess = '/investment-success';
   static const myInvestments = '/my-investments';

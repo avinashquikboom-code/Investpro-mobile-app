@@ -17,6 +17,7 @@ class NotificationModel {
   final DateTime timestamp;
   final bool isRead;
   final String? relatedId;
+  final String? targetType;
 
   const NotificationModel({
     required this.id,
@@ -26,6 +27,7 @@ class NotificationModel {
     required this.timestamp,
     this.isRead = false,
     this.relatedId,
+    this.targetType,
   });
 
   String get body => description;
@@ -50,6 +52,7 @@ class NotificationModel {
       timestamp: timestamp ?? this.timestamp,
       isRead: isRead ?? this.isRead,
       relatedId: relatedId ?? this.relatedId,
+      targetType: targetType,
     );
   }
 
@@ -62,6 +65,7 @@ class NotificationModel {
       'timestamp': timestamp.toIso8601String(),
       'isRead': isRead,
       'relatedId': relatedId,
+      'targetType': targetType,
     };
   }
 
@@ -137,6 +141,7 @@ class NotificationModel {
       timestamp: date,
       isRead: json['isRead'] as bool? ?? false,
       relatedId: relatedId,
+      targetType: json['targetType']?.toString(),
     );
   }
 }

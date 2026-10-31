@@ -13,6 +13,7 @@ import '../routes/app_routes.dart';
 import 'api_service.dart';
 import 'local_storage_service.dart';
 import 'notification_service.dart';
+import 'demo_repository.dart';
 
 /// Top-level background message handler required by Firebase Messaging
 @pragma('vm:entry-point')
@@ -240,6 +241,9 @@ class FirebaseNotificationService extends GetxService {
 
     // Also trigger a background sync with backend
     _notificationService.refreshFromBackend();
+    if ((typeStr.toUpperCase().contains('INVESTMENT') || message.data['resource'] == 'OFFLINE_PAYMENT' || message.data['event']?.startsWith('OFFLINE_PAYMENT_') == true) && Get.isRegistered<DemoRepository>()) {
+      Get.find<DemoRepository>().syncFromBackend().catchError((Object _) {});
+    }
   }
 
   Future<void> _showLocalNotification({
@@ -333,7 +337,9 @@ class FirebaseNotificationService extends GetxService {
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
 
-    if (type == 'INVESTOR_WELCOME' || data['event'] == 'INVESTOR_WELCOME' || data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
+    if (data['resource'] == 'OFFLINE_PAYMENT' || data['targetType'] == 'OFFLINE_PAYMENT') {
+      Get.toNamed(AppRoutes.offlinePayments, arguments: relatedId);
+    } else if (type == 'INVESTOR_WELCOME' || data['event'] == 'INVESTOR_WELCOME' || data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
       _pendingKyc = true;
       flushKyc();
     } else if (data['resource'] == 'REQUEST' || type == 'REQUEST_UPDATED') {
@@ -348,7 +354,7 @@ class FirebaseNotificationService extends GetxService {
       } else {
         Get.toNamed(AppRoutes.projects);
       }
-    } else if (type.contains('INVESTMENT')) {
+    } else if (type.contains('INVESTMENT') || data['resource'] == 'INVESTMENT') {
       if (relatedId != null && relatedId.isNotEmpty) {
         Get.toNamed(
           AppRoutes.investmentDetails,

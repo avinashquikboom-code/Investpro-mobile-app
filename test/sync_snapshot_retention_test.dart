@@ -79,10 +79,18 @@ class SnapshotApi extends ApiService {
   }
 }
 
+class MemoryStore implements LocalStore {
+  final _data = <String, dynamic>{};
+  @override
+  dynamic read(String key) => _data[key];
+  @override
+  Future<void> write(String key, dynamic value) async => _data[key] = value;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   DemoRepository repo(SnapshotApi api) {
-    final storage = LocalStorageService();
+    final storage = LocalStorageService(backend: MemoryStore());
     return DemoRepository(storage, NotificationService(storage), api);
   }
 

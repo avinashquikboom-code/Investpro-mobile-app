@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/app_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/project_listing_card.dart';
+import '../subscriptions/subscription_plans_sheet.dart';
 
 class ProjectsView extends StatefulWidget {
   final bool isTab;
@@ -186,7 +187,64 @@ class _ProjectsViewState extends State<ProjectsView> {
                       () => _statusChips(projects),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  SliverToBoxAdapter(
+                    child: Obx(() {
+                      final elig = projects.eligibility.value;
+                      if (elig == null || !elig.hasActiveSubscription) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightMint,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Remix.shield_check_line,
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Active Plan: ${elig.planName ?? "Member"} (${elig.formattedRange})',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    SubscriptionPlansSheet.show(context),
+                                child: const Text(
+                                  'Upgrade',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                   Obx(() {
                     if (projects.isLoading.value && projects.filteredProjects.isEmpty) {
                       return const SliverFillRemaining(
@@ -222,12 +280,112 @@ class _ProjectsViewState extends State<ProjectsView> {
                       );
                     }
                     final list = projects.filteredProjects;
+                    if (projects.subscriptionRequired.value && list.isEmpty) {
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 24,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.border,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.lightMint,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Remix.vip_crown_line,
+                                    color: AppColors.primary,
+                                    size: 32,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Text(
+                                  'Subscription Plan Required',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Subscribe to an investment membership tier to unlock curated investment opportunities tailored to your preferred investment range.',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: AppColors.textSecondary,
+                                        height: 1.5,
+                                      ),
+                                ),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 46,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () =>
+                                        SubscriptionPlansSheet.show(context),
+                                    icon: const Icon(
+                                      Remix.vip_crown_fill,
+                                      size: 18,
+                                    ),
+                                    label: const Text(
+                                      'View Subscription Plans',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                     if (list.isEmpty) {
                       return SliverToBoxAdapter(
                         child: EmptyStateWidget(
                           icon: Remix.folder_open_line,
                           title: 'No Projects Found',
-                          message: 'No matching projects are currently visible to investors. Only published, active opportunities are available from the current catalog.',
+                          message:
+                              'No matching projects are currently visible to investors. Only published, active opportunities are available from the current catalog.',
                           buttonText: 'Show All Projects',
                           onButtonPressed: () {
                             _search.clear();

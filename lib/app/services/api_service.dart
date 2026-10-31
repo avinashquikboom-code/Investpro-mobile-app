@@ -11,10 +11,15 @@ class ProjectPage {
   final List<Map<String, dynamic>> projects;
   final int page;
   final int totalPages;
+  final bool subscriptionRequired;
+  final Map<String, dynamic>? eligibility;
+
   const ProjectPage(
     this.projects, {
     required this.page,
     required this.totalPages,
+    this.subscriptionRequired = false,
+    this.eligibility,
   });
 }
 
@@ -502,14 +507,95 @@ class ApiService extends getx.GetxService {
         if (search != null && search.isNotEmpty) 'search': search,
       },
     );
-    if (response.data['success'] != true || response.data['data'] is! List) {
+    final isList = response.data['data'] is List;
+    final isMap = response.data['data'] is Map;
+    if (response.data['success'] != true || (!isList && !isMap)) {
       throw Exception('Unable to load projects');
     }
-    final records = (response.data['data'] as List)
+    final rawProjects = isList
+        ? response.data['data'] as List
+        : (response.data['data']['projects'] as List? ?? []);
+    final records = rawProjects
         .map((v) => Map<String, dynamic>.from(v as Map))
         .toList();
     final pages = (response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1;
-    return ProjectPage(records, page: page, totalPages: pages);
+    final subReq = response.data['meta']?['subscriptionRequired'] == true ||
+        (isMap && response.data['data']?['subscriptionRequired'] == true);
+    final elig = (response.data['meta']?['eligibility'] as Map?) != null
+        ? Map<String, dynamic>.from(response.data['meta']['eligibility'] as Map)
+        : (isMap && response.data['data']?['eligibility'] is Map
+            ? Map<String, dynamic>.from(
+                response.data['data']['eligibility'] as Map)
+            : null);
+    return ProjectPage(
+      records,
+      page: page,
+      totalPages: pages,
+      subscriptionRequired: subReq,
+      eligibility: elig,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getSubscriptionPlans() async {
+    final response = await dio.get('/mobile/subscription/plans');
+    if (response.data['success'] != true || response.data['data'] is! List) {
+      throw Exception('Unable to load subscription plans');
+    }
+    return (response.data['data'] as List)
+        .map((v) => Map<String, dynamic>.from(v as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>?> getCurrentSubscription() async {
+    final response = await dio.get('/mobile/subscription/current');
+    if (response.data['success'] == true && response.data['data'] is Map) {
+      return Map<String, dynamic>.from(response.data['data'] as Map);
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> getSubscriptionEligibility() async {
+    final response = await dio.get('/mobile/subscription/eligibility');
+    if (response.data['success'] == true && response.data['data'] is Map) {
+      return Map<String, dynamic>.from(response.data['data'] as Map);
+    }
+    throw Exception('Unable to check subscription eligibility');
+  }
+
+  Future<Map<String, dynamic>> purchaseSubscription({
+    required String planId,
+    String paymentMethod = 'UPI',
+  }) async {
+    final response = await dio.post(
+      '/mobile/subscription/purchase',
+      data: {
+        'planId': planId,
+        'paymentMethod': paymentMethod,
+      },
+    );
+    if (response.data['success'] != true || response.data['data'] is! Map) {
+      throw Exception(
+        response.data['message']?.toString() ??
+            'Unable to initiate subscription purchase',
+      );
+    }
+    return Map<String, dynamic>.from(response.data['data'] as Map);
+  }
+
+  Future<Map<String, dynamic>> verifySubscriptionPayment(
+    Map<String, dynamic> paymentData,
+  ) async {
+    final response = await dio.post(
+      '/mobile/subscription/verify-payment',
+      data: paymentData,
+    );
+    if (response.data['success'] != true || response.data['data'] is! Map) {
+      throw Exception(
+        response.data['message']?.toString() ??
+            'Unable to verify subscription payment',
+      );
+    }
+    return Map<String, dynamic>.from(response.data['data'] as Map);
   }
 
   Future<List<Map<String, dynamic>>> getEligibleProjects({

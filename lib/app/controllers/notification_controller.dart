@@ -26,6 +26,7 @@ class NotificationController extends GetxController {
 
   void handleNotificationTap(NotificationModel notif) {
     markAsRead(notif.id);
+    if (notif.targetType == 'OFFLINE_PAYMENT') { Get.toNamed(AppRoutes.offlinePayments, arguments: notif.relatedId); return; }
     final relatedId = notif.relatedId;
 
     switch (notif.type) {

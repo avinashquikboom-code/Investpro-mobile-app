@@ -6,6 +6,7 @@ import '../routes/app_routes.dart';
 import 'package:get/get.dart';
 
 import '../models/project_model.dart';
+import '../models/subscription_plan_model.dart';
 import '../services/demo_repository.dart';
 import '../services/api_service.dart';
 
@@ -26,6 +27,13 @@ class ProjectController extends GetxController {
   final isLoadingMore = false.obs;
   final hasMore = false.obs;
   final pageError = ''.obs;
+  final subscriptionRequired = false.obs;
+  final eligibility = Rxn<SubscriptionEligibilityModel>();
+  final activePlan = Rxn<SubscriptionPlanModel>();
+  final availablePlans = <SubscriptionPlanModel>[].obs;
+  final isLoadingPlans = false.obs;
+  final isPurchasingPlan = false.obs;
+  final purchaseError = ''.obs;
   bool hasLoaded=false;
   bool hasAttempted=false;
   int _page = 0;
@@ -37,6 +45,8 @@ class ProjectController extends GetxController {
     _request++;_detailRequest++;_searchTimer?.cancel();
     remoteProjects.clear();categories.clear();selectedProject.value=null;
     selectedCategory.value='All Categories';searchQuery.value='';selectedFilter.value='All Projects';
+    subscriptionRequired.value=false;eligibility.value=null;activePlan.value=null;
+    availablePlans.clear();isLoadingPlans.value=false;isPurchasingPlan.value=false;purchaseError.value='';
     hasLoaded=false;hasAttempted=false;_page=0;hasMore.value=false;
     isLoading.value=false;isLoadingMore.value=false;errorMessage.value='';pageError.value='';detailError.value='';
   }
@@ -59,6 +69,19 @@ class ProjectController extends GetxController {
     }
     if (user.kycStatus != 'VERIFIED') {
       return 'Complete KYC verification to invest';
+    }
+    if (subscriptionRequired.value) {
+      return 'Active subscription plan required to invest';
+    }
+    if (eligibility.value != null && !eligibility.value!.hasActiveSubscription) {
+      return 'Active subscription plan required to invest';
+    }
+    if (eligibility.value != null && eligibility.value!.hasActiveSubscription) {
+      if (project.minInvestment < eligibility.value!.minInvestment ||
+          (eligibility.value!.maxInvestment > 0 &&
+              project.minInvestment > eligibility.value!.maxInvestment)) {
+        return 'Project requires a higher subscription plan';
+      }
     }
     if (project.status.toUpperCase() != 'ACTIVE') {
       return 'This project is not open for investment';
@@ -151,6 +174,15 @@ class ProjectController extends GetxController {
       );
       if (request != _request || isClosed) {
         return;
+      }
+      subscriptionRequired.value = result.subscriptionRequired;
+      if (result.eligibility != null) {
+        eligibility.value =
+            SubscriptionEligibilityModel.fromJson(result.eligibility!);
+      }
+      if (result.subscriptionRequired || result.projects.isEmpty) {
+        unawaited(loadSubscriptionPlans());
+        unawaited(loadSubscriptionEligibility());
       }
       remoteProjects.assignAll(result.projects.map(ProjectModel.fromBackend));
       hasLoaded=true;
@@ -259,6 +291,87 @@ class ProjectController extends GetxController {
       detailError.value = 'This project is unavailable or could not be loaded.';
     } finally {
       if (!isClosed&&request==_detailRequest) isDetailLoading.value = false;
+    }
+  }
+
+  Future<void> loadSubscriptionPlans() async {
+    if (_api == null) return;
+    isLoadingPlans.value = true;
+    try {
+      final list = await _api.getSubscriptionPlans();
+      availablePlans.assignAll(
+        list.map((json) => SubscriptionPlanModel.fromJson(json)),
+      );
+    } catch (_) {
+      // Retain existing plans if fetch fails
+    } finally {
+      isLoadingPlans.value = false;
+    }
+  }
+
+  Future<void> loadSubscriptionEligibility() async {
+    if (_api == null) return;
+    try {
+      final current = await _api.getCurrentSubscription();
+      if (current != null && current['plan'] is Map) {
+        activePlan.value = SubscriptionPlanModel.fromJson(
+          Map<String, dynamic>.from(current['plan'] as Map),
+        );
+      }
+      final eligData = await _api.getSubscriptionEligibility();
+      eligibility.value = SubscriptionEligibilityModel.fromJson(eligData);
+      if (eligibility.value?.hasActiveSubscription == true) {
+        subscriptionRequired.value = false;
+      }
+    } catch (_) {
+      // Inactive or unauthenticated
+    }
+  }
+
+  Future<bool> purchasePlan(
+    SubscriptionPlanModel plan, {
+    String paymentMethod = 'UPI',
+  }) async {
+    if (_api == null) return false;
+    isPurchasingPlan.value = true;
+    purchaseError.value = '';
+    try {
+      final purchase = await _api.purchaseSubscription(
+        planId: plan.id,
+        paymentMethod: paymentMethod,
+      );
+      final subscriptionId = purchase['subscriptionId']?.toString();
+      final orderId = purchase['orderId']?.toString() ??
+          'order_${DateTime.now().millisecondsSinceEpoch}';
+      if (subscriptionId == null || subscriptionId.isEmpty) {
+        throw Exception('Invalid subscription purchase response');
+      }
+
+      await _api.verifySubscriptionPayment({
+        'subscriptionId': subscriptionId,
+        'gatewayOrderId': orderId,
+        'gatewayPaymentId':
+            'pay_test_bypass_${DateTime.now().millisecondsSinceEpoch}',
+        'gatewaySignature':
+            'sig_bypass_${DateTime.now().millisecondsSinceEpoch}',
+      });
+
+      subscriptionRequired.value = false;
+      await loadSubscriptionEligibility();
+      await refreshProjects();
+      return true;
+    } catch (e) {
+      if (e is DioException) {
+        final data = e.response?.data;
+        purchaseError.value = data is Map && data['message'] != null
+            ? data['message'].toString()
+            : 'Failed to complete subscription purchase';
+      } else {
+        purchaseError.value = e.toString().replaceAll('Exception: ', '');
+      }
+      return false;
+    } finally {
+      isPurchasingPlan.value = false;
     }
   }
 }

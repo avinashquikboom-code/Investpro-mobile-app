@@ -1,3 +1,4 @@
+import '../views/investments/offline_payment_requests_view.dart';
 import '../views/help/investor_requests_view.dart';
 import 'package:flutter/material.dart';
 
@@ -35,6 +36,7 @@ class AppPages {
   static const initial = AppRoutes.splash;
 
   static final routes = [
+    GetPage(name: AppRoutes.offlinePayments, page: () => const OfflinePaymentRequestsView()),
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashView(),

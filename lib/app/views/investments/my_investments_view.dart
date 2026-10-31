@@ -89,6 +89,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
         title: widget.isTab ? 'myInvestments'.tr : 'investmentHistory'.tr,
         showBackButton: !widget.isTab,
         actions: [
+          if (repo.isLive) IconButton(tooltip: 'Offline Payment Requests', icon: const Icon(Remix.bank_line), onPressed: () => Get.toNamed(AppRoutes.offlinePayments)),
           IconButton(
             icon: _isRefreshing
                 ? const SizedBox(
@@ -119,8 +120,10 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
               int completedCount = 0;
 
               for (final inv in allInvestments) {
-                totalInvested += inv.investedAmount;
-                totalReturns += inv.expectedReturn;
+                if (['active', 'completed'].contains(inv.status.toLowerCase())) {
+                  totalInvested += inv.investedAmount;
+                  totalReturns += inv.expectedReturn;
+                }
                 if (inv.status.toLowerCase() == 'active') activeCount++;
                 if (inv.status.toLowerCase() == 'completed') completedCount++;
               }
