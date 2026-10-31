@@ -46,6 +46,8 @@ class AppColors {
   static const Color badgeAmberText = Color(0xFFD97706);
   static const Color badgeBlueBg = Color(0xFFEFF6FF);
   static const Color badgeBlueText = Color(0xFF2563EB);
+  static const Color badgeRedBg = Color(0xFFFEE2E2);
+  static const Color badgeRedText = Color(0xFFDC2626);
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(

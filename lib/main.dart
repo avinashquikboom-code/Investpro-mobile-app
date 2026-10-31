@@ -140,7 +140,7 @@ class InvestProApp extends StatelessWidget {
         defaultTransition: Transition.native,
         popGesture: true,
         builder: (context, child) =>
-            Obx(() => AccountSync(authenticated: Get.find<AuthController>().isLoggedIn.value, initialRefresh:false, nextRetryAt:()=>Get.find<ApiService>().nextReadAt, refresh: () async { await Future.wait([Get.find<DemoRepository>().syncFromBackend(),Get.find<ProjectController>().refreshProjects(background:true),Get.find<NotificationController>().refreshNotifications()]); }, child: AppSystemUi(child: child ?? const SizedBox.shrink()))),
+            Obx(() => AccountSync(authenticated: Get.find<AuthController>().isLoggedIn.value, initialRefresh:false, nextRetryAt:()=>Get.find<ApiService>().nextReadAt, refresh: () async { await Future.wait([Get.find<AuthController>().refreshOnboarding(),Get.find<SubscriptionController>().refreshCurrent(),Get.find<DemoRepository>().syncFromBackend(),Get.find<ProjectController>().refreshProjects(background:true),Get.find<NotificationController>().refreshNotifications()]); }, child: AppSystemUi(child: child ?? const SizedBox.shrink()))),
         translations: AppTranslations(),
         locale: initialLocale,
         fallbackLocale: const Locale('en', 'US'),

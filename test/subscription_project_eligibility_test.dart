@@ -409,7 +409,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Subscription Plan Required'), findsOneWidget);
-      expect(find.text('View Subscription Plans'), findsOneWidget);
+      expect(find.text('Purchase Plan to Invest'), findsOneWidget);
       expect(find.byIcon(Remix.vip_crown_line), findsOneWidget);
     });
 

@@ -315,7 +315,7 @@ class ProjectController extends GetxController {
     try {
       final current = await _api.getCurrentSubscription();
       activePlan.value = null;
-      if (current != null && current['plan'] is Map) {
+      if (current != null && current['status'] == 'ACTIVE' && current['plan'] is Map) {
         activePlan.value = SubscriptionPlanModel.fromJson(
           Map<String, dynamic>.from(current['plan'] as Map),
         );

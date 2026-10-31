@@ -7,6 +7,9 @@ enum NotificationType {
   projectUpdate,
   newProject,
   kyc,
+  subscriptionActivated,
+  subscriptionExpiring,
+  subscriptionExpired,
 }
 
 class NotificationModel {
@@ -90,6 +93,17 @@ class NotificationModel {
         targetType == 'KYC' ||
         title.contains('KYC')) {
       parsedType = NotificationType.kyc;
+    } else if (typeVal == 'SUBSCRIPTION_ACTIVATED' ||
+        (targetType == 'SUBSCRIPTION' && (typeVal.contains('ACTIVAT') || title.contains('ACTIVAT') || event.contains('ACTIVAT')))) {
+      parsedType = NotificationType.subscriptionActivated;
+    } else if (typeVal == 'SUBSCRIPTION_EXPIRING' ||
+        (targetType == 'SUBSCRIPTION' && (typeVal.contains('EXPIRING') || title.contains('EXPIRING') || event.contains('EXPIRING')))) {
+      parsedType = NotificationType.subscriptionExpiring;
+    } else if (typeVal == 'SUBSCRIPTION_EXPIRED' ||
+        (targetType == 'SUBSCRIPTION' && (typeVal.contains('EXPIRED') || title.contains('EXPIRED') || event.contains('EXPIRED')))) {
+      parsedType = NotificationType.subscriptionExpired;
+    } else if (targetType == 'SUBSCRIPTION' || typeVal.contains('SUBSCRIPTION')) {
+      parsedType = NotificationType.subscriptionActivated;
     } else {
       switch (typeVal) {
         case 'INVESTMENT':

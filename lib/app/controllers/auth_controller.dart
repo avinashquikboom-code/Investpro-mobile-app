@@ -296,8 +296,8 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       if (_api == null) throw StateError('Account service is unavailable');
-      await _api.sendRegistrationOtp(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim());
-      Get.to(() => RegistrationOtpView(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
+      final challenge = await _api.sendRegistrationOtp(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim());
+      Get.to(() => RegistrationOtpView(initialCooldown: (challenge['data']?['cooldownSeconds'] as num? ?? 60).toInt(), fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
       return true;
     } catch (_) {
       isLoggedIn.value = false;

@@ -9,7 +9,8 @@ import '../../theme/app_colors.dart';
 
 class RegistrationOtpView extends StatefulWidget {
   final String fullName, email, mobileNumber, password;
-  const RegistrationOtpView({super.key, required this.fullName, required this.email, required this.mobileNumber, required this.password});
+  final int initialCooldown;
+  const RegistrationOtpView({super.key, this.initialCooldown = 60, required this.fullName, required this.email, required this.mobileNumber, required this.password});
   @override
   State<RegistrationOtpView> createState() => _RegistrationOtpViewState();
 }
@@ -20,7 +21,7 @@ class _RegistrationOtpViewState extends State<RegistrationOtpView> {
   String? error;
   Timer? timer;
   @override
-  void initState() { super.initState(); timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted && cooldown > 0) setState(() => cooldown--); }); }
+  void initState() { super.initState(); cooldown = widget.initialCooldown; timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted && cooldown > 0) setState(() => cooldown--); }); }
   @override
   void dispose() { timer?.cancel(); code.dispose(); super.dispose(); }
   Future<void> resend() async {

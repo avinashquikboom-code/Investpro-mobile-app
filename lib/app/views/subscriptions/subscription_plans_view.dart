@@ -6,6 +6,7 @@ import '../../controllers/subscription_controller.dart';
 import '../../models/subscription_plan_model.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/date_formatter.dart';
 
 class SubscriptionPlansView extends StatefulWidget {
   final bool onboarding;
@@ -94,51 +95,16 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                                   'Select a subscription plan to unlock eligible investment opportunities.',
                                 ),
                                 const SizedBox(height: 18),
+                                if (controller.hasActivePlan && controller.isExpiringSoon)
+                                  _buildExpiringSoonBanner()
+                                else if (controller.isExpired)
+                                  _buildExpiredBanner(),
                                 if (controller.hasActivePlan)
-                                  Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Current plan: ${controller.current.value!['plan']?['name'] ?? 'Active Plan'}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Expires: ${controller.current.value!['endDate'].toString().split('T').first}',
-                                          ),
-                                          const Text(
-                                            'You can renew your plan or choose another available plan.',
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
+                                  _buildCurrentPlanCard()
+                                else if (controller.isExpired)
+                                  _buildExpiredPlanCard()
                                 else if (!widget.onboarding)
-                                  const Card(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'No Active Subscription',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Choose a plan to access eligible investment projects.',
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  _buildNoPlanCard(),
                                 if (controller.error.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -256,6 +222,314 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           ),
         );
       });
+
+  Widget _buildExpiringSoonBanner() {
+    final remaining = controller.remainingDays;
+    final endDate = controller.currentEndDate;
+    final expiryFormatted = endDate != null ? DateFormatter.formatDate(endDate) : '';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.badgeAmberBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x7FF59E0B)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Remix.time_line, color: AppColors.badgeAmberText, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Subscription Expiring Soon',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppColors.badgeAmberText,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your ${controller.currentPlanName} subscription expires in $remaining day${remaining == 1 ? '' : 's'} on $expiryFormatted. Renew now to maintain uninterrupted access to eligible investment projects.',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF78350F),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpiredBanner() {
+    final endDate = controller.currentEndDate;
+    final expiryFormatted = endDate != null ? DateFormatter.formatDate(endDate) : '';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.badgeRedBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x66EF4444)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Remix.error_warning_line, color: AppColors.error, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Subscription Expired',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppColors.error,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your ${controller.currentPlanName} subscription has expired${expiryFormatted.isNotEmpty ? ' on $expiryFormatted' : ''}. Renew your plan now to continue accessing eligible investment projects.',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF7F1D1D),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentPlanCard() {
+    final isExpiring = controller.isExpiringSoon;
+    final startDate = controller.currentStartDate;
+    final endDate = controller.currentEndDate;
+    final startStr = startDate != null ? DateFormatter.formatDate(startDate) : null;
+    final endStr = endDate != null ? DateFormatter.formatDate(endDate) : null;
+    final remaining = controller.remainingDays;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isExpiring ? AppColors.warning : const Color(0x4D00854B),
+          width: 1.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    controller.currentPlanName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isExpiring ? AppColors.badgeAmberBg : AppColors.badgeGreenBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isExpiring ? Remix.time_line : Remix.checkbox_circle_line,
+                        size: 14,
+                        color: isExpiring ? AppColors.badgeAmberText : AppColors.badgeGreenText,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isExpiring ? 'Expiring Soon' : 'Active',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isExpiring ? AppColors.badgeAmberText : AppColors.badgeGreenText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (startStr != null) ...[
+              Row(
+                children: [
+                  const Icon(Remix.calendar_line, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Started: $startStr',
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
+            if (endStr != null) ...[
+              Row(
+                children: [
+                  const Icon(Remix.time_line, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Expires: $endStr ($remaining day${remaining == 1 ? '' : 's'} remaining)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isExpiring ? FontWeight.w600 : FontWeight.normal,
+                      color: isExpiring ? AppColors.badgeAmberText : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              isExpiring
+                  ? 'Renew your subscription below to ensure uninterrupted access.'
+                  : 'You have full access to eligible investment opportunities for this tier.',
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpiredPlanCard() {
+    final endDate = controller.currentEndDate;
+    final endStr = endDate != null ? DateFormatter.formatDate(endDate) : null;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.badgeRedBg, width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    controller.currentPlanName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.badgeRedBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Remix.error_warning_line, size: 14, color: AppColors.badgeRedText),
+                      SizedBox(width: 4),
+                      Text(
+                        'Expired',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.badgeRedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (endStr != null) ...[
+              Row(
+                children: [
+                  const Icon(Remix.calendar_close_line, size: 16, color: AppColors.error),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Expired on: $endStr',
+                    style: const TextStyle(fontSize: 13, color: AppColors.error, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+            const Text(
+              'Your access to eligible investment projects has ended. Choose a plan below to renew.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoPlanCard() {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'No Active Subscription',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              'Choose a subscription plan below to unlock eligible investment opportunities.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class SubscriptionPlanCard extends StatelessWidget {
@@ -373,44 +647,163 @@ class _SubscriptionProfileCardState extends State<SubscriptionProfileCard> {
   }
 
   @override
-  Widget build(BuildContext context) => Obx(() => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Subscription / My Plan',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              if (controller.loading.value)
-                const LinearProgressIndicator()
-              else if (controller.hasActivePlan) ...[
-                Text(
-                  '${controller.current.value!['plan']?['name'] ?? 'Active Plan'}',
+  Widget build(BuildContext context) => Obx(() {
+        final hasActive = controller.hasActivePlan;
+        final isExpiring = controller.isExpiringSoon;
+        final isExpired = controller.isExpired;
+        final planName = controller.currentPlanName;
+        final endDate = controller.currentEndDate;
+        final expiryStr = endDate != null ? DateFormatter.formatDate(endDate) : '';
+
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Subscription Plan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (hasActive && isExpiring)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.badgeAmberBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Expiring (${controller.remainingDays}d)',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.badgeAmberText,
+                          ),
+                        ),
+                      )
+                    else if (hasActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.badgeGreenBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Active',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.badgeGreenText,
+                          ),
+                        ),
+                      )
+                    else if (isExpired)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.badgeRedBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Expired',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.badgeRedText,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                Text(
-                  'Expires: ${controller.current.value!['endDate'].toString().split('T').first}',
-                ),
-              ] else ...[
-                const Text('No Active Plan'),
-                const Text('No Active Subscription'),
-                const Text(
-                  'Choose a plan to access eligible investment projects.',
+                const SizedBox(height: 10),
+                if (controller.loading.value)
+                  const LinearProgressIndicator()
+                else if (hasActive) ...[
+                  Text(
+                    planName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Expires: $expiryStr (${controller.remainingDays} days remaining)',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ] else if (isExpired) ...[
+                  Text(
+                    planName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.error,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Expired on: $expiryStr',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ] else ...[
+                  const Text(
+                    'No Active Subscription',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Choose a plan to access eligible investment projects.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isExpiring || isExpired
+                        ? AppColors.badgeAmberBg
+                        : AppColors.lightMint,
+                    foregroundColor: isExpiring || isExpired
+                        ? AppColors.badgeAmberText
+                        : AppColors.primary,
+                  ),
+                  onPressed: () => Get.toNamed(AppRoutes.subscriptionPlans),
+                  icon: const Icon(Remix.vip_crown_line, size: 18),
+                  label: Text(
+                    isExpiring || isExpired
+                        ? 'Renew Subscription'
+                        : (hasActive ? 'Upgrade or Change Plan' : 'Explore Subscription Plans'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
-              TextButton.icon(
-                onPressed: () => Get.toNamed(AppRoutes.subscriptionPlans),
-                icon: const Icon(Remix.vip_crown_line),
-                label: Text(
-                  controller.hasActivePlan
-                      ? 'Renew or Upgrade Subscription'
-                      : 'Explore Subscription Plans',
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ));
+        );
+      });
 }

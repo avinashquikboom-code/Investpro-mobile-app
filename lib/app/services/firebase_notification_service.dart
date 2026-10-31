@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 
 import '../models/notification_model.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/project_controller.dart';
 import '../routes/app_routes.dart';
 import 'api_service.dart';
 import 'local_storage_service.dart';
@@ -396,6 +397,14 @@ class FirebaseNotificationService extends GetxService {
       return;
     }
 
+    if (data['resource'] == 'SUBSCRIPTION' || data['targetType'] == 'SUBSCRIPTION' || type.contains('SUBSCRIPTION')) {
+      if (Get.isRegistered<ProjectController>()) {
+        Get.find<ProjectController>().loadSubscriptionEligibility();
+        Get.find<ProjectController>().refreshProjects();
+      }
+      Get.toNamed(AppRoutes.subscriptionPlans);
+      return;
+    }
     if (data['resource'] == 'OFFLINE_PAYMENT' || data['targetType'] == 'OFFLINE_PAYMENT') {
       Get.toNamed(AppRoutes.offlinePayments, arguments: relatedId);
     } else if (type == 'INVESTOR_WELCOME' || data['event'] == 'INVESTOR_WELCOME' || data['resource'] == 'KYC' || data['targetType'] == 'KYC') {
@@ -479,6 +488,13 @@ class FirebaseNotificationService extends GetxService {
     } else if (first == 'offline-payments' || first == 'offline_payments') {
       Get.toNamed(AppRoutes.offlinePayments);
       return true;
+    } else if (first == 'subscriptions' || first == 'subscription') {
+      if (Get.isRegistered<ProjectController>()) {
+        Get.find<ProjectController>().loadSubscriptionEligibility();
+        Get.find<ProjectController>().refreshProjects();
+      }
+      Get.toNamed(AppRoutes.subscriptionPlans);
+      return true;
     }
 
     return false;
@@ -515,6 +531,10 @@ class FirebaseNotificationService extends GetxService {
     if (upper.contains('WITHDRAWAL')) {
       return NotificationType.withdrawalApproved;
     }
+    if (upper == 'SUBSCRIPTION_ACTIVATED') return NotificationType.subscriptionActivated;
+    if (upper == 'SUBSCRIPTION_EXPIRING') return NotificationType.subscriptionExpiring;
+    if (upper == 'SUBSCRIPTION_EXPIRED') return NotificationType.subscriptionExpired;
+    if (upper.contains('SUBSCRIPTION')) return NotificationType.subscriptionActivated;
     if (upper.contains('PROJECT_UPDATE')) return NotificationType.projectUpdate;
     return NotificationType.newProject;
   }

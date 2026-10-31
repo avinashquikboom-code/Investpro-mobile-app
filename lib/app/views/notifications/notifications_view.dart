@@ -29,6 +29,12 @@ class NotificationsView extends StatelessWidget {
       case NotificationType.requestUpdate:
       case NotificationType.kyc:
         return Remix.shield_line;
+      case NotificationType.subscriptionActivated:
+        return Remix.vip_crown_line;
+      case NotificationType.subscriptionExpiring:
+        return Remix.time_line;
+      case NotificationType.subscriptionExpired:
+        return Remix.error_warning_line;
     }
   }
 
@@ -36,13 +42,17 @@ class NotificationsView extends StatelessWidget {
     switch (type) {
       case NotificationType.investmentSuccess:
       case NotificationType.returnReceived:
+      case NotificationType.subscriptionActivated:
         return AppColors.badgeGreenBg;
       case NotificationType.withdrawalApproved:
         return AppColors.badgeBlueBg;
       case NotificationType.projectUpdate:
         return const Color(0xFFF3E8FF);
       case NotificationType.newProject:
+      case NotificationType.subscriptionExpiring:
         return AppColors.badgeAmberBg;
+      case NotificationType.subscriptionExpired:
+        return AppColors.badgeRedBg;
       case NotificationType.investorWelcome:
       case NotificationType.requestUpdate:
       case NotificationType.kyc:
@@ -54,13 +64,17 @@ class NotificationsView extends StatelessWidget {
     switch (type) {
       case NotificationType.investmentSuccess:
       case NotificationType.returnReceived:
+      case NotificationType.subscriptionActivated:
         return AppColors.primary;
       case NotificationType.withdrawalApproved:
         return AppColors.badgeBlueText;
       case NotificationType.projectUpdate:
         return const Color(0xFF9333EA);
       case NotificationType.newProject:
+      case NotificationType.subscriptionExpiring:
         return AppColors.badgeAmberText;
+      case NotificationType.subscriptionExpired:
+        return AppColors.badgeRedText;
       case NotificationType.investorWelcome:
       case NotificationType.requestUpdate:
       case NotificationType.kyc:

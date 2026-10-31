@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -28,6 +29,32 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
   String? _pendingId;
   int _request = 0;
   bool get hasActivePlan => current.value?['status'] == 'ACTIVE' && DateTime.tryParse('${current.value?['endDate']}')?.isAfter(DateTime.now()) == true;
+  bool get isExpiringSoon {
+    if (!hasActivePlan) return false;
+    final flag = current.value?['isExpiringSoon'];
+    if (flag is bool) return flag;
+    final remaining = remainingDays;
+    return remaining <= 3 && remaining > 0;
+  }
+  bool get isExpired {
+    if (hasActivePlan) return false;
+    final status = current.value?['status']?.toString().toUpperCase();
+    final lifecycle = current.value?['lifecycleStatus']?.toString().toUpperCase();
+    if (status == 'EXPIRED' || lifecycle == 'EXPIRED') return true;
+    final end = DateTime.tryParse('${current.value?['endDate']}');
+    return end != null && end.isBefore(DateTime.now());
+  }
+  int get remainingDays {
+    final remaining = current.value?['remainingDays'];
+    if (remaining is int) return remaining;
+    final end = DateTime.tryParse('${current.value?['endDate']}');
+    if (end == null) return 0;
+    final diff = end.difference(DateTime.now()).inSeconds;
+    return diff <= 0 ? 0 : (diff / 86400).ceil();
+  }
+  DateTime? get currentStartDate => DateTime.tryParse('${current.value?['startDate']}');
+  DateTime? get currentEndDate => DateTime.tryParse('${current.value?['endDate']}');
+  String get currentPlanName => current.value?['plan']?['name']?.toString() ?? 'Plan';
   @override
   void onInit() { super.onInit(); WidgetsBinding.instance.addObserver(this); }
   @override
@@ -37,12 +64,26 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
     final request = ++_request, session = api.sessionVersion;
     loading.value = true; error.value = '';
     try {
-      final result = await Future.wait([api.getSubscriptionPlans(), api.getCurrentSubscription()]);
+      final result = await Future.wait([api.getSubscriptionPlans(), api.getCurrentSubscription(), api.getMe()]);
       if (isClosed || request != _request || session != api.sessionVersion) return;
       plans.assignAll((result[0] as List<Map<String, dynamic>>).map(SubscriptionPlanModel.fromJson).where((p) => p.isActive && p.price >= 1 && p.durationMonths > 0));
       current.value = result[1] as Map<String, dynamic>?;
+      final owner = result[2] as Map<String, dynamic>?;
+      if (current.value != null && owner?['id'] != null) {
+        final pointer = 'subscription_pending_${owner!['id']}_${current.value!['plan']?['id']}';
+        try {
+          final saved = await readIntent(pointer);
+          final record = saved == null || saved.isEmpty ? null : jsonDecode(saved);
+          if (record is Map && record['subscriptionId'] == current.value!['id']) { await writeIntent(record['slot'].toString(), ''); await writeIntent(pointer, ''); }
+        } catch (_) {}
+      }
     } catch (e) { if (!isClosed && request == _request) { plans.clear(); error.value = PaymentError.message(e, fallback: 'Unable to load subscription plans. You can retry or skip.'); } }
     finally { if (!isClosed && request == _request) loading.value = false; }
+  }
+  Future<void> refreshCurrent() async {
+    if (purchasing.value) return;
+    final session = api.sessionVersion, request = _request;
+    try { final active = await api.getCurrentSubscription(); if (!isClosed && !purchasing.value && session == api.sessionVersion && request == _request) current.value = active; } catch (_) {}
   }
   void clearForSession() { _request++; plans.clear(); current.value = null; error.value = ''; _pendingId = null; if (_completion?.isCompleted == false) _completion!.complete(false); _completion = null; _checkout?.clear(); purchasing.value = false; }
   @override
@@ -58,16 +99,20 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
     _request++; loading.value = false; purchasing.value = true; error.value = '';
     final session = api.sessionVersion;
     final completion = Completer<bool>(); _completion = completion;
+    String? intentSlot;
     try {
       final me = await api.getMe();
       if (me?['role'] != 'INVESTOR') throw const PaymentFailure('An authenticated investor account is required');
-      final slot = 'subscription_intent_${me!['id']}_${plan.id}_${plan.price}_${current.value?['id'] ?? 'none'}';
-      var intent = await readIntent(slot); intent ??= base64Url.encode(List.generate(24, (_) => Random.secure().nextInt(256))); await writeIntent(slot, intent);
+      final slot = 'subscription_intent_${me!['id']}_${plan.id}_${plan.price}_${plan.durationMonths}_${current.value?['id'] ?? 'none'}';
+      intentSlot = slot;
+      var intent = await readIntent(slot); if (intent == null || intent.isEmpty) intent = base64Url.encode(List.generate(24, (_) => Random.secure().nextInt(256))); await writeIntent(slot, intent);
       final response = await api.purchaseSubscription(planId: plan.id, idempotencyKey: intent);
       final purchase = response['subscription'] as Map?;
       final gateway = response['gateway'] as Map?;
       if (purchase?['id'] is! String || gateway?['orderId'] is! String || !(gateway!['orderId'] as String).startsWith('order_') || gateway['keyId'] is! String || !RegExp(r'^rzp_(test|live)_').hasMatch(gateway['keyId']) || gateway['currency'] != 'INR' || gateway['amount'] is! int || gateway['amount'] != (plan.price * 100).round()) throw const PaymentFailure('Invalid subscription payment order. Refresh plans before retrying.');
-      _pendingId = purchase!['id'].toString();
+      if (purchase!['durationMonths'] != null && purchase['durationMonths'] != plan.durationMonths) throw const PaymentFailure('Plan duration changed. Refresh plans before purchasing.');
+      _pendingId = purchase['id'].toString();
+      await writeIntent('subscription_pending_${me['id']}_${plan.id}', jsonEncode({'subscriptionId': _pendingId, 'slot': slot}));
       if (session != api.sessionVersion || isClosed) return false;
       _checkout?.clear(); final checkout = checkoutFactory(); _checkout = checkout;
       bool stale() => completion.isCompleted || session != api.sessionVersion || isClosed;
@@ -87,12 +132,16 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
       checkout.open({'key': gateway['keyId'], 'order_id': gateway['orderId'], 'amount': gateway['amount'], 'currency': 'INR', 'name': 'InvestPro', 'description': '${plan.name} Subscription'});
       final success = await completion.future;
       if (success && session == api.sessionVersion) {
+        try { await writeIntent(slot, ''); await writeIntent('subscription_pending_${me['id']}_${plan.id}', ''); } catch (_) {}
         if (Get.isRegistered<ProjectController>()) {
           try { final projects = Get.find<ProjectController>(); await projects.loadSubscriptionEligibility(); await projects.refreshProjects(); } catch (_) {}
         }
       }
       return success;
-    } catch (e) { if (!isClosed && session == api.sessionVersion) error.value = PaymentError.message(e); return false; }
+    } catch (e) {
+      if (intentSlot != null && e is DioException && e.response?.statusCode == 409 && e.response?.data is Map && e.response?.data['message'].toString().startsWith('This purchase is already processed') == true) { try { await writeIntent(intentSlot, ''); } catch (_) {} }
+      if (!isClosed && session == api.sessionVersion) error.value = PaymentError.message(e); return false;
+    }
     finally { if (_completion == completion) { _checkout?.clear(); _completion = null; purchasing.value = false; } }
   }
 }

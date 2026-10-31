@@ -25,7 +25,7 @@ class SubscriptionPlanModel {
     this.accessRules,
   });
 
-  String get formattedPrice => CurrencyFormatter.format(price);
+  String get formattedPrice => CurrencyFormatter.format(price, showDecimals: true);
   String get formattedMinInvestment => CurrencyFormatter.format(minInvestment);
   String get formattedMaxInvestment => CurrencyFormatter.format(maxInvestment);
   String get formattedRange =>

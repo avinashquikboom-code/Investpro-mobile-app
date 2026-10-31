@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../models/notification_model.dart';
 import '../routes/app_routes.dart';
 import '../services/notification_service.dart';
+import 'project_controller.dart';
 
 class NotificationController extends GetxController {
   final NotificationService _service;
@@ -26,10 +27,30 @@ class NotificationController extends GetxController {
 
   void handleNotificationTap(NotificationModel notif) {
     markAsRead(notif.id);
+    if (notif.targetType == 'SUBSCRIPTION' ||
+        notif.type == NotificationType.subscriptionActivated ||
+        notif.type == NotificationType.subscriptionExpiring ||
+        notif.type == NotificationType.subscriptionExpired) {
+      if (Get.isRegistered<ProjectController>()) {
+        Get.find<ProjectController>().loadSubscriptionEligibility();
+        Get.find<ProjectController>().refreshProjects();
+      }
+      Get.toNamed(AppRoutes.subscriptionPlans);
+      return;
+    }
     if (notif.targetType == 'OFFLINE_PAYMENT') { Get.toNamed(AppRoutes.offlinePayments, arguments: notif.relatedId); return; }
     final relatedId = notif.relatedId;
 
     switch (notif.type) {
+      case NotificationType.subscriptionActivated:
+      case NotificationType.subscriptionExpiring:
+      case NotificationType.subscriptionExpired:
+        if (Get.isRegistered<ProjectController>()) {
+          Get.find<ProjectController>().loadSubscriptionEligibility();
+          Get.find<ProjectController>().refreshProjects();
+        }
+        Get.toNamed(AppRoutes.subscriptionPlans);
+        break;
       case NotificationType.requestUpdate:
         Get.toNamed(AppRoutes.requests,arguments:notif.relatedId);
         break;
