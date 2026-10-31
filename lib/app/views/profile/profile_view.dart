@@ -133,7 +133,6 @@ class ProfileView extends StatelessWidget {
         final user = profileCtrl.user;
         final hasName = user.fullName.isNotEmpty;
         final displayName = hasName ? user.fullName : (user.email.isNotEmpty ? user.email.split('@')[0] : 'Investor');
-        final rawId = user.id.isNotEmpty ? user.id : 'Pending';
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,31 +227,22 @@ class ProfileView extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
 
-                  // Investor ID with Copy Button
-                  InkWell(
-                    onTap: () => _copyToClipboard(context, rawId, 'Investor ID'),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF3F8F5),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isDark ? AppColors.borderDark : AppColors.border.withValues(alpha: 0.6),
-                          width: 0.8,
-                        ),
-                      ),
+                  // Email with Copy Action
+                  if (user.email.isNotEmpty) ...[
+                    InkWell(
+                      onTap: () => _copyToClipboard(context, user.email, 'Email'),
+                      borderRadius: BorderRadius.circular(6),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
                             child: Text(
-                              'ID: $rawId',
+                              user.email,
                               style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
                                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                               ),
                               maxLines: 1,
@@ -262,14 +252,14 @@ class ProfileView extends StatelessWidget {
                           const SizedBox(width: 4),
                           const Icon(
                             Remix.file_copy_line,
-                            size: 12,
+                            size: 11,
                             color: AppColors.primary,
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
+                  ],
 
                   // Status Badges (Account & KYC)
                   Wrap(

@@ -2,6 +2,7 @@ import '../services/investment_calculator.dart';
 
 class InvestmentModel {
   final String id;
+  final String reference;
   final String projectId;
   final String projectName;
   final String iconType;
@@ -20,6 +21,7 @@ class InvestmentModel {
 
   const InvestmentModel({
     required this.id,
+    this.reference = '',
     required this.projectId,
     required this.projectName,
     required this.iconType,
@@ -39,6 +41,7 @@ class InvestmentModel {
   DateTime get start => startDate;
   InvestmentModel copyWith({
     String? id,
+    String? reference,
     String? projectId,
     String? projectName,
     String? iconType,
@@ -55,6 +58,7 @@ class InvestmentModel {
   }) {
     return InvestmentModel(
       id: id ?? this.id,
+      reference: reference ?? this.reference,
       projectId: projectId ?? this.projectId,
       projectName: projectName ?? this.projectName,
       iconType: iconType ?? this.iconType,
@@ -74,6 +78,7 @@ class InvestmentModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'reference': reference,
       'projectId': projectId,
       'projectName': projectName,
       'iconType': iconType,
@@ -93,6 +98,9 @@ class InvestmentModel {
   factory InvestmentModel.fromJson(Map<String, dynamic> json) {
     return InvestmentModel(
       id: json['id'] as String,
+      reference: json['investmentReference'] as String? ??
+          json['reference'] as String? ??
+          '',
       projectId: json['projectId'] as String,
       projectName: json['projectName'] as String,
       iconType: json['iconType'] as String? ?? 'code',

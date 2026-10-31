@@ -39,32 +39,64 @@ class ReturnsController extends GetxController {
       if (user.id == _workspaceUser) return;
       _workspaceUser = user.id;
       _workspaceRequest++;
-      workspace.value = null; workspaceError.value = '';
+      _workspaceInFlight = null;
+      _workspaceKey = null;
+      workspace.value = null;
+      workspaceError.value = '';
+      workspaceLoading.value = false;
       if (user.id.isNotEmpty) loadWorkspace();
     });
     _syncWorker = ever(_repo.isSyncing, (syncing) {
       if (!syncing && _repo.currentUser.value.id.isNotEmpty) loadWorkspace();
     });
   }
+
   @override
   void onClose() {
     _workspaceRequest++;
-    _userWorker?.dispose(); _syncWorker?.dispose();
+    _userWorker?.dispose();
+    _syncWorker?.dispose();
     super.onClose();
   }
+
   int _workspaceRequest = 0;
-  Future<void> loadWorkspace() async {
+  Future<void>? _workspaceInFlight;
+  String? _workspaceKey;
+  Future<void> loadWorkspace() {
+    final key = '${_repo.currentUser.value.id}:${selectedPeriod.value}';
+    if (_workspaceInFlight != null && _workspaceKey == key) {
+      return _workspaceInFlight!;
+    }
+    _workspaceKey = key;
+    final task = _loadWorkspace();
+    _workspaceInFlight = task;
+    return task.whenComplete(() {
+      if (identical(_workspaceInFlight, task)) {
+        _workspaceInFlight = null;
+        _workspaceKey = null;
+      }
+    });
+  }
+
+  Future<void> _loadWorkspace() async {
     if (!isLive || !Get.isRegistered<ApiService>()) return;
     final version = ++_workspaceRequest;
     workspaceLoading.value = true;
     try {
-      final result = await Get.find<ApiService>().getReturnsWorkspace(selectedPeriod.value);
+      final result = await Get.find<ApiService>().getReturnsWorkspace(
+        selectedPeriod.value,
+      );
       if (version != _workspaceRequest || isClosed) return;
-      workspace.value = result; workspaceError.value = '';
+      workspace.value = result;
+      workspaceError.value = '';
     } catch (_) {
-      if (version == _workspaceRequest && !isClosed) workspaceError.value = 'Unable to refresh returns. Please retry.';
+      if (version == _workspaceRequest && !isClosed) {
+        workspaceError.value = 'Unable to refresh returns. Please retry.';
+      }
     } finally {
-      if (version == _workspaceRequest && !isClosed) workspaceLoading.value = false;
+      if (version == _workspaceRequest && !isClosed) {
+        workspaceLoading.value = false;
+      }
     }
   }
 
@@ -149,14 +181,15 @@ class ReturnsController extends GetxController {
   ReturnPayoutModel? get nextReturnSchedule {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final pending = records
-        .where(
-          (r) =>
-              (r.status == 'Pending' || r.status == 'Scheduled') &&
-              !r.payoutDate.isBefore(today),
-        )
-        .toList()
-      ..sort((a, b) => a.payoutDate.compareTo(b.payoutDate));
+    final pending =
+        records
+            .where(
+              (r) =>
+                  (r.status == 'Pending' || r.status == 'Scheduled') &&
+                  !r.payoutDate.isBefore(today),
+            )
+            .toList()
+          ..sort((a, b) => a.payoutDate.compareTo(b.payoutDate));
     return pending.isEmpty ? null : pending.first;
   }
 
@@ -168,7 +201,9 @@ class ReturnsController extends GetxController {
 
     DateTime anchor = DateTime(now.year, now.month, 1);
     if (received.isNotEmpty) {
-      final latest = received.map((r) => r.payoutDate).reduce((a, b) => a.isAfter(b) ? a : b);
+      final latest = received
+          .map((r) => r.payoutDate)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
       if (latest.isAfter(anchor) || now.difference(latest).inDays > 180) {
         anchor = DateTime(latest.year, latest.month, 1);
       }
@@ -200,10 +235,12 @@ class ReturnsController extends GetxController {
         final startMonth = (q - 1) * 3 + 1;
         final endMonth = startMonth + 2;
         final sum = received
-            .where((r) =>
-                r.payoutDate.year == year &&
-                r.payoutDate.month >= startMonth &&
-                r.payoutDate.month <= endMonth)
+            .where(
+              (r) =>
+                  r.payoutDate.year == year &&
+                  r.payoutDate.month >= startMonth &&
+                  r.payoutDate.month <= endMonth,
+            )
             .fold<double>(0.0, (s, r) => s + r.amount);
         points.add(
           ReturnChartPoint(
@@ -222,9 +259,9 @@ class ReturnsController extends GetxController {
     for (int i = 5; i >= 0; i--) {
       final d = DateTime(anchor.year, anchor.month - i, 1);
       final sum = received
-          .where((r) =>
-              r.payoutDate.year == d.year &&
-              r.payoutDate.month == d.month)
+          .where(
+            (r) => r.payoutDate.year == d.year && r.payoutDate.month == d.month,
+          )
           .fold<double>(0.0, (s, r) => s + r.amount);
       points.add(
         ReturnChartPoint(
@@ -254,7 +291,18 @@ class ReturnsController extends GetxController {
   Future<void> refreshData() async {
     isRefreshing.value = true;
     try {
-      await Future.wait([_repo.loadData(), loadWorkspace()]);
+      final before = _workspaceRequest;
+      try {
+        await _repo.loadData();
+      } catch (_) {
+        /* Returns can refresh independently of portfolio sync. */
+      }
+      // Repository sync already requests the snapshot; share that request.
+      if (_workspaceRequest == before) {
+        await loadWorkspace();
+      } else {
+        await _workspaceInFlight;
+      }
     } catch (_) {
       // Retain valid state safely
     } finally {
@@ -302,7 +350,7 @@ class ReturnsController extends GetxController {
                                 : 'Received transaction',
                           ),
                           content: Text(
-                            'Reference: ${txn?.referenceId ?? r.id}\n${txn?.status ?? 'Pending • not yet received'}',
+                            'Reference: ${txn?.referenceId ?? 'N/A'}\n${txn?.status ?? 'Pending • not yet received'}',
                           ),
                           actions: [
                             TextButton(
@@ -326,6 +374,10 @@ class ReturnsController extends GetxController {
   }
 
   void setPeriod(String period) {
+    if (!['Monthly', 'Quarterly', 'Yearly'].contains(period) ||
+        selectedPeriod.value == period) {
+      return;
+    }
     selectedPeriod.value = period;
     loadWorkspace();
   }

@@ -148,7 +148,12 @@ void main() {
   tearDown(() {
     Get.reset();
   });
-  Future<void> mount(WidgetTester tester, Widget view, Size size, {TargetPlatform platform = TargetPlatform.android}) async {
+  Future<void> mount(
+    WidgetTester tester,
+    Widget view,
+    Size size, {
+    TargetPlatform platform = TargetPlatform.android,
+  }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
     tester.view.padding = const FakeViewPadding(top: 44, bottom: 34);
@@ -156,7 +161,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPadding);
     await tester.pumpWidget(
-      GetMaterialApp(theme: AppTheme.lightTheme.copyWith(platform: platform), home: view),
+      GetMaterialApp(
+        theme: AppTheme.lightTheme.copyWith(platform: platform),
+        home: view,
+      ),
     );
     await tester.pumpAndSettle();
   }
@@ -172,7 +180,20 @@ void main() {
         'live returns scroll without overflow on $platform at $size',
         (tester) async {
           await mount(tester, const ReturnsView(), size, platform: platform);
-          expect(find.text('Earned returns'), findsOneWidget);
+          expect(find.text('Total Returns'), findsOneWidget);
+          await tester.scrollUntilVisible(
+            find.text('Balances & withdrawals'),
+            250,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
+          await Scrollable.ensureVisible(
+            tester.element(find.text('Balances & withdrawals')),
+            alignment: .5,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Balances & withdrawals'));
+          await tester.pumpAndSettle();
           expect(find.text('₹ 100.01'), findsWidgets);
           for (var i = 0; i < 14; i++) {
             await tester.drag(

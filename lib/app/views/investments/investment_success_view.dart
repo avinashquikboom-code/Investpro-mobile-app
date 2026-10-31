@@ -158,7 +158,9 @@ class InvestmentSuccessView extends StatelessWidget {
                               ),
                               _buildSummaryItem(
                                 'investmentReference'.tr,
-                                investment.id,
+                                investment.reference.isNotEmpty
+                                    ? investment.reference
+                                    : 'N/A',
                                 isCode: true,
                               ),
                             ],

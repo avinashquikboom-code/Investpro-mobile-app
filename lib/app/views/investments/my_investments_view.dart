@@ -134,6 +134,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                     inv.status.toLowerCase() == invCtrl.myInvestmentsFilter.value.toLowerCase();
                 final matchesSearch = _searchQuery.isEmpty ||
                     inv.projectName.toLowerCase().contains(_searchQuery) ||
+                    inv.reference.toLowerCase().contains(_searchQuery) ||
                     inv.id.toLowerCase().contains(_searchQuery);
                 return matchesFilter && matchesSearch;
               }).toList();
@@ -517,7 +518,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'ID: ${inv.id.length > 8 ? inv.id.substring(0, 8) : inv.id}',
+                            inv.reference.isNotEmpty ? inv.reference : 'N/A',
                             style: TextStyle(
                               fontFamily: 'monospace',
                               fontSize: 11,

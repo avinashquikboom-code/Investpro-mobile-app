@@ -59,8 +59,10 @@ class TransactionModel {
       projectId: json['projectId'] as String?,
       projectName: json['projectName'] as String?,
       referenceId:
+          json['transactionReference'] as String? ??
           json['referenceId'] as String? ??
-          'TXN-${DateTime.now().millisecondsSinceEpoch}',
+          json['reference'] as String? ??
+          'N/A',
     );
   }
 }

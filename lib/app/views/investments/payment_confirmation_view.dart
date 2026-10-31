@@ -15,6 +15,10 @@ import 'package:remixicon/remixicon.dart';
 import '../../controllers/investment_controller.dart';
 import '../../services/api_service.dart';
 import '../../services/payment_error.dart';
+import '../../services/offline_payment_config.dart';
+
+import 'package:flutter/foundation.dart';
+
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
@@ -30,11 +34,17 @@ class PaymentConfirmationView extends StatefulWidget {
       _PaymentConfirmationViewState();
 }
 
-class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
+class _PaymentConfirmationViewState extends State<PaymentConfirmationView>
+    with WidgetsBindingObserver {
   final TextEditingController _utrController = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Map<String, dynamic>? settings;
+  bool _settingsLoading = false;
+  String? _settingsError;
+  Future<void>? _settingsRequest;
+  String _transferMethod = 'BANK_TRANSFER';
+  String? _lastEligibilityDiagnostic;
   PlatformFile? _proofFile;
   Uint8List? _proofBytes;
   double _uploadProgress = 0.0;
@@ -47,6 +57,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final invCtrl = Get.find<InvestmentController>();
     if (invCtrl.selectedPaymentMethod.value != 'Offline Payment' &&
         invCtrl.selectedPaymentMethod.value != 'Razorpay Checkout') {
@@ -54,17 +65,17 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
     }
     invCtrl.agreeToTerms.value = false;
 
-    _utrController.addListener(() => _validateUtr(_utrController.text));
+    _utrController.addListener(() {
+      _validateUtr(_utrController.text);
+      if (mounted) {
+        setState(() {});
+      } // Every edit can change submission eligibility.
+    });
 
     if (invCtrl.isLive) {
-      Get.find<ApiService>()
-          .object('/mobile/investments/offline-payment/settings')
-          .then((value) {
-            if (mounted) setState(() => settings = value);
-          })
-          .catchError((Object _) {});
+      _loadSettings();
     } else {
-      settings = {
+      settings = OfflinePaymentConfig.parse({
         'enabled': true,
         'accountHolderName': 'InvestPro Capital PVT LTD',
         'bankName': 'HDFC Bank',
@@ -72,12 +83,99 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
         'ifscCode': 'HDFC0001234',
         'upiId': 'investpro@hdfcbank',
         'maxBytes': 5242880,
-      };
+      });
     }
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        !Get.find<InvestmentController>().isProcessingPayment.value) {
+      _loadSettings();
+    }
+  }
+
+  Future<void> _loadSettings() {
+    if (!Get.find<InvestmentController>().isLive) return Future.value();
+    if (_settingsRequest != null) return _settingsRequest!;
+    final task = _fetchSettings();
+    _settingsRequest = task;
+    return task.whenComplete(() => _settingsRequest = null);
+  }
+
+  Future<void> _fetchSettings() async {
+    if (mounted) {
+      setState(() {
+        _settingsLoading = true;
+        _settingsError = null;
+      });
+    }
+    try {
+      final value = OfflinePaymentConfig.parse(
+        await Get.find<ApiService>().object(
+          '/mobile/investments/offline-payment/settings',
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        settings = value;
+        final methods = value['acceptedMethods'] as List;
+        if (!methods.contains(_transferMethod) && methods.isNotEmpty) {
+          _transferMethod = methods.first as String;
+        }
+      });
+      if (kDebugMode) {
+        debugPrint(
+          'Offline settings enabled=${value['enabled']} configured=${value['configured']} proofRequired=true methods=${(value['acceptedMethods'] as List).join(',')} maxBytes=${value['maxBytes']}',
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _settingsError = error is FormatException
+              ? error.message
+              : PaymentError.message(
+                  error,
+                  fallback: 'Unable to load payment settings. Please refresh.',
+                ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _settingsLoading = false);
+    }
+  }
+
+  String? _offlineBlocker(InvestmentController controller) {
+    if (_settingsLoading) return 'Checking offline payment availability…';
+    if (_settingsError != null) return _settingsError;
+    if (settings == null) return 'Load payment settings before continuing.';
+    if (settings!['enabled'] != true) {
+      return 'Offline payment is currently disabled by the administrator. Please select Razorpay Checkout.';
+    }
+    if (settings!['configured'] != true) {
+      return 'Offline payment instructions are incomplete. Please use Razorpay Checkout or contact support.';
+    }
+    if (controller.currentProject.value == null) return 'Select a project.';
+    if (controller.amountError != null) return controller.amountError;
+    if (!OfflinePaymentConfig.validReference(_utrController.text)) {
+      return 'Enter a valid payment reference (6–64 letters or digits; / and - are allowed separators).';
+    }
+    if (_proofBytes == null || _proofFile == null) {
+      return 'Select a JPG, PNG or PDF payment proof to upload with your submission.';
+    }
+    if (_proofError != null) return _proofError;
+    if (!controller.agreeToTerms.value) {
+      return 'Accept the Investment Terms & Risk Disclosures to continue.';
+    }
+    if (controller.isProcessingPayment.value) {
+      return 'Uploading proof and submitting payment details…';
+    }
+    return null;
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _utrController.dispose();
     _previewDirectory
         ?.delete(recursive: true)
@@ -89,7 +187,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
     final trimmed = value.trim().toUpperCase();
     if (trimmed.isEmpty) {
       if (_utrError != null) setState(() => _utrError = null);
-    } else if (!RegExp(r'^[A-Z0-9][A-Z0-9/-]{5,63}$').hasMatch(trimmed)) {
+    } else if (!OfflinePaymentConfig.validReference(trimmed)) {
       if (_utrError != 'Enter a valid payment reference (6–64 characters).') {
         setState(
           () =>
@@ -102,6 +200,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
   }
 
   Future<void> _pickFile() async {
+    if (Get.find<InvestmentController>().isProcessingPayment.value) return;
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
@@ -111,11 +210,17 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
       final file = result.single;
       final maxBytes = (settings?['maxBytes'] as num?)?.toInt() ?? 5242880;
       final length = await file.length();
-      if (length == null || length > maxBytes) {
+      if (length == null || length <= 0 || length > maxBytes) {
         throw const FormatException('Select a file of at most 5 MB');
       }
       final bytes = await file.readAsBytes();
+      if (bytes.isEmpty || bytes.length > maxBytes) {
+        throw FormatException(
+          'Select a non-empty file of at most ${_formatBytes(maxBytes)}',
+        );
+      }
       _validateMime(bytes);
+      if (!mounted) return;
       setState(() {
         _proofFile = file;
         _proofBytes = bytes;
@@ -306,7 +411,11 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 4),
-          child: Icon(Remix.checkbox_circle_fill, color: AppColors.primary, size: 14),
+          child: Icon(
+            Remix.checkbox_circle_fill,
+            color: AppColors.primary,
+            size: 14,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -314,7 +423,9 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
             text: TextSpan(
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
                 height: 1.35,
               ),
               children: [
@@ -322,7 +433,9 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                   text: '$title: ',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 TextSpan(text: desc),
@@ -339,7 +452,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
     if (invCtrl.isProcessingPayment.value) return;
 
     final utr = _utrController.text.trim().toUpperCase();
-    if (!RegExp(r'^[A-Z0-9][A-Z0-9/-]{5,63}$').hasMatch(utr)) {
+    if (!OfflinePaymentConfig.validReference(utr)) {
       setState(
         () => _utrError = 'Enter a valid payment reference (6–64 characters).',
       );
@@ -358,6 +471,11 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
       return;
     }
 
+    final blocker = _offlineBlocker(invCtrl);
+    if (blocker != null) {
+      setState(() => _paymentError = blocker);
+      return;
+    }
     invCtrl.isProcessingPayment.value = true;
     setState(() {
       _paymentError = null;
@@ -372,7 +490,8 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
         await Future<void>.delayed(const Duration(milliseconds: 600));
         setState(() {
           _submittedData = {
-            'id': 'REQ-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+            'id':
+                'REQ-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
             'status': 'PENDING_VERIFICATION',
             'amount': invCtrl.investmentAmount.value,
             'utrNumber': utr,
@@ -381,6 +500,35 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
         return;
       }
 
+      final methodBeforeRefresh = _transferMethod;
+      final destinationBeforeRefresh = settings;
+      final session = Get.find<ApiService>().sessionVersion;
+      await _loadSettings();
+      if (!mounted) return;
+      if (Get.find<ApiService>().sessionVersion != session) {
+        throw const PaymentFailure(
+          'Your session changed. Reopen Confirm Payment to continue.',
+        );
+      }
+      if (_settingsError != null ||
+          settings?['enabled'] != true ||
+          settings?['configured'] != true) {
+        throw PaymentFailure(
+          _settingsError ??
+              'Offline payment is unavailable. Please use Razorpay Checkout.',
+        );
+      }
+      final destinationFields = methodBeforeRefresh == 'UPI'
+          ? ['upiId']
+          : ['accountHolderName', 'bankName', 'accountNumber', 'ifscCode'];
+      if (methodBeforeRefresh != _transferMethod ||
+          destinationFields.any(
+            (field) => destinationBeforeRefresh?[field] != settings?[field],
+          )) {
+        throw const PaymentFailure(
+          'Payment instructions changed. Please review the updated destination before submitting.',
+        );
+      }
       final slot =
           'offline_request_${base64Url.encode(utf8.encode('${project.id}:${invCtrl.investmentAmount.value}:$utr'))}';
       var key = await _storage.read(key: slot);
@@ -389,12 +537,23 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
       );
       await _storage.write(key: slot, value: key);
 
+      if (!mounted || Get.find<ApiService>().sessionVersion != session) {
+        throw const PaymentFailure(
+          'Your session changed. Reopen Confirm Payment to continue.',
+        );
+      }
+      if (kDebugMode) {
+        debugPrint(
+          'Offline submit eligible=true enabled=true configured=true referenceValid=true proofSelected=true termsAccepted=true; proof uploads in this request',
+        );
+      }
       final response = await Get.find<ApiService>().dio.post(
         '/mobile/investments/offline-payment',
         data: FormData.fromMap({
           'projectId': project.id,
           'amount': invCtrl.investmentAmount.value.toString(),
           'paymentMethod': 'OFFLINE',
+          'transferMethod': _transferMethod,
           'utrNumber': utr,
           'termsAccepted': 'true',
           'idempotencyKey': key,
@@ -415,12 +574,25 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
         },
       );
 
+      if (!mounted || Get.find<ApiService>().sessionVersion != session) return;
+      final body = response.data;
+      if (body is! Map ||
+          body['success'] != true ||
+          body['data'] is! Map ||
+          ![
+            'PENDING_VERIFICATION',
+            'APPROVED',
+            'REJECTED',
+          ].contains(body['data']['status']) ||
+          body['data']['id'] == null) {
+        throw const PaymentFailure(
+          'The server did not confirm your payment request. Retry safely with the same details.',
+        );
+      }
       if (mounted) {
-        setState(() {
-          _submittedData = Map<String, dynamic>.from(
-            response.data['data'] as Map,
-          );
-        });
+        setState(
+          () => _submittedData = Map<String, dynamic>.from(body['data'] as Map),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -483,16 +655,16 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                 return _buildSubmittedView(isDark);
               }
 
-              final canSubmitOffline =
-                  !invCtrl.isProcessingPayment.value &&
-                  invCtrl.agreeToTerms.value &&
-                  _proofFile != null &&
-                  _utrController.text.trim().isNotEmpty &&
-                  _utrError == null &&
-                  settings != null &&
-                  settings!['enabled'] == true &&
-                  invCtrl.amountError == null;
-
+              final offlineBlocker = _offlineBlocker(invCtrl);
+              final canSubmitOffline = offlineBlocker == null;
+              if (kDebugMode && isOffline) {
+                final diagnostic =
+                    'Offline eligibility enabled=${settings?['enabled'] == true} configured=${settings?['configured'] == true} settingsLoading=$_settingsLoading settingsFailed=${_settingsError != null} projectSelected=true amountValid=${invCtrl.amountError == null} referenceValid=${OfflinePaymentConfig.validReference(_utrController.text)} proofSelected=${_proofFile != null && _proofBytes != null} termsAccepted=${invCtrl.agreeToTerms.value} processing=${invCtrl.isProcessingPayment.value} canSubmit=$canSubmitOffline';
+                if (diagnostic != _lastEligibilityDiagnostic) {
+                  debugPrint(diagnostic);
+                  _lastEligibilityDiagnostic = diagnostic;
+                }
+              }
               final canSubmitOnline =
                   !invCtrl.isProcessingPayment.value &&
                   invCtrl.agreeToTerms.value &&
@@ -539,23 +711,73 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                     const SizedBox(height: 10),
                     _buildPaymentMethodCard(
                       title: 'Offline Payment',
-                      subtitle: 'Bank Transfer / UPI / Cash Deposit',
+                      subtitle: _settingsLoading
+                          ? 'Checking availability…'
+                          : settings?['enabled'] == false
+                          ? 'Unavailable • disabled by the administrator'
+                          : 'Bank Transfer / UPI • admin verification required',
                       icon: Remix.bank_line,
                       isSelected: isOffline,
-                      onTap: invCtrl.isProcessingPayment.value
+                      onTap:
+                          invCtrl.isProcessingPayment.value ||
+                              _settingsLoading ||
+                              settings?['enabled'] != true ||
+                              settings?['configured'] != true ||
+                              _settingsError != null
                           ? null
-                          : () => invCtrl.setPaymentMethod('Offline Payment'),
+                          : () {
+                              invCtrl.setPaymentMethod('Offline Payment');
+                              _loadSettings();
+                            },
                       isDark: isDark,
                     ),
+
+                    if (!isOffline &&
+                        !_settingsLoading &&
+                        (_settingsError != null ||
+                            settings?['enabled'] != true ||
+                            settings?['configured'] != true))
+                      TextButton(
+                        onPressed: invCtrl.isProcessingPayment.value
+                            ? null
+                            : _loadSettings,
+                        child: const Text('Refresh payment settings'),
+                      ),
 
                     // 3. Conditional Offline Payment Section
                     if (isOffline) ...[
                       const SizedBox(height: 20),
                       _buildOfflinePaymentInstructionsCard(isDark),
                       const SizedBox(height: 18),
-                      _buildUtrField(isDark),
-                      const SizedBox(height: 18),
-                      _buildProofUploadContainer(isDark),
+                      if (!_settingsLoading &&
+                          _settingsError == null &&
+                          settings?['enabled'] == true &&
+                          settings?['configured'] == true) ...[
+                        if ((settings!['acceptedMethods'] as List).length > 1)
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              for (final method
+                                  in settings!['acceptedMethods'] as List)
+                                ChoiceChip(
+                                  label: Text(
+                                    method == 'UPI' ? 'UPI' : 'Bank Transfer',
+                                  ),
+                                  selected: _transferMethod == method,
+                                  onSelected: invCtrl.isProcessingPayment.value
+                                      ? null
+                                      : (_) => setState(
+                                          () => _transferMethod =
+                                              method as String,
+                                        ),
+                                ),
+                            ],
+                          ),
+                        const SizedBox(height: 12),
+                        _buildUtrField(isDark),
+                        const SizedBox(height: 18),
+                        _buildProofUploadContainer(isDark),
+                      ],
                     ],
 
                     const SizedBox(height: 20),
@@ -570,9 +792,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFFBEB),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFFFDE68A),
-                          ),
+                          border: Border.all(color: const Color(0xFFFDE68A)),
                         ),
                         child: const Row(
                           children: [
@@ -605,7 +825,8 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                     ],
 
                     // Inline Error Banners
-                    if (_paymentError != null || invCtrl.paymentError.isNotEmpty) ...[
+                    if (_paymentError != null ||
+                        invCtrl.paymentError.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -659,9 +880,11 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => invCtrl.toggleTerms(
-                              !invCtrl.agreeToTerms.value,
-                            ),
+                            onTap: invCtrl.isProcessingPayment.value
+                                ? null
+                                : () => invCtrl.toggleTerms(
+                                    !invCtrl.agreeToTerms.value,
+                                  ),
                             child: RichText(
                               text: TextSpan(
                                 style: TextStyle(
@@ -690,8 +913,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                                     ),
                                   ),
                                   const TextSpan(
-                                    text:
-                                        ' and acknowledge that returns are projected estimates.',
+                                    text: ' and acknowledge that returns are projected estimates.',
                                   ),
                                 ],
                               ),
@@ -702,6 +924,17 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                     ),
                     const SizedBox(height: 24),
 
+                    if (isOffline && offlineBlocker != null) ...[
+                      Text(
+                        offlineBlocker,
+                        key: const ValueKey('offline-submit-reason'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     // 6. Bottom Payment Action Button
                     FilledButton(
                       style: FilledButton.styleFrom(
@@ -743,8 +976,8 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                                 color: canSubmit
                                     ? Colors.white
                                     : (isDark
-                                        ? AppColors.textSecondaryDark
-                                        : const Color(0xFF6B7280)),
+                                          ? AppColors.textSecondaryDark
+                                          : const Color(0xFF6B7280)),
                               ),
                             ),
                     ),
@@ -789,9 +1022,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: isDark
-                  ? AppColors.textPrimaryDark
-                  : AppColors.textPrimary,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -883,10 +1114,9 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: color ??
-                  (isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimary),
+              color:
+                  color ??
+                  (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
             ),
           ),
         ),
@@ -914,10 +1144,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
       color: bgColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: borderColor,
-          width: isSelected ? 1.5 : 1.0,
-        ),
+        side: BorderSide(color: borderColor, width: isSelected ? 1.5 : 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -956,8 +1183,9 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                       title,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
                         color: isDark
                             ? AppColors.textPrimaryDark
                             : AppColors.textPrimary,
@@ -1008,7 +1236,49 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
   }
 
   Widget _buildOfflinePaymentInstructionsCard(bool isDark) {
-    if (settings == null) {
+    if (_settingsError != null ||
+        (!_settingsLoading &&
+            settings != null &&
+            (settings!['enabled'] != true ||
+                settings!['configured'] != true))) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.warningLight,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _settingsError ??
+                  (settings!['enabled'] != true
+                      ? 'Offline payment is currently disabled by the administrator.'
+                      : 'Offline payment instructions are incomplete.'),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              children: [
+                TextButton(
+                  onPressed:
+                      Get.find<InvestmentController>().isProcessingPayment.value
+                      ? null
+                      : _loadSettings,
+                  child: const Text('Refresh payment settings'),
+                ),
+                TextButton(
+                  onPressed: () => Get.find<InvestmentController>()
+                      .setPaymentMethod('Razorpay Checkout'),
+                  child: const Text('Use Razorpay Checkout'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+    if (_settingsLoading || settings == null) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -1029,29 +1299,6 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
               color: AppColors.primary,
             ),
           ),
-        ),
-      );
-    }
-
-    if (settings!['enabled'] != true) {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.warningLight,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
-        ),
-        child: const Row(
-          children: [
-            Icon(Remix.alert_line, color: AppColors.warning, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Offline payment is currently disabled. Please select Razorpay Checkout or contact support.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
-              ),
-            ),
-          ],
         ),
       );
     }
@@ -1087,10 +1334,17 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                   ),
                 ),
               ),
-              const Icon(
-                Remix.information_line,
-                color: AppColors.primary,
-                size: 20,
+              IconButton(
+                tooltip: 'Refresh payment settings',
+                onPressed:
+                    Get.find<InvestmentController>().isProcessingPayment.value
+                    ? null
+                    : _loadSettings,
+                icon: const Icon(
+                  Remix.refresh_line,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
             ],
           ),
@@ -1222,13 +1476,13 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isDark
-                ? AppColors.textPrimaryDark
-                : AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
+          key: const ValueKey('offline-utr'),
+          readOnly: Get.find<InvestmentController>().isProcessingPayment.value,
           controller: _utrController,
           textCapitalization: TextCapitalization.characters,
           keyboardType: TextInputType.text,
@@ -1239,9 +1493,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isDark
-                ? AppColors.textPrimaryDark
-                : AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Enter UTR / Reference Number',
@@ -1305,9 +1557,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isDark
-                ? AppColors.textPrimaryDark
-                : AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -1437,7 +1687,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _formatBytes(_proofBytes?.length ?? 0),
+                        '${_formatBytes(_proofBytes?.length ?? 0)} • Selected, not uploaded yet',
                         style: TextStyle(
                           fontSize: 11,
                           color: isDark
@@ -1482,10 +1732,15 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView> {
                         size: 20,
                         color: AppColors.error,
                       ),
-                      onPressed: () => setState(() {
-                        _proofFile = null;
-                        _proofBytes = null;
-                      }),
+                      onPressed:
+                          Get.find<InvestmentController>()
+                              .isProcessingPayment
+                              .value
+                          ? null
+                          : () => setState(() {
+                              _proofFile = null;
+                              _proofBytes = null;
+                            }),
                     ),
                   ],
                 ),

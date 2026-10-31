@@ -75,6 +75,10 @@ class TransactionHistoryView extends StatelessWidget {
                 DateFormatter.formatDateTime(txn.date),
               ),
               const Divider(height: 20, color: AppColors.border),
+              if (txn.projectName != null && txn.projectName!.isNotEmpty) ...[
+                _buildDetailItem('Project', txn.projectName!),
+                const Divider(height: 20, color: AppColors.border),
+              ],
               _buildDetailItem('Category', txn.subtitle),
               const Divider(height: 20, color: AppColors.border),
               _buildDetailItem(

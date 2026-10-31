@@ -7,8 +7,9 @@ import '../../controllers/returns_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/currency_formatter.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../widgets/returns_bar_chart.dart';
 import 'returns_withdrawal_view.dart';
+import 'returns_overview.dart';
+import '../../theme/app_colors.dart';
 
 /// Live returns use one consistent server snapshot; schedules never become earnings.
 class ReturnsWorkspaceView extends StatefulWidget {
@@ -91,6 +92,9 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Theme.of(context).brightness == Brightness.dark
+        ? AppColors.backgroundDark
+        : Colors.white,
     appBar: widget.isTab
         ? null
         : const CustomAppBar(title: 'Returns', showBackButton: true),
@@ -102,7 +106,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           final w = controller.workspace.value;
           return Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
+              constraints: const BoxConstraints(maxWidth: 680),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -110,12 +114,14 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   if (widget.isTab)
                     Text(
                       'Returns',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -.7,
+                          ),
                     ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Your earnings, upcoming profit and withdrawal balances.',
-                  ),
+                  const Text('Track your investment returns and payouts'),
                   const SizedBox(height: 16),
                   if (controller.workspaceError.value.isNotEmpty)
                     card(
@@ -130,9 +136,10 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                         ],
                       ),
                     ),
-                  if (controller.workspaceLoading.value && w != null) const LinearProgressIndicator(),
+                  if (controller.workspaceLoading.value && w != null)
+                    const LinearProgressIndicator(),
                   if (w == null && controller.workspaceError.value.isEmpty)
-                    const Center(child: CircularProgressIndicator()),
+                    const _ReturnsSkeleton(),
                   if (w != null) ...content(w),
                 ],
               ),
@@ -142,17 +149,28 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
       ),
     ),
   );
-  List<Widget> content(Map<String, dynamic> w) {
+  List<Widget> content(Map<String, dynamic> w) => [
+    ReturnsOverview(
+      snapshot: w,
+      period: controller.selectedPeriod.value,
+      onPeriod: controller.setPeriod,
+    ),
+    const SizedBox(height: 20),
+    card(
+      ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: EdgeInsets.zero,
+        title: const Text('Balances & withdrawals'),
+        subtitle: const Text(
+          'Project returns, withdrawal requests and history',
+        ),
+        children: ledgerContent(w),
+      ),
+    ),
+  ];
+
+  List<Widget> ledgerContent(Map<String, dynamic> w) {
     final s = Map<String, dynamic>.from(w['summary'] as Map);
-    final points = rows(w, 'analytics')
-        .map(
-          (p) => ReturnChartPoint(
-            label: '${p['label']}',
-            amount: number(p['amount']),
-            date: DateTime.parse('${p['date']}'),
-          ),
-        )
-        .toList();
     return [
       card(
         values([
@@ -191,29 +209,6 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
             ),
           ],
         ),
-      ),
-      const SizedBox(height: 12),
-      Wrap(
-        spacing: 8,
-        children: ['Monthly', 'Quarterly', 'Yearly']
-            .map(
-              (p) => ChoiceChip(
-                label: Text(p),
-                selected: controller.selectedPeriod.value == p,
-                onSelected: (_) => controller.setPeriod(p),
-              ),
-            )
-            .toList(),
-      ),
-      section('Returns Analytics'),
-      ReturnsBarChart(
-        points: points,
-        period: '${w['period']}'.capitalizeFirst ?? 'Monthly',
-        isDark: Theme.of(context).brightness == Brightness.dark,
-      ),
-      const SizedBox(height: 8),
-      const Text(
-        'Chart shows successfully credited profit, excluding returned principal. Reporting periods use UTC.',
       ),
       section('Project-wise Returns'),
       if (rows(w, 'projects').isEmpty)
@@ -349,4 +344,27 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
       ),
     ];
   }
+}
+
+class _ReturnsSkeleton extends StatelessWidget {
+  const _ReturnsSkeleton();
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Loading returns',
+    child: Column(
+      children: [
+        for (final height in [146.0, 240.0, 160.0])
+          Container(
+            height: height,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.surfaceDarkElevated
+                  : const Color(0xFFF0F7F3),
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+      ],
+    ),
+  );
 }

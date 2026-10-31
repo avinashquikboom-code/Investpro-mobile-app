@@ -34,13 +34,13 @@ void main() {
     Get.testMode = true;
     GoogleFonts.config.allowRuntimeFetching = false;
     storage = LocalStorageService(backend: MemoryStore());
-    Get.put(storage);
+    Get.put(storage, permanent: true);
     repo = DemoRepository(storage, NotificationService(storage));
-    Get.put(repo);
-    Get.put(AuthController(storage, repo));
-    Get.put(ProfileController(repo));
-    Get.put(ThemeController(storage));
-    Get.put(NavigationController());
+    Get.put(repo, permanent: true);
+    Get.put(AuthController(storage, repo), permanent: true);
+    Get.put(ProfileController(repo), permanent: true);
+    Get.put(ThemeController(storage), permanent: true);
+    Get.put(NavigationController(), permanent: true);
   });
 
   tearDown(() {
@@ -90,7 +90,7 @@ void main() {
 
     // 2. Profile Card checks
     expect(find.text('John Investor'), findsOneWidget);
-    expect(find.textContaining('inv-usr-12345678-abcd'), findsOneWidget);
+    expect(find.text('john@investpro.com'), findsOneWidget);
     expect(find.byIcon(Remix.file_copy_line), findsOneWidget);
     expect(find.text('Account: Active'), findsOneWidget);
     expect(find.text('KYC: Not Submitted'), findsOneWidget);

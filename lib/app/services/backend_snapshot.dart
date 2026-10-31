@@ -32,20 +32,43 @@ class BackendSnapshot {
     final project = row['project'] as Map? ?? {};
     final status = '${row['status']}';
     final verified = row['paymentVerified'] == true;
-    return InvestmentModel(id: '${row['id']}', projectId: '${row['projectId'] ?? project['id'] ?? ''}',
-      projectName: '${project['title'] ?? ''}', iconType: 'folder', investedAmount: number(row['amount']),
-      returnRatePercent: number(row['agreedRoi']), durationMonths: (row['tenureMonths'] as num?)?.toInt() ?? 0,
-      expectedReturn: number(row['totalExpectedReturns']), maturityAmount: number(row['amount']) + number(row['totalExpectedReturns']),
-      startDate: date(row['startDate']), maturityDate: date(row['maturityDate']), progressPercent: 0,
-      status: (status == 'ACTIVE' || status == 'MATURED') && !verified ? 'Payment unverified' : status == 'MATURED' ? 'Completed' : label(status),
-      paymentMethod: (row['payments'] as List?)?.firstOrNull?['paymentMethod']?.toString() ?? '');
+    final ref = '${row['investmentReference'] ?? row['reference'] ?? ''}';
+    final projectName = '${row['projectName'] ?? project['title'] ?? ''}';
+    return InvestmentModel(
+      id: '${row['id']}',
+      reference: ref,
+      projectId: '${row['projectId'] ?? project['id'] ?? ''}',
+      projectName: projectName,
+      iconType: 'folder',
+      investedAmount: number(row['amount']),
+      returnRatePercent: number(row['agreedRoi']),
+      durationMonths: (row['tenureMonths'] as num?)?.toInt() ?? 0,
+      expectedReturn: number(row['totalExpectedReturns']),
+      maturityAmount: number(row['amount']) + number(row['totalExpectedReturns']),
+      startDate: date(row['startDate']),
+      maturityDate: date(row['maturityDate']),
+      progressPercent: 0,
+      status: (status == 'ACTIVE' || status == 'MATURED') && !verified
+          ? 'Payment unverified'
+          : status == 'MATURED'
+              ? 'Completed'
+              : label(status),
+      paymentMethod: (row['payments'] as List?)?.firstOrNull?['paymentMethod']?.toString() ?? '',
+    );
   }
   static WithdrawalModel withdrawal(Map<String, dynamic> row) {
     final bank = row['bankAccount'] as Map? ?? {};
     final account = '${bank['accountNumber'] ?? ''}';
-    return WithdrawalModel(id: '${row['id']}', amount: number(row['amount']), bankName: '${bank['bankName'] ?? ''}',
-      accountNumber: account.length >= 4 ? '•••• ${account.substring(account.length - 4)}' : '', requestDate: date(row['requestedAt']),
-      status: label(row['status']), referenceId: '${row['withdrawalReference'] ?? row['id']}');
+    final ref = '${row['withdrawalReference'] ?? row['reference'] ?? ''}';
+    return WithdrawalModel(
+      id: '${row['id']}',
+      amount: number(row['amount']),
+      bankName: '${bank['bankName'] ?? ''}',
+      accountNumber: account.length >= 4 ? '•••• ${account.substring(account.length - 4)}' : '',
+      requestDate: date(row['requestedAt']),
+      status: label(row['status']),
+      referenceId: ref.isNotEmpty ? ref : 'N/A',
+    );
   }
   static ReturnPayoutModel payout(Map<String, dynamic> row) {
     final due = date(row['status'] == 'PAID' ? (row['returnPayment']?['payoutDate'] ?? row['paidAt'] ?? row['dueDate']) : row['dueDate']);
@@ -57,8 +80,20 @@ class BackendSnapshot {
   static TransactionModel transaction(Map<String, dynamic> row) {
     final type = '${row['type']}';
     final kind = type == 'REFUND' ? TransactionType.refund : type == 'FEE' ? TransactionType.fee : type.contains('RETURN') ? TransactionType.returnReceived : type.contains('WITHDRAWAL') ? TransactionType.withdrawal : type.contains('DEPOSIT') ? TransactionType.deposit : TransactionType.investment;
-    return TransactionModel(id: '${row['id']}', type: kind, title: label(type), subtitle: '${row['description'] ?? ''}',
-      amount: number(row['amount']), date: date(row['createdAt']), status: label(row['status']), direction: '${row['direction'] ?? ''}',
-      projectId: row['investment']?['projectId'] as String?, referenceId: '${row['transactionReference'] ?? row['id']}');
+    final pName = row['projectName'] as String? ?? row['investment']?['project']?['title'] as String?;
+    final txRef = '${row['transactionReference'] ?? row['reference'] ?? ''}';
+    return TransactionModel(
+      id: '${row['id']}',
+      type: kind,
+      title: label(type),
+      subtitle: '${row['description'] ?? ''}',
+      amount: number(row['amount']),
+      date: date(row['createdAt']),
+      status: label(row['status']),
+      direction: '${row['direction'] ?? ''}',
+      projectId: row['investment']?['projectId'] as String? ?? row['projectId'] as String?,
+      projectName: pName,
+      referenceId: txRef.isNotEmpty ? txRef : 'N/A',
+    );
   }
 }

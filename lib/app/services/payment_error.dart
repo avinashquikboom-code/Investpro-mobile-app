@@ -18,9 +18,7 @@ class PaymentError {
       if (status == 401) {
         return 'Your session has expired. Please sign in again.';
       }
-      if (status == 403) {
-        return 'This account is not allowed to make this payment.';
-      }
+
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout ||
           error.type == DioExceptionType.sendTimeout ||
@@ -50,8 +48,12 @@ class PaymentError {
           return text.substring(0, text.length.clamp(0, 300));
         }
       }
+      if (status == 403) {
+        return 'This account is not allowed to make this payment.';
+      }
       return fallback;
     }
+    if (error is FormatException) return error.message;
     if (error is ArgumentError && error.message is String) {
       return error.message as String;
     }
