@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -191,6 +192,7 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
                       const SizedBox(height: 12),
                     ],
                     if (workspace != null && wallet != null) ...[
+                      RecordId(label: 'Wallet ID', value: wallet!['walletId'] as String?),
                       Text(
                         'Available settled profit',
                         style: Theme.of(context).textTheme.titleMedium,

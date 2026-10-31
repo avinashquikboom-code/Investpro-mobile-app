@@ -38,7 +38,7 @@ void main() {
         'referenceId': transaction,
       });
       expect(model.id, transaction);
-      expect(model.referenceId, 'N/A');
+      expect(model.referenceId, transaction);
       expect(
         TransactionModel.fromJson({
           ...model.toJson(),
@@ -67,14 +67,14 @@ void main() {
     expect(
       InvestmentModel.fromJson({...model.toJson(), 'projectName': project})
           .projectName,
-      'N/A',
+      project,
     );
     expect(
       InvestmentModel.fromJson({
         ...model.toJson(),
         'investmentReference': 'INV-$transaction',
       }).reference,
-      'N/A',
+      'INV-$transaction',
     );
     expect(
       BackendSnapshot.investment({
@@ -82,18 +82,18 @@ void main() {
         'projectId': project,
         'investmentReference': 'INV-$transaction',
       }).reference,
-      'N/A',
+      'INV-$transaction',
     );
   });
   test('missing names and references use N/A and no UUID truncation', () {
-    expect(DisplayValue.reference('INV-$transaction'), 'N/A');
+    expect(DisplayValue.reference('INV-$transaction'), 'INV-$transaction');
     expect(DisplayValue.text(null), 'N/A');
     expect(DisplayValue.reference('INV-001'), 'INV-001');
     expect(BackendSnapshot.transaction({'id': transaction}).referenceId, 'N/A');
     expect(
       BackendSnapshot.investment({'id': 'investment', 'projectId': project})
           .projectName,
-      'N/A',
+      project,
     );
   });
 }

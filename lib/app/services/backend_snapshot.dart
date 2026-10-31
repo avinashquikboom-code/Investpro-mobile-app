@@ -58,7 +58,8 @@ class BackendSnapshot {
       row['invoiceNumber'] ?? row['investmentReference'] ?? row['reference'],
       internalId: row['id'],
     );
-    final projectName = '${project['title'] ?? row['projectName'] ?? ''}';
+    final projectName =
+        '${project['title'] ?? row['projectName'] ?? row['projectId'] ?? ''}';
     return InvestmentModel(
       recordIds: DisplayValue.ids(row),      id: '${row['id']}',
       reference: ref,

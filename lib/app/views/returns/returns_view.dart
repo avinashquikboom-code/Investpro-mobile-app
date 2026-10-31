@@ -10,6 +10,7 @@ import '../../models/return_model.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
+import '../../widgets/app_app_bar.dart';
 import '../../widgets/app_system_ui.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/returns_bar_chart.dart';
@@ -33,7 +34,7 @@ class ReturnsView extends StatelessWidget {
       child: Scaffold(
         backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
         appBar: !isTab
-            ? CustomAppBar(
+            ? const AppAppBar(
                 title: 'Returns',
                 showBackButton: true,
               )

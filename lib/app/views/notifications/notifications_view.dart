@@ -215,6 +215,7 @@ class NotificationsView extends StatelessWidget {
                                   : AppColors.textSecondary,
                             ),
                           ),
+                          if (notif.relatedId != null) Text('Related ID: ${notif.relatedId}', style: Theme.of(context).textTheme.bodySmall),
                           const SizedBox(height: 4),
                           Text(
                             DateFormatter.formatDateTime(notif.timestamp),

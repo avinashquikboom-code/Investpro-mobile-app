@@ -103,7 +103,42 @@ class ReturnsController extends GetxController {
 
   final RxString selectedPeriod =
       'Monthly'.obs; // 'Monthly', 'Quarterly', 'Yearly'
+  final RxString selectedHistoryFilter = 'All'.obs; // 'All', 'Today', 'This Week', 'This Month'
   final RxBool isRefreshing = false.obs;
+
+  void setHistoryFilter(String filter) {
+    selectedHistoryFilter.value = filter;
+  }
+
+  List<Map<String, dynamic>> filteredTransactions(Map<String, dynamic> w) {
+    final raw = (w['transactions'] as List? ?? w['payouts'] as List? ?? []);
+    final list = raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    if (selectedHistoryFilter.value == 'All') return list;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+    final startOfMonth = DateTime(now.year, now.month, 1);
+
+    return list.where((t) {
+      final dateStr = t['createdAt'] ?? t['date'];
+      if (dateStr == null) return false;
+      final d = DateTime.tryParse('$dateStr')?.toLocal();
+      if (d == null) return false;
+
+      if (selectedHistoryFilter.value == 'Today') {
+        return d.year == today.year && d.month == today.month && d.day == today.day;
+      } else if (selectedHistoryFilter.value == 'This Week') {
+        return d.isAfter(startOfWeek) ||
+            (d.year == startOfWeek.year &&
+                d.month == startOfWeek.month &&
+                d.day == startOfWeek.day);
+      } else if (selectedHistoryFilter.value == 'This Month') {
+        return d.year == startOfMonth.year && d.month == startOfMonth.month;
+      }
+      return true;
+    }).toList();
+  }
 
   double get totalReturns => _repo.totalReturns;
   double get totalInvested => _repo.totalInvested;

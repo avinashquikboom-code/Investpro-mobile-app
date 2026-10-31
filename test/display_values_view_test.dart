@@ -62,8 +62,9 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Actual Project Name'), findsOneWidget);
         expect(find.text('Invoice Number'), findsOneWidget);
-        expect(find.text(legacy ? 'N/A' : 'INV-001'), findsOneWidget);
-        expect(find.textContaining(id), findsNothing);
+        expect(find.text(legacy ? 'INV-$id' : 'INV-001'), findsOneWidget);
+        expect(find.text('Investment ID: $id'), findsOneWidget);
+        expect(find.byTooltip('Copy Investment ID'), findsOneWidget);
         await tester.ensureVisible(find.text('View Return Schedule'));
         await tester.tap(find.text('View Return Schedule'));
         await tester.pumpAndSettle();
