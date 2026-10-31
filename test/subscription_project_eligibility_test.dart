@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -309,7 +308,6 @@ void main() {
     late DemoRepository repo;
     late FakeSubscriptionApi api;
     late ProjectController projCtrl;
-    late InvestmentController invCtrl;
     late AuthController authCtrl;
 
     setUp(() {
@@ -330,7 +328,7 @@ void main() {
       Get.put(repo);
       authCtrl = Get.put(AuthController(storage, repo, api));
       authCtrl.isLoggedIn.value = true;
-      invCtrl = Get.put(InvestmentController(repo));
+      Get.put(InvestmentController(repo));
       projCtrl = Get.put(ProjectController(repo, api));
     });
 

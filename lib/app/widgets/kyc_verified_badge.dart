@@ -28,3 +28,4 @@ class KycVerifiedBadge extends StatelessWidget {
     );
   }
 }
+
