@@ -21,6 +21,15 @@ class DisplayValue {
         if (id is String && id.isNotEmpty) result['${entry.key}Id'] = id;
       }
     }
+    for (final relation in ['payments', 'returnSchedules']) {
+      final rows = json[relation];
+      if (rows is List) {
+        for (var i = 0; i < rows.length; i++) {
+          final row = rows[i];
+          if (row is Map && row['id'] is String) result['${relation == 'payments' ? 'payment' : 'returnSchedule'}${i + 1}Id'] = row['id'] as String;
+        }
+      }
+    }
     return result;
   }
 

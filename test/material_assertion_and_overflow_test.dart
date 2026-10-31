@@ -403,4 +403,54 @@ void main() {
     expect(find.text('Solar Yield Return'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Transaction details bottomsheet scrolls and avoids overflow on small screens', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    repo.transactions.assignAll([
+      TransactionModel(
+        id: 'txn-1',
+        title: 'Investment in Commercial Solar Hub',
+        projectName: 'Commercial Solar Hub',
+        subtitle: 'Investment Principal',
+        amount: 25000,
+        date: DateTime.now().subtract(const Duration(hours: 2)),
+        type: TransactionType.investment,
+        status: 'Completed',
+        direction: 'DEBIT',
+        referenceId: 'TXN-INV-98124',
+        recordIds: const {
+          'id': 'txn-1',
+          'investmentId': 'inv-123',
+          'projectId': 'proj-456',
+        },
+      ),
+    ]);
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        theme: AppTheme.lightTheme,
+        translations: AppTranslations(),
+        locale: const Locale('en', 'US'),
+        home: const TransactionHistoryView(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Investment in Commercial Solar Hub'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Transaction Reference'), findsOneWidget);
+    expect(find.text('TXN-INV-98124'), findsOneWidget);
+    expect(find.text('Close'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // Verify close works
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Transaction Reference'), findsNothing);
+  });
 }

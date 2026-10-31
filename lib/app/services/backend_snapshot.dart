@@ -33,7 +33,8 @@ class BackendSnapshot {
     final account = '${bank?['accountNumber'] ?? ''}';
     final owner = profile['user'] as Map? ?? {};
     return UserModel(
-      recordIds: DisplayValue.ids(profile),      id: '${profile['id'] ?? ''}',
+      recordIds: DisplayValue.ids(profile),
+      id: '${profile['id'] ?? ''}',
       fullName: '${profile['fullName'] ?? ''}',
       email: '${owner['email'] ?? profile['email'] ?? ''}',
       mobileNumber: '${owner['mobileNumber'] ?? profile['mobileNumber'] ?? ''}',
@@ -59,9 +60,10 @@ class BackendSnapshot {
       internalId: row['id'],
     );
     final projectName =
-        '${project['title'] ?? row['projectName'] ?? row['projectId'] ?? ''}';
+        '${project['title'] ?? row['projectName'] ?? ''}';
     return InvestmentModel(
-      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),
+      id: row['id'] as String? ?? '',
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
       projectName: DisplayValue.text(projectName),
@@ -95,7 +97,8 @@ class BackendSnapshot {
       internalId: row['id'],
     );
     return WithdrawalModel(
-      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),
+      id: row['id'] as String? ?? '',
       amount: number(row['amount']),
       bankName: '${bank['bankName'] ?? ''}',
       accountNumber: account.length >= 4
@@ -116,8 +119,8 @@ class BackendSnapshot {
           : row['dueDate'],
     );
     return ReturnPayoutModel(
-      id: '${row['id']}',
-      investmentId: '${row['investmentId']}',
+      id: row['id'] as String? ?? '',
+      investmentId: row['investmentId'] as String? ?? '',
       projectName:
           '${row['investment']?['project']?['title'] ?? row['projectTitle'] ?? ''}',
       monthYear: DateFormat.yMMM().format(due),
@@ -150,7 +153,8 @@ class BackendSnapshot {
       internalId: row['id'],
     );
     return TransactionModel(
-      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),
+      id: row['id'] as String? ?? '',
       type: kind,
       title: label(type),
       subtitle: DisplayValue.text(pName ?? row['description']),

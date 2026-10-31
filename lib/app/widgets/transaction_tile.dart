@@ -100,14 +100,15 @@ class TransactionTile extends StatelessWidget {
         ),
         trailing: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 120),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
                   '${isCredit ? "+ " : ""}${CurrencyFormatter.format(transaction.amount)}',
                   style: TextStyle(
                     fontSize: 14,
@@ -121,10 +122,10 @@ class TransactionTile extends StatelessWidget {
                                     : AppColors.textPrimary)),
                   ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              StatusBadge(status: transaction.status),
-            ],
+                const SizedBox(height: 3),
+                StatusBadge(status: transaction.status),
+              ],
+            ),
           ),
         ),
       ),

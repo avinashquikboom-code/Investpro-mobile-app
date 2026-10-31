@@ -19,88 +19,94 @@ class TransactionHistoryView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RecordId(label: 'Transaction ID', value: txn.id),
-              RecordIds(values: Map.of(txn.recordIds)..remove('id')),
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.borderDark
-                        : const Color(0xFFD4E0D9),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      txn.title,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+      SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : const Color(0xFFD4E0D9),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  StatusBadge(status: txn.status),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildDetailItem(
-                'Amount',
-                CurrencyFormatter.format(txn.amount),
-                isBold: true,
-              ),
-              const Divider(height: 20, color: AppColors.border),
-              _buildDetailItem(
-                'Date & Time',
-                DateFormatter.formatDateTime(txn.date),
-              ),
-              const Divider(height: 20, color: AppColors.border),
-              if (txn.projectName != null && txn.projectName!.isNotEmpty) ...[
-                _buildDetailItem('Project', txn.projectName!),
-                const Divider(height: 20, color: AppColors.border),
-              ],
-              _buildDetailItem('Category', txn.subtitle),
-              const Divider(height: 20, color: AppColors.border),
-              _buildDetailItem(
-                'Transaction Reference',
-                txn.referenceId,
-                isCode: true,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Get.back(),
-                  child: const Text('Close'),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                RecordId(label: 'Transaction ID', value: txn.id),
+                RecordIds(values: Map.of(txn.recordIds)..remove('id')),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        txn.title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    StatusBadge(status: txn.status),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildDetailItem(
+                  'Amount',
+                  CurrencyFormatter.format(txn.amount),
+                  isBold: true,
+                ),
+                const Divider(height: 20, color: AppColors.border),
+                _buildDetailItem(
+                  'Date & Time',
+                  DateFormatter.formatDateTime(txn.date),
+                ),
+                const Divider(height: 20, color: AppColors.border),
+                if (txn.projectName != null && txn.projectName!.isNotEmpty) ...[
+                  _buildDetailItem('Project', txn.projectName!),
+                  const Divider(height: 20, color: AppColors.border),
+                ],
+                _buildDetailItem('Category', txn.subtitle),
+                const Divider(height: 20, color: AppColors.border),
+                _buildDetailItem(
+                  'Transaction Reference',
+                  txn.referenceId,
+                  isCode: true,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Get.back(),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 

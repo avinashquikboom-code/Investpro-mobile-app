@@ -26,7 +26,7 @@ void main() {
     expect(model.referenceId, 'TXN-0042');
   });
   test(
-    'legacy transaction cache does not leak the UUID or invent a reference',
+    'legacy transaction cache preserves its exact UUID reference',
     () {
       final model = TransactionModel.fromJson({
         'id': transaction,
@@ -85,7 +85,7 @@ void main() {
       'INV-$transaction',
     );
   });
-  test('missing names and references use N/A and no UUID truncation', () {
+  test('missing values use N/A while supplied IDs remain complete', () {
     expect(DisplayValue.reference('INV-$transaction'), 'INV-$transaction');
     expect(DisplayValue.text(null), 'N/A');
     expect(DisplayValue.reference('INV-001'), 'INV-001');
@@ -93,7 +93,7 @@ void main() {
     expect(
       BackendSnapshot.investment({'id': 'investment', 'projectId': project})
           .projectName,
-      project,
+      'N/A',
     );
   });
 }
