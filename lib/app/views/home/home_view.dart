@@ -15,6 +15,7 @@ import '../../utils/responsive_helper.dart';
 import '../../widgets/app_system_ui.dart';
 import '../../widgets/animated_notification_bell.dart';
 import '../../widgets/explore_project_card.dart';
+import '../../widgets/kyc_verified_badge.dart';
 import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
 
@@ -140,15 +141,28 @@ class HomeView extends StatelessWidget {
                                       children: [
                                         Obx(() {
                                           final name = homeCtrl.user.fullName;
-                                          return Text(
-                                            'Hello, ${name.isNotEmpty ? name : 'Investor'}',
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                          final isVerified = homeCtrl.user.isKycVerified;
+                                          return Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  'Hello, ${name.isNotEmpty ? name : 'Investor'}',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              if (isVerified)
+                                                const KycVerifiedBadge(
+                                                  size: 16,
+                                                  padding: EdgeInsets.only(left: 4.0),
+                                                ),
+                                            ],
                                           );
                                         }),
                                         const SizedBox(height: 2),
