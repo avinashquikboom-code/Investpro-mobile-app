@@ -6,6 +6,8 @@ import 'package:remixicon/remixicon.dart';
 import 'package:investpro/app/controllers/auth_controller.dart';
 import 'package:investpro/app/controllers/investment_controller.dart';
 import 'package:investpro/app/controllers/project_controller.dart';
+import 'package:investpro/app/controllers/subscription_controller.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:investpro/app/models/project_model.dart';
 import 'package:investpro/app/models/subscription_plan_model.dart';
 import 'package:investpro/app/models/user_model.dart';
@@ -103,12 +105,30 @@ class FakeSubscriptionApi extends ApiService {
   }
 
   @override
+  Future<Map<String, dynamic>?> getMe() async => {
+    'id': 'usr-1',
+    'role': 'INVESTOR',
+    'email': 'investor@test.com',
+  };
+
+  @override
   Future<Map<String, dynamic>> purchaseSubscription({
     required String planId,
     String paymentMethod = 'UPI',
+    String? idempotencyKey,
   }) async {
     return {
       'subscriptionId': 'sub-new-123',
+      'subscription': {
+        'id': 'sub-new-123',
+        'status': 'PENDING_PAYMENT',
+      },
+      'gateway': {
+        'orderId': 'order_test_123',
+        'keyId': 'rzp_test_1234567890',
+        'amount': 99900,
+        'currency': 'INR',
+      },
       'orderId': 'order_test_123',
       'amount': 999,
       'currency': 'INR',
@@ -132,6 +152,36 @@ class FakeSubscriptionApi extends ApiService {
       'activated': true,
       'subscription': {'id': paymentData['subscriptionId'], 'status': 'ACTIVE'},
     };
+  }
+}
+
+class MockSubscriptionRazorpay extends Razorpay {
+  final handlers = <String, Function>{};
+
+  @override
+  void on(String event, Function handler, {bool rawMap = false}) {
+    handlers[event] = handler;
+  }
+
+  @override
+  void open(Map<String, dynamic> options) {
+    if (handlers.containsKey(Razorpay.EVENT_PAYMENT_SUCCESS)) {
+      Future.microtask(() {
+        handlers[Razorpay.EVENT_PAYMENT_SUCCESS]!(
+          PaymentSuccessResponse(
+            'pay_test_123',
+            options['order_id'] as String?,
+            'sig_test_123',
+            null,
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  void clear() {
+    handlers.clear();
   }
 }
 
@@ -237,6 +287,15 @@ void main() {
         kycStatus: 'VERIFIED',
       );
       controller = ProjectController(repo, api);
+      Get.put(controller);
+      Get.put<SubscriptionController>(
+        SubscriptionController(
+          api,
+          checkoutFactory: () => MockSubscriptionRazorpay(),
+          readIntent: (key) async => 'test-intent',
+          writeIntent: (key, val) async {},
+        ),
+      );
     });
 
     tearDown(() {
@@ -294,6 +353,7 @@ void main() {
         'minInvestment': 1000,
         'maxInvestment': 25000,
         'durationMonths': 12,
+        'isActive': true,
       });
 
       controller.subscriptionRequired.value = true;

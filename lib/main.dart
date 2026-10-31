@@ -1,3 +1,4 @@
+import 'app/controllers/subscription_controller.dart';
 import 'app/widgets/account_sync.dart';
 import 'app/widgets/app_system_ui.dart';
 
@@ -80,6 +81,7 @@ Future<void> main() async {
     ProjectController(demoRepo, apiService),
     permanent: true,
   );
+  Get.put<SubscriptionController>(SubscriptionController(apiService), permanent: true);
   Get.put<InvestmentController>(
     InvestmentController(demoRepo),
     permanent: true,

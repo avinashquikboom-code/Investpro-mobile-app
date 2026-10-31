@@ -74,6 +74,7 @@ class SubscriptionPlanModel {
 class SubscriptionEligibilityModel {
   final bool hasActiveSubscription;
   final bool isExpired;
+  final bool subscriptionRequired;
   final double minInvestment;
   final double maxInvestment;
   final String? planName;
@@ -84,6 +85,7 @@ class SubscriptionEligibilityModel {
   const SubscriptionEligibilityModel({
     required this.hasActiveSubscription,
     required this.isExpired,
+    this.subscriptionRequired = true,
     required this.minInvestment,
     required this.maxInvestment,
     this.planName,
@@ -130,6 +132,7 @@ class SubscriptionEligibilityModel {
       planSlug: slug,
       expiresAt: expires,
       status: json['status']?.toString() ?? 'NONE',
+      subscriptionRequired: json['subscriptionRequired'] != false,
     );
   }
 

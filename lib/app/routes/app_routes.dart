@@ -3,6 +3,8 @@ abstract class AppRoutes {
 
   static const splash = '/splash';
   static const login = '/login';
+  static const subscriptionOnboarding = '/subscription-onboarding';
+  static const subscriptionPlans = '/subscription-plans';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const home = '/home'; // Main Shell with Bottom Navigation

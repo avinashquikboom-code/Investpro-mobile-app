@@ -1,3 +1,5 @@
+import 'subscription_controller.dart';
+import '../views/auth/registration_otp_view.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,9 @@ class AuthController extends GetxController {
 
   AuthController(this._storage, this._repo, [this._api]);
 
+  final onboardingPending = false.obs;
+  String? _onboardingUserId;
+  String get authenticatedRoute => onboardingPending.value ? AppRoutes.subscriptionOnboarding : AppRoutes.home;
   final RxBool isLoggedIn = false.obs;
   final RxBool rememberMe = true.obs;
   final RxBool isPasswordVisible = false.obs;
@@ -31,6 +36,8 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     isLoggedIn.value = _storage.isLoggedIn;
+    _onboardingUserId = _storage.read('onboarding_account_id') as String?;
+    if (_onboardingUserId != null) onboardingPending.value = _storage.read('subscription_onboarding_$_onboardingUserId') == true;
     rememberMe.value = _storage.rememberMe;
     if (_api != null) _api.onSessionExpired = _sessionExpired;
   }
@@ -38,6 +45,7 @@ class AuthController extends GetxController {
   void _sessionExpired() {
     isLoggedIn.value = false;
     _repo.clearLiveData();
+    if (Get.isRegistered<SubscriptionController>()) Get.find<SubscriptionController>().clearForSession();
     if (Get.isRegistered<ProjectController>()) {
       Get.find<ProjectController>().clearForSession();
     }
@@ -67,12 +75,13 @@ class AuthController extends GetxController {
     _storage.setRememberMe(rememberMe.value);
   }
 
-  Future<bool> _finish(Map<String, dynamic>? result) async {
+  Future<bool> _finish(Map<String, dynamic>? result, {bool registration = false}) async {
     if (result == null || result['user']?['role'] != 'INVESTOR') {
       await _api?.logout();
       throw StateError('An investor account is required');
     }
     _repo.clearLiveData();
+    if (Get.isRegistered<SubscriptionController>()) Get.find<SubscriptionController>().clearForSession();
     if (Get.isRegistered<ProjectController>()) {
       Get.find<ProjectController>().clearForSession();
     }
@@ -104,9 +113,52 @@ class AuthController extends GetxController {
     if (Get.isRegistered<NotificationService>()) {
       Get.find<NotificationService>().refreshFromBackend().catchError((_) {});
     }
+    _onboardingUserId = result['user']['id'].toString();
+    await _storage.write('onboarding_account_id', _onboardingUserId);
+    if (registration) { onboardingPending.value = true; await _storage.write('subscription_onboarding_$_onboardingUserId', true); }
+    await refreshOnboarding();
+    Get.find<NavigationController>().goToHome();
+    Get.offAllNamed(authenticatedRoute);
+    return true;
+  }
+
+  Future<void> refreshOnboarding() async {
+    if (_api == null || _onboardingUserId == null) return;
+    final owner = _onboardingUserId;
+    final queued = _storage.read('subscription_skip_pending_$owner') == true;
+    try {
+      if (queued) { await _api.skipSubscriptionOnboarding(); await _storage.write('subscription_skip_pending_$owner', false); }
+      final result = await _api.getOnboarding();
+      if (_onboardingUserId != owner || !isLoggedIn.value) return;
+      onboardingPending.value = result['requiresPlanSelection'] == true;
+      await _storage.write('subscription_onboarding_$owner', onboardingPending.value);
+    } catch (_) {
+      if (_onboardingUserId == owner) onboardingPending.value = queued ? false : _storage.read('subscription_onboarding_$owner') == true;
+    }
+  }
+  Future<bool> finishSubscriptionOnboarding({bool skipped = false}) async {
+    final owner = _onboardingUserId;
+    if (owner == null || !isLoggedIn.value) return false;
+    if (skipped && _api != null) {
+      try { await _api.skipSubscriptionOnboarding(); await _storage.write('subscription_skip_pending_$owner', false); }
+      catch (_) { if (!isLoggedIn.value) return false; await _storage.write('subscription_skip_pending_$owner', true); }
+    }
+    if (!isLoggedIn.value || owner != _onboardingUserId) return false;
+    onboardingPending.value = false;
+    await _storage.write('subscription_onboarding_$owner', false);
     Get.find<NavigationController>().goToHome();
     Get.offAllNamed(AppRoutes.home);
     return true;
+  }
+  Future<bool> verifyRegistration({required String fullName, required String email, required String mobileNumber, required String password, required String otp}) async {
+    if (isLoading.value || _api == null) return false;
+    isLoading.value = true;
+    try {
+      final result = await _api.verifyRegistrationOtp(fullName: fullName, email: email, mobileNumber: mobileNumber, password: password, otp: otp);
+      if (result['user']?['isMobileVerified'] != true) throw StateError('Mobile verification was not confirmed');
+      return await _finish(result, registration: true);
+    } catch (_) { Get.snackbar('Unable to verify OTP', 'Check the code and connection. You can resend a code or retry.'); return false; }
+    finally { isLoading.value = false; }
   }
 
   Future<bool> restoreSession() async {
@@ -157,6 +209,11 @@ class AuthController extends GetxController {
         final user = BackendSnapshot.user(me);
         _repo.currentUser.value = user;
         await _storage.writeMap(AppConstants.keyUserData, user.toJson());
+
+        _onboardingUserId = me['id'].toString();
+        await _storage.write('onboarding_account_id', _onboardingUserId);
+        onboardingPending.value = _storage.read('subscription_onboarding_$_onboardingUserId') == true;
+        await refreshOnboarding();
 
         // Background synchronization
         _repo.syncFromBackend().catchError((_) {});
@@ -239,7 +296,9 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       if (_api == null) throw StateError('Account service is unavailable');
-      return await _finish(await _api.register(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
+      await _api.sendRegistrationOtp(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim());
+      Get.to(() => RegistrationOtpView(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
+      return true;
     } catch (_) {
       isLoggedIn.value = false;
       Get.snackbar('Unable to complete registration', 'Check your connection and account details. If registration succeeded, sign in to load the account.');
@@ -299,6 +358,7 @@ class AuthController extends GetxController {
       isLoggedIn.value = false;
       isPasswordVisible.value = false;
       _repo.clearLiveData();
+      if (Get.isRegistered<SubscriptionController>()) Get.find<SubscriptionController>().clearForSession();
     if(Get.isRegistered<ProjectController>())Get.find<ProjectController>().clearForSession();
     if (Get.isRegistered<NotificationService>()) Get.find<NotificationService>().clear();
       try {

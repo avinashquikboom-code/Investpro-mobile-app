@@ -356,7 +356,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                                       size: 18,
                                     ),
                                     label: const Text(
-                                      'View Subscription Plans',
+                                      'Purchase Plan to Invest',
                                       style: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 14,

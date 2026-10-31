@@ -536,6 +536,12 @@ class ApiService extends getx.GetxService {
     );
   }
 
+  Future<Map<String, dynamic>> getOnboarding() => object('/mobile/onboarding');
+  Future<void> skipSubscriptionOnboarding() async {
+    final response = await dio.patch('/mobile/onboarding', data: {'action': 'skip'});
+    if (response.data['success'] != true) throw StateError('Unable to save onboarding choice');
+  }
+
   Future<List<Map<String, dynamic>>> getSubscriptionPlans() async {
     final response = await dio.get('/mobile/subscription/plans');
     if (response.data['success'] != true || response.data['data'] is! List) {
@@ -565,12 +571,14 @@ class ApiService extends getx.GetxService {
   Future<Map<String, dynamic>> purchaseSubscription({
     required String planId,
     String paymentMethod = 'UPI',
+    String? idempotencyKey,
   }) async {
     final response = await dio.post(
       '/mobile/subscription/purchase',
       data: {
         'planId': planId,
         'paymentMethod': paymentMethod,
+        'idempotencyKey': ?idempotencyKey,
       },
     );
     if (response.data['success'] != true || response.data['data'] is! Map) {

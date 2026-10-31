@@ -1,3 +1,4 @@
+import 'subscription_controller.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 
@@ -73,7 +74,7 @@ class ProjectController extends GetxController {
     if (subscriptionRequired.value) {
       return 'Active subscription plan required to invest';
     }
-    if (eligibility.value != null && !eligibility.value!.hasActiveSubscription) {
+    if (eligibility.value != null && !eligibility.value!.hasActiveSubscription && eligibility.value!.subscriptionRequired) {
       return 'Active subscription plan required to invest';
     }
     if (eligibility.value != null && eligibility.value!.hasActiveSubscription) {
@@ -313,6 +314,7 @@ class ProjectController extends GetxController {
     if (_api == null) return;
     try {
       final current = await _api.getCurrentSubscription();
+      activePlan.value = null;
       if (current != null && current['plan'] is Map) {
         activePlan.value = SubscriptionPlanModel.fromJson(
           Map<String, dynamic>.from(current['plan'] as Map),
@@ -332,30 +334,12 @@ class ProjectController extends GetxController {
     SubscriptionPlanModel plan, {
     String paymentMethod = 'UPI',
   }) async {
-    if (_api == null) return false;
+    if (_api == null || isPurchasingPlan.value) return false;
     isPurchasingPlan.value = true;
     purchaseError.value = '';
     try {
-      final purchase = await _api.purchaseSubscription(
-        planId: plan.id,
-        paymentMethod: paymentMethod,
-      );
-      final subscriptionId = purchase['subscriptionId']?.toString();
-      final orderId = purchase['orderId']?.toString() ??
-          'order_${DateTime.now().millisecondsSinceEpoch}';
-      if (subscriptionId == null || subscriptionId.isEmpty) {
-        throw Exception('Invalid subscription purchase response');
-      }
-
-      await _api.verifySubscriptionPayment({
-        'subscriptionId': subscriptionId,
-        'gatewayOrderId': orderId,
-        'gatewayPaymentId':
-            'pay_test_bypass_${DateTime.now().millisecondsSinceEpoch}',
-        'gatewaySignature':
-            'sig_bypass_${DateTime.now().millisecondsSinceEpoch}',
-      });
-
+      final controller = Get.isRegistered<SubscriptionController>() ? Get.find<SubscriptionController>() : Get.put(SubscriptionController(_api));
+      if (!await controller.purchase(plan)) { purchaseError.value = controller.error.value; return false; }
       subscriptionRequired.value = false;
       await loadSubscriptionEligibility();
       await refreshProjects();

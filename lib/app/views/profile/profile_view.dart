@@ -1,3 +1,5 @@
+import '../../controllers/subscription_controller.dart';
+import '../subscriptions/subscription_plans_view.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,6 +73,8 @@ class ProfileView extends StatelessWidget {
                   // 1. Profile Information Card
                   _buildProfileCard(context, profileCtrl, isDark),
                   const SizedBox(height: 16),
+
+                  if (Get.isRegistered<SubscriptionController>()) ...[const SubscriptionProfileCard(), const SizedBox(height: 16)],
 
                   // 2. Quick Action Cards (KYC Documents & Add Bank Account)
                   _buildQuickActionCards(context, profileCtrl, isDark),
