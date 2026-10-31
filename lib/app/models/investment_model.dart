@@ -106,7 +106,7 @@ class InvestmentModel {
         internalId: json['id'],
       ),
       projectId: json['projectId'] as String,
-      projectName: json['projectName'] as String,
+      projectName: DisplayValue.text(json['projectName']),
       iconType: json['iconType'] as String? ?? 'code',
       investedAmount: (json['investedAmount'] as num).toDouble(),
       returnRatePercent: (json['returnRatePercent'] as num).toDouble(),

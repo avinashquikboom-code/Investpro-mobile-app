@@ -52,6 +52,7 @@ void main() {
     final model = BackendSnapshot.investment({
       'id': 'investment',
       'projectId': project,
+      'projectName': project,
       'investmentReference': 'INV-001',
       'project': {'title': 'Actual Project'},
       'amount': '100',
@@ -63,6 +64,11 @@ void main() {
     expect(model.projectId, project);
     expect(model.projectName, 'Actual Project');
     expect(model.reference, 'INV-001');
+    expect(
+      InvestmentModel.fromJson({...model.toJson(), 'projectName': project})
+          .projectName,
+      'N/A',
+    );
     expect(
       InvestmentModel.fromJson({
         ...model.toJson(),

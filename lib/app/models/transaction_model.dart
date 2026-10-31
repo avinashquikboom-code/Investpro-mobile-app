@@ -66,7 +66,7 @@ class TransactionModel {
       status: json['status'] as String? ?? 'Completed',
       direction: json['direction'] as String? ?? '',
       projectId: json['projectId'] as String?,
-      projectName: json['projectName'] as String?,
+      projectName: DisplayValue.text(json['projectName']),
       referenceId: DisplayValue.reference(
         json['transactionNumber'] ??
             json['transactionReference'] ??

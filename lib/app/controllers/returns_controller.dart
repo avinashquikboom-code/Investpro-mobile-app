@@ -351,7 +351,7 @@ class ReturnsController extends GetxController {
                                 : 'Received transaction',
                           ),
                           content: Text(
-                            'Reference: ${txn?.referenceId ?? 'N/A'}\n${txn?.status ?? 'Pending • not yet received'}',
+                            'Reference: ${DisplayValue.reference(txn?.referenceId)}\n${txn?.status ?? 'Pending • not yet received'}',
                           ),
                           actions: [
                             TextButton(

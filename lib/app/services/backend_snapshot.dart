@@ -58,7 +58,7 @@ class BackendSnapshot {
       row['invoiceNumber'] ?? row['investmentReference'] ?? row['reference'],
       internalId: row['id'],
     );
-    final projectName = '${row['projectName'] ?? project['title'] ?? ''}';
+    final projectName = '${project['title'] ?? row['projectName'] ?? ''}';
     return InvestmentModel(
       id: '${row['id']}',
       reference: ref,
@@ -140,8 +140,8 @@ class BackendSnapshot {
         ? TransactionType.deposit
         : TransactionType.investment;
     final pName =
-        row['projectName'] as String? ??
-        row['investment']?['project']?['title'] as String?;
+        row['investment']?['project']?['title'] as String? ??
+        row['projectName'] as String?;
     final txRef = DisplayValue.reference(
       row['transactionNumber'] ??
           row['transactionReference'] ??
@@ -152,7 +152,7 @@ class BackendSnapshot {
       id: '${row['id']}',
       type: kind,
       title: label(type),
-      subtitle: '${row['description'] ?? ''}',
+      subtitle: DisplayValue.text(pName ?? row['description']),
       amount: number(row['amount']),
       date: date(row['createdAt']),
       status: label(row['status']),
