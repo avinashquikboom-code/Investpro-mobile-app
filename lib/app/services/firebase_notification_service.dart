@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+import '../../firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
-import '../models/notification_model.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/project_controller.dart';
 import '../routes/app_routes.dart';
@@ -19,12 +22,13 @@ import 'demo_repository.dart';
 /// Top-level background message handler required by Firebase Messaging
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (kDebugMode) {
     print('[FCM] Handling background push: ${message.messageId}');
   }
 }
 
-class FirebaseNotificationService extends GetxService {
+class FirebaseNotificationService extends GetxService with WidgetsBindingObserver {
   final LocalStorageService _storage;
   final ApiService _api;
   final NotificationService _notificationService;
@@ -43,6 +47,8 @@ class FirebaseNotificationService extends GetxService {
   static const String campaignChannelDescription =
       'Special investment campaigns, project launches, promotions and announcements';
 
+  final _subscriptions = <StreamSubscription<dynamic>>[];
+  Map<String, dynamic>? _pendingNavigation;
   bool _pendingKyc = false;
   String? _pendingRequest;
   String? _fcmToken;
@@ -58,6 +64,7 @@ class FirebaseNotificationService extends GetxService {
        _localNotifications = localNotifications ?? FlutterLocalNotificationsPlugin();
 
   Future<FirebaseNotificationService> init() async {
+    WidgetsBinding.instance.addObserver(this);
     try {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       await _setupLocalNotifications();
@@ -66,13 +73,13 @@ class FirebaseNotificationService extends GetxService {
       await _messaging.setForegroundNotificationPresentationOptions(alert: false, badge: false, sound: false);
       _setupMessageListeners();
       // Listen for token registration & refresh events
-      _messaging.onRegistered.listen((newToken) {
+      _subscriptions.add(_messaging.onRegistered.listen((newToken) {
         if (kDebugMode) {
           print('[FCM] Device token refreshed');
         }
         _fcmToken = newToken;
         syncToken(newToken);
-      });
+      }));
 
       await syncToken();
     } catch (e) {
@@ -186,22 +193,22 @@ class FirebaseNotificationService extends GetxService {
 
   void _setupMessageListeners() {
     // 1. Foreground message listener
-    FirebaseMessaging.onMessage.listen(handleForegroundMessage);
+    _subscriptions.add(FirebaseMessaging.onMessage.listen(handleForegroundMessage));
 
     // 2. Notification opened from background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    _subscriptions.add(FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print('[FCM] Notification opened from background: ${message.data}');
+        print('[FCM] Notification opened from background: ${message.messageId}');
       }
       handleNotificationRouting(message.data);
-    });
+    }));
 
     // 3. App launched from terminated state via notification click
     _messaging.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
         if (kDebugMode) {
           print(
-            '[FCM] App opened from terminated state via push: ${message.data}',
+            '[FCM] App opened from terminated state via push: ${message.messageId}',
           );
         }
         handleNotificationRouting(message.data);
@@ -211,7 +218,7 @@ class FirebaseNotificationService extends GetxService {
 
   Future<void> handleForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      print('[FCM] Foreground push received: ${message.data}');
+      print('[FCM] Foreground push received: ${message.messageId}');
     }
 
     final notification = message.notification;
@@ -262,18 +269,8 @@ class FirebaseNotificationService extends GetxService {
       channelDesc: targetChannelDesc,
     );
 
-    // Add to in-app notification list
-    _notificationService.addNotification(
-      type: message.data['resource'] == 'KYC'
-          ? NotificationType.kyc
-          : _mapType(typeStr),
-      title: title,
-      description: body,
-      relatedId: message.data['referenceId'] ?? message.data['targetId'],
-    );
-
-    // Also trigger a background sync with backend
-    _notificationService.refreshFromBackend();
+    // Server history owns notification IDs, unread counts and pagination.
+    await _notificationService.refreshFromBackend();
     if ((typeStr.toUpperCase().contains('INVESTMENT') || message.data['resource'] == 'OFFLINE_PAYMENT' || message.data['event']?.startsWith('OFFLINE_PAYMENT_') == true) && Get.isRegistered<DemoRepository>()) {
       Get.find<DemoRepository>().syncFromBackend().catchError((Object _) {});
     }
@@ -326,6 +323,11 @@ class FirebaseNotificationService extends GetxService {
     try {
       final accessToken = await _api.getAccessToken();
       if (accessToken == null || accessToken.isEmpty) return;
+      await requestPermissions();
+      if (Platform.isIOS && await _messaging.getAPNSToken() == null) {
+        debugPrint('[FCM] APNs registration pending; retry on resume');
+        return;
+      }
       String? token = explicitToken ?? _fcmToken;
       if (token == null || token.isEmpty) {
         try {
@@ -341,7 +343,10 @@ class FirebaseNotificationService extends GetxService {
       _storage.write('fcm_device_token', token);
 
       final platform = Platform.isIOS ? 'ios' : 'android';
-      final registered = await _api.registerDeviceToken(token: token, platform: platform);
+      var deviceId = _storage.read('push_device_id') as String?;
+      deviceId ??= base64UrlEncode(List.generate(24, (_) => Random.secure().nextInt(256)));
+      await _storage.write('push_device_id', deviceId);
+      final registered = await _api.registerDeviceToken(token: token, platform: platform, deviceId: deviceId);
       if (!registered) return;
 
       if (kDebugMode) {
@@ -359,6 +364,8 @@ class FirebaseNotificationService extends GetxService {
       final token = _fcmToken ?? (_storage.read('fcm_device_token') as String?);
       if (token != null && token.isNotEmpty) {
         await _api.deleteDeviceToken(token);
+        await _messaging.unregister();
+        _pendingNavigation = null;
         await _storage.remove('fcm_device_token');
         _fcmToken = null;
         if (kDebugMode) {
@@ -373,6 +380,13 @@ class FirebaseNotificationService extends GetxService {
   }
 
   void handleNotificationRouting(Map<String, dynamic> data) {
+    if (data['appType'] == 'ADMIN' || data['audience'] == 'ADMIN') return;
+    if (Get.context == null || !Get.isRegistered<AuthController>() ||
+        !Get.find<AuthController>().isLoggedIn.value ||
+        Get.currentRoute == AppRoutes.splash || Get.currentRoute == AppRoutes.login) {
+      _pendingNavigation = Map<String, dynamic>.from(data);
+      return;
+    }
     final type = (data['type'] ?? '').toString().toUpperCase();
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
@@ -501,6 +515,14 @@ class FirebaseNotificationService extends GetxService {
   }
 
   void flushKyc() {
+    if (_pendingNavigation != null && Get.context != null &&
+        Get.isRegistered<AuthController>() && Get.find<AuthController>().isLoggedIn.value &&
+        Get.currentRoute != AppRoutes.splash && Get.currentRoute != AppRoutes.login) {
+      final data = _pendingNavigation!;
+      _pendingNavigation = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) => handleNotificationRouting(data));
+      WidgetsBinding.instance.scheduleFrame();
+    }
     if ((!_pendingKyc && _pendingRequest == null) ||
         Get.context == null ||
         !Get.isRegistered<AuthController>() ||
@@ -520,22 +542,15 @@ class FirebaseNotificationService extends GetxService {
     WidgetsBinding.instance.scheduleFrame();
   }
 
-  NotificationType _mapType(String typeStr) {
-    final upper = typeStr.toUpperCase();
-    if (upper == 'CAMPAIGN') return NotificationType.projectUpdate;
-    if (upper == 'REQUEST_UPDATED') return NotificationType.requestUpdate;
-    if (upper == 'INVESTOR_WELCOME') return NotificationType.investorWelcome;
-    if (upper.contains('KYC')) return NotificationType.kyc;
-    if (upper.contains('INVESTMENT')) return NotificationType.investmentSuccess;
-    if (upper.contains('RETURN')) return NotificationType.returnReceived;
-    if (upper.contains('WITHDRAWAL')) {
-      return NotificationType.withdrawalApproved;
-    }
-    if (upper == 'SUBSCRIPTION_ACTIVATED') return NotificationType.subscriptionActivated;
-    if (upper == 'SUBSCRIPTION_EXPIRING') return NotificationType.subscriptionExpiring;
-    if (upper == 'SUBSCRIPTION_EXPIRED') return NotificationType.subscriptionExpired;
-    if (upper.contains('SUBSCRIPTION')) return NotificationType.subscriptionActivated;
-    if (upper.contains('PROJECT_UPDATE')) return NotificationType.projectUpdate;
-    return NotificationType.newProject;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) { syncToken(); flushKyc(); }
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    for (final subscription in _subscriptions) { subscription.cancel(); }
+    super.onClose();
   }
 }

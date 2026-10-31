@@ -397,6 +397,52 @@ class WithdrawalView extends StatelessWidget {
     );
   }
 
+  Widget _statCard(String label, String value, IconData icon, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _summaryRow(String label, String value, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -426,7 +472,7 @@ class WithdrawalView extends StatelessWidget {
     final demoRepo = Get.find<DemoRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final filterTabs = ['All', 'Withdrawals', 'Deposits'];
+    final filterTabs = ['All', 'Withdrawals', 'Deposits', 'Returns', 'Investments'];
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -486,21 +532,51 @@ class WithdrawalView extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Obx(() {
-                                return FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    CurrencyFormatter.format(
-                                      withCtrl.availableBalance,
+                                final hourlyRate = withCtrl.hourlyEarningRate.value;
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        CurrencyFormatter.format(
+                                          withCtrl.liveAnimatedBalance.value,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.textPrimary,
+                                        ),
+                                      ),
                                     ),
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimary,
-                                    ),
-                                  ),
+                                    if (hourlyRate > 0) ...[
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF00854B),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            '+₹${hourlyRate.toStringAsFixed(2)}/hr',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF00854B),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
                                 );
                               }),
                               Obx(() {
@@ -600,6 +676,177 @@ class WithdrawalView extends StatelessWidget {
                   ),
                 ),
 
+                // Responsive Earnings & Balance Stats Grid
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Obx(() {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _statCard(
+                            'Total Invested',
+                            CurrencyFormatter.format(withCtrl.totalInvested.value),
+                            Remix.money_dollar_circle_line,
+                            isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _statCard(
+                            'Returns Earned',
+                            CurrencyFormatter.format(withCtrl.totalReturns.value),
+                            Remix.funds_line,
+                            isDark,
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Obx(() {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _statCard(
+                            "Today's Earnings",
+                            CurrencyFormatter.format(withCtrl.todayEarnings.value),
+                            Remix.calendar_check_line,
+                            isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _statCard(
+                            'Total Withdrawn',
+                            CurrencyFormatter.format(withCtrl.totalWithdrawn.value),
+                            Remix.bank_card_line,
+                            isDark,
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+
+                // Active Contracts & Hourly Return Breakdown Card
+                Obx(() {
+                  final activeList = withCtrl.activeInvestments;
+                  if (activeList.isEmpty) return const SizedBox.shrink();
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Active Earning Contracts',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F7EE),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${activeList.length} Active',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF00854B),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          ...activeList.take(3).map((item) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${item['projectTitle'] ?? 'Project'}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark
+                                                ? AppColors.textPrimaryDark
+                                                : AppColors.textPrimary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          'Principal: ₹ ${item['principal'] ?? '0.00'}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '+₹ ${item['hourlyReturnRate'] ?? '0.00'}/hr',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF00854B),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Earned: ₹ ${item['totalEarned'] ?? '0.00'}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+
                 // Transaction History Section Header & Filter Pills
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -618,50 +865,55 @@ class WithdrawalView extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Obx(() {
-                        return Row(
-                          children: filterTabs.map((filter) {
-                            final isSelected =
-                                withCtrl.selectedFilter.value == filter;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(
-                                  filter == 'All'
-                                      ? 'all'.tr
-                                      : filter == 'Withdrawals'
-                                          ? 'withdrawals'.tr
-                                          : 'deposits'.tr,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : (isDark
-                                            ? AppColors.textSecondaryDark
-                                            : AppColors.textSecondary),
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: filterTabs.map((filter) {
+                              final isSelected =
+                                  withCtrl.selectedFilter.value == filter;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    filter == 'All'
+                                        ? 'all'.tr
+                                        : filter == 'Withdrawals'
+                                            ? 'withdrawals'.tr
+                                            : filter == 'Deposits'
+                                                ? 'deposits'.tr
+                                                : filter,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : (isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondary),
+                                    ),
                                   ),
-                                ),
-                                selected: isSelected,
-                                selectedColor: AppColors.primary,
-                                backgroundColor: isDark
-                                    ? AppColors.surfaceDark
-                                    : const Color(0xFFF3F4F6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : (isDark
-                                            ? AppColors.borderDark
-                                            : Colors.transparent),
+                                  selected: isSelected,
+                                  selectedColor: AppColors.primary,
+                                  backgroundColor: isDark
+                                      ? AppColors.surfaceDark
+                                      : const Color(0xFFF3F4F6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: BorderSide(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : (isDark
+                                              ? AppColors.borderDark
+                                              : Colors.transparent),
+                                    ),
                                   ),
+                                  onSelected: (_) => withCtrl.setFilter(filter),
                                 ),
-                                onSelected: (_) => withCtrl.setFilter(filter),
-                              ),
-                            );
-                          }).toList(),
+                              );
+                            }).toList(),
+                          ),
                         );
                       }),
                     ],

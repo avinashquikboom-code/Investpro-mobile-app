@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -28,6 +29,19 @@ class WithdrawalController extends GetxController {
   final RxList<Map<String, dynamic>> verifiedBanks = <Map<String, dynamic>>[].obs;
   final RxDouble netPayoutAmount = 0.0.obs;
   final RxString lastSubmittedReference = ''.obs;
+
+  // Real-time Earnings & Live Accruals
+  final RxDouble totalInvested = 0.0.obs;
+  final RxDouble totalReturns = 0.0.obs;
+  final RxDouble todayEarnings = 0.0.obs;
+  final RxDouble totalWithdrawn = 0.0.obs;
+  final RxDouble hourlyEarningRate = 0.0.obs;
+  final RxDouble perMinuteEarningRate = 0.0.obs;
+  final RxDouble perSecondEarningRate = 0.0.obs;
+  final RxList<Map<String, dynamic>> activeInvestments = <Map<String, dynamic>>[].obs;
+  final Rxn<DateTime> asOf = Rxn<DateTime>();
+  final RxDouble liveAnimatedBalance = 0.0.obs;
+  Timer? _tickerTimer;
 
   double get availableBalance =>
       _repo.isLive ? backendAvailableBalance.value : _repo.availableBalance.value;
@@ -97,14 +111,14 @@ class WithdrawalController extends GetxController {
         return txns.where((t) => t.type == TransactionType.withdrawal).toList();
       case 'Deposits':
         return txns.where((t) => t.type == TransactionType.deposit).toList();
+      case 'Returns':
+        return txns.where((t) => t.type == TransactionType.returnReceived).toList();
+      case 'Investments':
+        return txns.where((t) => t.type == TransactionType.investment).toList();
+      case 'Refunds':
+        return txns.where((t) => t.type == TransactionType.refund).toList();
       default:
-        return txns
-            .where(
-              (t) =>
-                  t.type == TransactionType.withdrawal ||
-                  t.type == TransactionType.deposit,
-            )
-            .toList();
+        return txns;
     }
   }
 
@@ -112,7 +126,23 @@ class WithdrawalController extends GetxController {
   void onInit() {
     super.onInit();
     amountController.addListener(_onAmountChanged);
+    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateLiveCounter());
     loadWalletData();
+  }
+
+  void _updateLiveCounter() {
+    final asOfTime = asOf.value;
+    final ratePerSec = perSecondEarningRate.value;
+    if (asOfTime == null || ratePerSec <= 0) {
+      liveAnimatedBalance.value = availableBalance;
+      return;
+    }
+    final elapsedSec = DateTime.now().difference(asOfTime).inMilliseconds / 1000.0;
+    if (elapsedSec > 0) {
+      liveAnimatedBalance.value = availableBalance + (elapsedSec * ratePerSec);
+    } else {
+      liveAnimatedBalance.value = availableBalance;
+    }
   }
 
   void _onAmountChanged() {
@@ -152,6 +182,34 @@ class WithdrawalController extends GetxController {
 
         withdrawalFee.value =
             double.tryParse(wallet['withdrawalFee']?.toString() ?? '0') ?? 0.0;
+
+        totalInvested.value =
+            double.tryParse(wallet['totalInvested']?.toString() ?? '0') ?? 0.0;
+        totalReturns.value =
+            double.tryParse(wallet['totalReturns']?.toString() ?? '0') ?? 0.0;
+        todayEarnings.value =
+            double.tryParse(wallet['todayEarnings']?.toString() ?? '0') ?? 0.0;
+        totalWithdrawn.value =
+            double.tryParse(wallet['totalWithdrawn']?.toString() ?? '0') ?? 0.0;
+        hourlyEarningRate.value =
+            double.tryParse(wallet['hourlyEarningRate']?.toString() ?? '0') ?? 0.0;
+        perMinuteEarningRate.value =
+            double.tryParse(wallet['perMinuteEarningRate']?.toString() ?? '0') ?? 0.0;
+        perSecondEarningRate.value =
+            double.tryParse(wallet['perSecondEarningRate']?.toString() ?? '0') ?? 0.0;
+
+        if (wallet['asOf'] != null) {
+          asOf.value = DateTime.tryParse(wallet['asOf'].toString());
+        }
+
+        if (wallet['activeInvestments'] is List) {
+          final list = (wallet['activeInvestments'] as List)
+              .map((i) => Map<String, dynamic>.from(i as Map))
+              .toList();
+          activeInvestments.assignAll(list);
+        }
+
+        _updateLiveCounter();
 
         if (wallet['banks'] is List) {
           final list = (wallet['banks'] as List)
@@ -307,6 +365,7 @@ class WithdrawalController extends GetxController {
 
   @override
   void onClose() {
+    _tickerTimer?.cancel();
     amountController.removeListener(_onAmountChanged);
     amountController.dispose();
     super.onClose();
