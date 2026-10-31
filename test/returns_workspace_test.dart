@@ -90,6 +90,13 @@ class FakeApi extends ApiService {
   Future<Map<String, dynamic>> getReturnsWorkspace(String period) async =>
       pending[period]?.future ?? snapshot(period.toLowerCase());
   @override
+  Future<Map<String, dynamic>> getHourlyReturnsWorkspace(DateTime day) async {
+    final data = await getReturnsWorkspace('Hourly');
+    return {...data, 'selectedDate': '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}',
+      'analytics': [for (var i = 0; i < (data['analytics'] as List? ?? []).length; i++) {...data['analytics'][i], 'date': DateTime(day.year, day.month, day.day, i).toIso8601String()}],
+    };
+  }
+  @override
   Future<Map<String, dynamic>> getWallet() async => {
     'availableBalance': '1100.01',
     'minimumWithdrawal': '100',
@@ -243,13 +250,13 @@ void main() {
   test(
     'a slow old period response cannot overwrite the selected period',
     () async {
-      api.pending['Monthly'] = Completer();
+      api.pending['Hourly'] = Completer();
       api.pending['Yearly'] = Completer();
       final first = controller.loadWorkspace();
       controller.setPeriod('Yearly');
       api.pending['Yearly']!.complete(snapshot('yearly'));
       await Future<void>.delayed(Duration.zero);
-      api.pending['Monthly']!.complete(snapshot('monthly'));
+      api.pending['Hourly']!.complete(snapshot('monthly'));
       await first;
       expect(controller.workspace.value?['period'], 'yearly');
     },

@@ -141,16 +141,9 @@ void main() {
         '₹ 100.01',
       );
       expect(find.text('+25.0%'), findsOneWidget);
-      for (final period in ['Quarterly', 'Yearly', 'Monthly']) {
-        await t.tap(find.text(period));
-        await t.pumpAndSettle();
-        expect(controller.selectedPeriod.value, period);
-        expect(find.text('$period breakdown'), findsOneWidget);
-      }
-      final calls = api.calls;
-      await t.tap(find.text('Monthly'));
-      await t.pumpAndSettle();
-      expect(api.calls, calls);
+      expect(controller.selectedPeriod.value, 'Hourly');
+      expect(find.text('Monthly'), findsNothing);
+      expect(find.text('Hourly payout breakdown'), findsOneWidget);
     },
   );
   testWidgets('bar tooltip shows exact amount and resets across filters', (
@@ -170,10 +163,9 @@ void main() {
             ),
           )
           .data,
-      'Oct · ₹ 100',
+      'Oct 2026 · ₹ 100',
     );
-    await t.ensureVisible(find.text('Quarterly'));
-    await t.tap(find.text('Quarterly'));
+    controller.setDate(DateTime(2026, 10, 29));
     await t.pumpAndSettle();
     expect(find.byKey(const ValueKey('return-chart-tooltip')), findsNothing);
   });
@@ -182,10 +174,12 @@ void main() {
     (t) async {
       await mount(t);
       await t.ensureVisible(find.byKey(const ValueKey('payout-paid')));
+      await t.pumpAndSettle();
+      await t.pumpAndSettle();
       expect(find.text('Completed'), findsOneWidget);
       await t.tap(find.byKey(const ValueKey('payout-paid')));
       await t.pumpAndSettle();
-      expect(find.text('Return Details'), findsOneWidget);
+      expect(find.text('Hourly Payout Details'), findsOneWidget);
       expect(find.text('INV-real'), findsOneWidget);
       expect(find.text('paid-reference'), findsOneWidget);
       expect(find.text('Principal returned separately'), findsOneWidget);
@@ -219,7 +213,7 @@ void main() {
         'upcoming': [],
       };
       await mount(t);
-      expect(find.text('₹ 0'), findsOneWidget);
+      expect(t.widget<Text>(find.byKey(const ValueKey('total-earned-returns'))).data, '₹ 0');
       expect(find.text('No returns yet'), findsOneWidget);
       await t.ensureVisible(find.text('No upcoming returns scheduled'));
       expect(find.text('No upcoming returns scheduled'), findsOneWidget);

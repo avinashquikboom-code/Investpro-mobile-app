@@ -669,6 +669,14 @@ class ApiService extends getx.GetxService {
   Future<Map<String, dynamic>> getReturnsWorkspace(String period) =>
       object('/mobile/returns/summary?period=${Uri.encodeQueryComponent(period.toLowerCase())}');
 
+  Future<Map<String, dynamic>> getHourlyReturnsWorkspace(DateTime day) => object(
+    '/mobile/returns/summary?${Uri(queryParameters: {
+      'period': 'hourly',
+      'date': '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}',
+      'utcOffsetMinutes': day.timeZoneOffset.inMinutes.toString(),
+    }).query}',
+  );
+
   Future<List<dynamic>?> getReturns() async => collection('/mobile/returns');
 
 

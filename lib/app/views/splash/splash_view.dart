@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:remixicon/remixicon.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../routes/app_routes.dart';
@@ -169,6 +170,48 @@ class _SplashViewState extends State<SplashView>
                           height: 1.45,
                           letterSpacing: 0.2,
                         ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Decorative Divider with subtle leaf accent
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 1.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withValues(alpha: 0.0),
+                                  AppColors.primary.withValues(alpha: 0.35),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Icon(
+                              Remix.leaf_fill,
+                              size: 15,
+                              color: AppColors.primary.withValues(alpha: 0.75),
+                            ),
+                          ),
+                          Container(
+                            width: 38,
+                            height: 1.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withValues(alpha: 0.35),
+                                  AppColors.primary.withValues(alpha: 0.0),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

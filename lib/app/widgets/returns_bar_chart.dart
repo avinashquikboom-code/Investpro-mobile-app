@@ -71,7 +71,7 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Returns Analytics',
+            widget.period.toLowerCase() == 'hourly' ? 'Hourly earnings analytics' : 'Returns Analytics',
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -80,7 +80,7 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
           ),
           const SizedBox(height: 3),
           Text(
-            '${widget.period} breakdown',
+            widget.period.toLowerCase() == 'hourly' ? 'Hourly payout breakdown' : '${widget.period} breakdown',
             style: TextStyle(fontSize: 12, color: muted),
           ),
           const SizedBox(height: 12),

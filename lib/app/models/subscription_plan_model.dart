@@ -4,10 +4,16 @@ class SubscriptionPlanModel {
   final String id;
   final String name;
   final String slug;
+  final String? description;
   final double price;
+  final double? originalPrice;
+  final double? discount;
+  final String currency;
   final double minInvestment;
   final double maxInvestment;
   final int durationMonths;
+  final String durationUnit;
+  final int displayOrder;
   final bool isActive;
   final List<String> benefits;
   final Map<String, dynamic>? accessRules;
@@ -16,10 +22,16 @@ class SubscriptionPlanModel {
     required this.id,
     required this.name,
     required this.slug,
+    this.description,
     required this.price,
+    this.originalPrice,
+    this.discount,
+    this.currency = 'INR',
     required this.minInvestment,
     required this.maxInvestment,
     required this.durationMonths,
+    this.durationUnit = 'months',
+    this.displayOrder = 1,
     this.isActive = true,
     this.benefits = const [],
     this.accessRules,
@@ -30,7 +42,7 @@ class SubscriptionPlanModel {
   String get formattedMaxInvestment => CurrencyFormatter.format(maxInvestment);
   String get formattedRange =>
       '$formattedMinInvestment – $formattedMaxInvestment';
-  String get formattedDuration => '$durationMonths Months';
+  String get formattedDuration => '$durationMonths ${durationMonths == 1 ? 'Month' : 'Months'}';
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
     List<String> parsedBenefits = [];
@@ -39,16 +51,31 @@ class SubscriptionPlanModel {
           .map((e) => e.toString().trim())
           .where((e) => e.isNotEmpty)
           .toList();
+    } else if (json['features'] is List) {
+      parsedBenefits = (json['features'] as List)
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
     }
+
+    final int duration = (json['durationMonths'] as num?)?.toInt() ??
+        (json['duration'] as num?)?.toInt() ??
+        12;
 
     return SubscriptionPlanModel(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
+      description: json['description']?.toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      originalPrice: (json['originalPrice'] as num?)?.toDouble(),
+      discount: (json['discount'] as num?)?.toDouble(),
+      currency: json['currency']?.toString() ?? 'INR',
       minInvestment: (json['minInvestment'] as num?)?.toDouble() ?? 0.0,
       maxInvestment: (json['maxInvestment'] as num?)?.toDouble() ?? 0.0,
-      durationMonths: (json['durationMonths'] as num?)?.toInt() ?? 12,
+      durationMonths: duration,
+      durationUnit: json['durationUnit']?.toString() ?? 'months',
+      displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 1,
       isActive: json['isActive'] == true || json['status'] == 'ACTIVE',
       benefits: parsedBenefits,
       accessRules: json['accessRules'] is Map<String, dynamic>
@@ -61,10 +88,16 @@ class SubscriptionPlanModel {
         'id': id,
         'name': name,
         'slug': slug,
+        'description': description,
         'price': price,
+        'originalPrice': originalPrice,
+        'discount': discount,
+        'currency': currency,
         'minInvestment': minInvestment,
         'maxInvestment': maxInvestment,
         'durationMonths': durationMonths,
+        'durationUnit': durationUnit,
+        'displayOrder': displayOrder,
         'isActive': isActive,
         'benefits': benefits,
         'accessRules': accessRules,

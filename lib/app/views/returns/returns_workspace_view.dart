@@ -11,6 +11,7 @@ import '../../utils/currency_formatter.dart';
 import '../../widgets/app_app_bar.dart';
 import 'returns_withdrawal_view.dart';
 import 'returns_overview.dart';
+import 'interest_breakdown_section.dart';
 import '../../theme/app_colors.dart';
 
 /// Live returns use authoritative server snapshot from the backend.
@@ -171,6 +172,8 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
         snapshot: w,
         period: controller.selectedPeriod.value,
         onPeriod: controller.setPeriod,
+        selectedDate: controller.selectedDate.value,
+        onDate: controller.setDate,
       ),
       const SizedBox(height: 20),
 
@@ -190,6 +193,8 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
             _buildHourlyReturnCard(w, isDark),
             const SizedBox(height: 24),
             _buildProjectReturnsSection(rows(w, 'projects'), isDark),
+            const SizedBox(height: 24),
+            InterestBreakdownSection(snapshot: w, isDark: isDark),
             const SizedBox(height: 24),
             _buildEarningsHistorySection(w, isDark),
             const SizedBox(height: 20),
@@ -214,7 +219,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
         bgColor: AppColors.primary.withValues(alpha: 0.1),
       ),
       _SummaryMetric(
-        title: 'Total Returns Earned',
+        title: 'Total Returns Credited',
         value: money(s['totalReturnsEarned'] ?? s['totalEarnedReturns']),
         icon: Remix.funds_line,
         iconColor: const Color(0xFF10B981),
@@ -222,7 +227,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
         isPositive: true,
       ),
       _SummaryMetric(
-        title: "Today's Earnings",
+        title: "Today's Total Earnings",
         value: money(s['todayEarnings']),
         icon: Remix.flashlight_line,
         iconColor: const Color(0xFF10B981),
@@ -361,8 +366,8 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     final hourlyRate = hourly['hourlyEarningRate'] ?? '0.0000';
     final totalAccrued = money(hourly['totalAccruedReturns']);
     final totalCredited = money(hourly['totalCreditedReturns'] ?? w['summary']?['totalReturnsEarned']);
-    final lastAccrual = shortDate(hourly['lastAccrualTimestamp']);
-    final nextAccrual = shortDate(hourly['nextExpectedAccrualTime']);
+    final lastAccrual = date(hourly['lastPayoutTime'] ?? hourly['lastAccrualTimestamp']);
+    final nextAccrual = date(hourly['nextExpectedPayoutTime'] ?? hourly['nextExpectedAccrualTime']);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -399,7 +404,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hourly Return Accrual',
+                      'Hourly Returns',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -409,7 +414,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                       ),
                     ),
                     Text(
-                      'Automated real-time backend accruals',
+                      'Hourly wallet credits processed by the backend',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -453,7 +458,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                 child: _buildMetricItem('Hourly Rate', '₹ $hourlyRate/hr', isDark, isHighlight: true),
               ),
               Expanded(
-                child: _buildMetricItem('Accrued', totalAccrued, isDark),
+                child: _buildMetricItem('Awaiting credit', totalAccrued, isDark),
               ),
               Expanded(
                 child: _buildMetricItem('Credited', totalCredited, isDark),
@@ -474,7 +479,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   children: [
                     Expanded(
                       child: Text(
-                        'Last Accrual',
+                        'Last Payout Time',
                         style: TextStyle(
                           fontSize: 10.5,
                           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
@@ -754,6 +759,10 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
 
           // Financial metrics grid
           _buildProjectMetricsGrid(p, isDark),
+          const SizedBox(height: 14),
+
+          // Project-level Interest Breakdown (Month, Day, Hour, Minute)
+          _buildProjectInterestBreakdownTile(p, isDark),
           const SizedBox(height: 16),
 
           // Actions
@@ -841,6 +850,107 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildProjectInterestBreakdownTile(Map<String, dynamic> p, bool isDark) {
+    final breakdown = p['interestBreakdown'] as Map?;
+    final invested = number(p['investedAmount']);
+    final rate = number(p['interestRate'] ?? p['expectedRoi']);
+    final monthlyRate = rate > 20 ? (rate / 12.0) : rate;
+
+    final monthly = breakdown != null && breakdown['monthlyInterest'] != null
+        ? number(breakdown['monthlyInterest'])
+        : (invested * monthlyRate / 100.0);
+    final daily = breakdown != null && breakdown['dailyInterest'] != null
+        ? number(breakdown['dailyInterest'])
+        : (monthly / 30.0);
+    final hourly = breakdown != null && breakdown['hourlyInterest'] != null
+        ? number(breakdown['hourlyInterest'])
+        : (daily / 24.0);
+    final minute = breakdown != null && breakdown['minuteInterest'] != null
+        ? number(breakdown['minuteInterest'])
+        : (hourly / 60.0);
+
+    final rows = [
+      ('1 Month (30 days)', InterestFormatter.formatMonthly(monthly)),
+      ('1 Day', InterestFormatter.formatDaily(daily)),
+      ('1 Hour', InterestFormatter.formatHourly(hourly)),
+      ('1 Minute', InterestFormatter.formatMinute(minute)),
+    ];
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: Material(
+        color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF7FAF8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isDark ? AppColors.borderDark : const Color(0xFFE2EDE6),
+          ),
+        ),
+        child: ExpansionTile(
+          initiallyExpanded: false,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+          leading: const Icon(Remix.bar_chart_box_line, size: 18, color: AppColors.primary),
+          title: Text(
+            'Daily, Hourly & Minute Interest',
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            '₹ ${hourly.toStringAsFixed(4)}/hr • ${monthlyRate.toStringAsFixed(1)}% monthly',
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+          ),
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : const Color(0xFFE8EFEA),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF1F6F3),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Duration', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
+                        Text('Interest', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
+                      ],
+                    ),
+                  ),
+                  for (int i = 0; i < rows.length; i++) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(rows[i].$1, style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+                          Text(rows[i].$2, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
+                        ],
+                      ),
+                    ),
+                    if (i < rows.length - 1)
+                      Divider(height: 1, thickness: 0.8, color: isDark ? AppColors.borderDark : const Color(0xFFF0F4F2)),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -941,7 +1051,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     final project = t['projectName'] ?? 'Return Payout';
     final amount = money(t['profitAmount'] ?? t['amount']);
     final dateStr = date(t['createdAt'] ?? t['date']);
-    final status = '${t['status'] ?? 'COMPLETED'}'.toUpperCase();
+    final status = '${t['status'] ?? 'PENDING'}'.toUpperCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1070,7 +1180,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           ),
           const SizedBox(height: 6),
           Text(
-            'Start investing in verified projects to earn hourly returns and regular monthly payouts directly to your wallet.',
+            'Start investing in verified projects to receive confirmed hourly wallet credits.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../controllers/home_controller.dart';
 import '../../controllers/navigation_controller.dart';
 import '../../controllers/project_controller.dart';
+import '../../controllers/subscription_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../services/demo_repository.dart';
 import '../../services/notification_service.dart';
@@ -327,7 +328,13 @@ class HomeView extends StatelessWidget {
                             });
                           },
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 16),
+
+                        // Subscription Membership Status Banner
+                        if (Get.isRegistered<SubscriptionController>())
+                          _HomeSubscriptionBanner(isDark: isDark),
+
+                        const SizedBox(height: 6),
 
                         // Explore Projects Section Header
                         Row(
@@ -694,5 +701,130 @@ class HomeView extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _HomeSubscriptionBanner extends StatelessWidget {
+  final bool isDark;
+  const _HomeSubscriptionBanner({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final subCtrl = Get.find<SubscriptionController>();
+    return Obx(() {
+      final hasActive = subCtrl.hasActivePlan;
+      final planName = subCtrl.currentPlanName;
+      final isExpiring = subCtrl.isExpiringSoon;
+      final remaining = subCtrl.remainingDays;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDarkElevated : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: hasActive
+                ? (isExpiring ? const Color(0xFFF59E0B) : AppColors.primary.withValues(alpha: 0.3))
+                : AppColors.border,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: hasActive
+                    ? (isExpiring ? AppColors.badgeAmberBg : AppColors.lightMint)
+                    : const Color(0xFFF3F4F6),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Remix.vip_crown_line,
+                size: 19,
+                color: hasActive
+                    ? (isExpiring ? const Color(0xFFB45309) : AppColors.primary)
+                    : AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          hasActive ? '$planName Membership' : 'Subscription Plans',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (hasActive) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isExpiring ? AppColors.badgeAmberBg : AppColors.badgeGreenBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            isExpiring ? '${remaining}d left' : 'Active',
+                            style: GoogleFonts.poppins(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: isExpiring ? AppColors.badgeAmberText : AppColors.badgeGreenText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    hasActive
+                        ? 'Explore tier investments & benefits'
+                        : 'Unlock exclusive investment opportunities',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => Get.toNamed(AppRoutes.subscriptionPlans),
+              child: Text(
+                hasActive ? 'Manage' : 'Explore',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

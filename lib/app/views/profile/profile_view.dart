@@ -499,7 +499,17 @@ class ProfileView extends StatelessWidget {
           ),
           _buildDivider(isDark),
 
-          // 3. Investment History
+          // 3. My Subscription
+          _buildMenuRow(
+            icon: Remix.vip_crown_line,
+            title: 'My Subscription',
+            subtitle: 'Manage subscription plans & tier benefits',
+            isDark: isDark,
+            onTap: () => Get.toNamed(AppRoutes.subscriptionPlans)?.then((_) => profileCtrl.refreshProfile()),
+          ),
+          _buildDivider(isDark),
+
+          // 4. Investment History
           _buildMenuRow(
             icon: Remix.history_line,
             title: 'investmentHistory'.tr,

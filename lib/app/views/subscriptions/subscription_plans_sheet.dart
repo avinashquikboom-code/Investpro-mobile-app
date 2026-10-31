@@ -289,6 +289,18 @@ class _PlanCard extends StatelessWidget {
             ],
           ),
 
+          if (plan.description != null && plan.description!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              plan.description!,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ],
+
           const SizedBox(height: 8),
 
           // Price + Duration
@@ -304,9 +316,39 @@ class _PlanCard extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
+              if (plan.originalPrice != null && plan.originalPrice! > plan.price) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '₹${plan.originalPrice!.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+              ],
+              if (plan.discount != null && plan.discount! > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.badgeGreenBg,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${plan.discount!.toStringAsFixed(0)}% OFF',
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 6),
               Text(
-                '/ ${plan.durationMonths} months',
+                '/ ${plan.durationMonths} ${plan.durationMonths == 1 ? 'month' : 'months'}',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark

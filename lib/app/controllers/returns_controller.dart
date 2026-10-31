@@ -35,6 +35,7 @@ class ReturnsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (isLive) selectedPeriod.value = 'Hourly';
     _workspaceUser = _repo.currentUser.value.id;
     _userWorker = ever(_repo.currentUser, (user) {
       if (user.id == _workspaceUser) return;
@@ -64,7 +65,7 @@ class ReturnsController extends GetxController {
   Future<void>? _workspaceInFlight;
   String? _workspaceKey;
   Future<void> loadWorkspace() {
-    final key = '${_repo.currentUser.value.id}:${selectedPeriod.value}';
+    final key = '${_repo.currentUser.value.id}:${selectedPeriod.value}:${selectedDate.value}';
     if (_workspaceInFlight != null && _workspaceKey == key) {
       return _workspaceInFlight!;
     }
@@ -84,9 +85,10 @@ class ReturnsController extends GetxController {
     final version = ++_workspaceRequest;
     workspaceLoading.value = true;
     try {
-      final result = await Get.find<ApiService>().getReturnsWorkspace(
-        selectedPeriod.value,
-      );
+      final api = Get.find<ApiService>();
+      final result = selectedPeriod.value == 'Hourly'
+          ? await api.getHourlyReturnsWorkspace(selectedDate.value)
+          : await api.getReturnsWorkspace(selectedPeriod.value);
       if (version != _workspaceRequest || isClosed) return;
       workspace.value = result;
       workspaceError.value = '';
@@ -103,6 +105,13 @@ class ReturnsController extends GetxController {
 
   final RxString selectedPeriod =
       'Monthly'.obs; // 'Monthly', 'Quarterly', 'Yearly'
+  final selectedDate = DateTime.now().obs;
+  void setDate(DateTime day) {
+    selectedDate.value = DateTime(day.year, day.month, day.day);
+    selectedPeriod.value = 'Hourly';
+    workspace.value = null;
+    loadWorkspace();
+  }
   final RxString selectedHistoryFilter = 'All'.obs; // 'All', 'Today', 'This Week', 'This Month'
   final RxBool isRefreshing = false.obs;
 
@@ -410,7 +419,7 @@ class ReturnsController extends GetxController {
   }
 
   void setPeriod(String period) {
-    if (!['Monthly', 'Quarterly', 'Yearly'].contains(period) ||
+    if (!['Hourly', 'Monthly', 'Quarterly', 'Yearly'].contains(period) ||
         selectedPeriod.value == period) {
       return;
     }

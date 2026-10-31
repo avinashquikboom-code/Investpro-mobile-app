@@ -15,11 +15,15 @@ class ReturnsOverview extends StatelessWidget {
   final Map<String, dynamic> snapshot;
   final String period;
   final ValueChanged<String> onPeriod;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime>? onDate;
   const ReturnsOverview({
     super.key,
     required this.snapshot,
     required this.period,
     required this.onPeriod,
+    this.selectedDate,
+    this.onDate,
   });
   static double number(dynamic value) => double.tryParse('$value') ?? 0;
   static String money(dynamic value) =>
@@ -40,7 +44,7 @@ class ReturnsOverview extends StatelessWidget {
 
   static String payoutStatus(Map<String, dynamic> row) {
     // The existing /returns overview only includes successful PAID wallet credits.
-    return switch ('${row['status'] ?? 'SUCCESS'}'.toUpperCase()) {
+    return switch ('${row['status'] ?? ''}'.toUpperCase()) {
       'SUCCESS' || 'PAID' || 'COMPLETED' => 'Completed',
       'PROCESSING' => 'Processing',
       'FAILED' || 'REJECTED' => 'Failed',
@@ -57,14 +61,19 @@ class ReturnsOverview extends StatelessWidget {
     return '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}%';
   }
 
+  static String time(dynamic value) {
+    final parsed = DateTime.tryParse('$value');
+    return parsed == null ? 'Not available' : DateFormat('dd MMM yyyy, hh:mm a').format(parsed.toLocal());
+  }
+
   static Map<String, dynamic>? nextReturn(Map<String, dynamic> data) {
     final now = DateTime.tryParse('${data['asOf']}') ?? DateTime.now();
     final upcoming =
         rows(data, 'upcoming').where((r) {
           final due = DateTime.tryParse('${r['dueDate']}');
           return due != null &&
-              due.isAfter(now) &&
-              ['SCHEDULED', 'PENDING'].contains('${r['status']}'.toUpperCase());
+              (data['period'] == 'hourly' || due.isAfter(now)) &&
+              ['SCHEDULED', 'PENDING', 'OVERDUE'].contains('${r['status']}'.toUpperCase());
         }).toList()..sort(
           (a, b) =>
               DateTime.parse('${a['dueDate']}')
@@ -76,7 +85,7 @@ class ReturnsOverview extends StatelessWidget {
   void details(Map<String, dynamic> payout) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Return Details'),
+        title: Text(period == 'Hourly' ? 'Hourly Payout Details' : 'Return Details'),
         content: SizedBox(
           width: 440,
           child: SingleChildScrollView(
@@ -90,8 +99,12 @@ class ReturnsOverview extends StatelessWidget {
                     'Investment reference',
                     DisplayValue.reference(payout['invoiceNumber'] ?? payout['investmentReference']),
                   ),
-                  ('Return amount', money(payout['profitAmount'])),
-                  ('Scheduled date', date(payout['dueDate'])),
+                  ('Project ID', '${payout['projectId'] ?? 'Not available'}'),
+                  ('Investment ID', '${payout['investmentId'] ?? 'Not available'}'),
+                  ('Transaction ID', '${payout['transactionId'] ?? 'Not available'}'),
+                  ('Payout amount', money(payout['profitAmount'])),
+                  ('Payout time', time(payout['date'])),
+                  if (payout['dueDate'] != null) ('Scheduled date', date(payout['dueDate'])),
                   ('Payment date', date(payout['date'])),
                   ('Payment status', payoutStatus(payout)),
                   if (payout['reference'] != null)
@@ -147,9 +160,7 @@ class ReturnsOverview extends StatelessWidget {
             rawDate.length == 10 ? '${rawDate}T00:00:00Z' : rawDate,
           ).toUtc();
           return ReturnChartPoint(
-            label: period == 'Monthly'
-                ? DateFormat('MMM').format(d)
-                : '${r['label']}',
+            label: '${r['label']}',
             amount: number(r['amount']),
             date: d,
           );
@@ -281,6 +292,31 @@ class ReturnsOverview extends StatelessWidget {
           mint: true,
         ),
         const SizedBox(height: 22),
+        if (period == 'Hourly') ...[
+          card(Wrap(spacing: 24, runSpacing: 12, children: [
+            for (final entry in <(String, String)>[
+              ("Today's Total Earnings", money(summary['todayEarnings'])),
+              ('Hourly Return Rate', '${snapshot['hourly']?['hourlyEarningRate'] ?? 'Not available'} /hr'),
+              ('Total Returns Credited', money(snapshot['hourly']?['totalCreditedReturns'])),
+              ('Last Payout Time', time(snapshot['hourly']?['lastPayoutTime'])),
+              ('Next Expected Payout Time', time(snapshot['hourly']?['nextExpectedPayoutTime'])),
+              ('Accrued, not credited', money(snapshot['hourly']?['accruedNotCredited'])),
+            ]) Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(entry.$1, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              Text(entry.$2, style: TextStyle(fontWeight: FontWeight.w600, color: ink)),
+            ]),
+          ])),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            key: const ValueKey('hourly-date-picker'),
+            icon: const Icon(Remix.calendar_2_line),
+            label: Text('Hourly Returns · ${snapshot['selectedDate'] ?? date(selectedDate)}'),
+            onPressed: onDate == null ? null : () async {
+              final chosen = await showDatePicker(context: context, initialDate: selectedDate ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
+              if (chosen != null) onDate!(chosen);
+            },
+          ),
+        ] else
         Row(
           children: [
             for (final p in ['Monthly', 'Quarterly', 'Yearly'])
@@ -352,7 +388,7 @@ class ReturnsOverview extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Payout History',
+                period == 'Hourly' ? 'Hourly payout history' : 'Payout History',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -396,13 +432,18 @@ class ReturnsOverview extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    date(p['date']),
+                                    period == 'Hourly' ? '${p['projectName']} · ${time(p['date'])}' : date(p['date']),
                                     style: TextStyle(
                                       color: ink,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 13,
                                     ),
                                   ),
+                                  if (period == 'Hourly') ...[
+                                    Text('Project ID: ${p['projectId']}', style: const TextStyle(fontSize: 10)),
+                                    Text('Investment ID: ${p['investmentId']}', style: const TextStyle(fontSize: 10)),
+                                    Text('Transaction ID: ${p['transactionId']}', style: const TextStyle(fontSize: 10)),
+                                  ],
                                   const SizedBox(height: 5),
                                   StatusBadge(status: payoutStatus(p)),
                                   if (compact)
@@ -443,9 +484,9 @@ class ReturnsOverview extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Next Return Date',
-                      style: TextStyle(
+                    Text(
+                      period == 'Hourly' ? 'Next Hourly Payout' : 'Next Return Date',
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
@@ -454,7 +495,7 @@ class ReturnsOverview extends StatelessWidget {
                     Text(
                       next == null
                           ? 'No upcoming returns scheduled'
-                          : date(next['dueDate']),
+                          : period == 'Hourly' ? time(next['dueDate']) : date(next['dueDate']),
                       style: TextStyle(
                         color: ink,
                         fontSize: 19,
@@ -462,6 +503,7 @@ class ReturnsOverview extends StatelessWidget {
                       ),
                     ),
                     if (next != null) ...[
+                      Text('${next['projectName'] ?? ''} ${next['status'] == 'OVERDUE' ? '· Awaiting backend credit' : ''}'),
                       const SizedBox(height: 4),
                       Text(
                         'Expected Amount: ${money(next['profitAmount'])}',
@@ -471,6 +513,8 @@ class ReturnsOverview extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (period == 'Hourly') for (final item in rows(snapshot, 'upcoming').skip(1))
+                      Padding(padding: const EdgeInsets.only(top: 8), child: Text('${item['projectName']} · ${time(item['dueDate'])} · ${money(item['expectedAmount'])}', style: const TextStyle(fontSize: 12))),
                   ],
                 ),
               ),

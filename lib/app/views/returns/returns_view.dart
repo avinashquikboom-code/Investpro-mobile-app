@@ -1,4 +1,5 @@
 import 'returns_workspace_view.dart';
+import 'interest_breakdown_section.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -530,6 +531,13 @@ class ReturnsView extends StatelessWidget {
                         ),
                       );
                     }),
+                    const SizedBox(height: 20),
+
+                    // 7. Daily, Hourly & Minute Interest Breakdown
+                    InterestBreakdownSection(
+                      snapshot: returnsCtrl.workspace.value ?? {},
+                      isDark: isDark,
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),

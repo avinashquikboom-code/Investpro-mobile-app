@@ -56,6 +56,10 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
   }
   DateTime? get currentStartDate => DateTime.tryParse('${current.value?['startDate']}');
   DateTime? get currentEndDate => DateTime.tryParse('${current.value?['endDate']}');
+  DateTime? get currentPurchaseDate => DateTime.tryParse('${current.value?['createdAt']}');
+  String? get currentPaymentReference => current.value?['paymentReference']?.toString() ?? current.value?['gatewayPaymentId']?.toString();
+  String? get currentSubscriptionReference => current.value?['subscriptionReference']?.toString();
+  String get currentPaymentMethod => current.value?['paymentMethod']?.toString() ?? 'Razorpay';
   String get currentPlanName => current.value?['plan']?['name']?.toString() ?? 'Plan';
   SubscriptionPlanModel? get currentPlan {
     final raw = current.value?['plan'];
@@ -118,7 +122,16 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
         if (!completer.isCompleted) completer.complete();
         return;
       }
-      plans.assignAll((result[0] as List<Map<String, dynamic>>).map(SubscriptionPlanModel.fromJson).where((p) => p.isActive && p.price >= 1 && p.durationMonths > 0));
+      final parsedPlans = (result[0] as List<Map<String, dynamic>>)
+          .map(SubscriptionPlanModel.fromJson)
+          .where((p) => p.isActive && p.price >= 0 && p.durationMonths > 0)
+          .toList()
+        ..sort((a, b) {
+          final orderCmp = a.displayOrder.compareTo(b.displayOrder);
+          if (orderCmp != 0) return orderCmp;
+          return a.minInvestment.compareTo(b.minInvestment);
+        });
+      plans.assignAll(parsedPlans);
       current.value = result[1] as Map<String, dynamic>?;
       final owner = result[2] as Map<String, dynamic>?;
       try {

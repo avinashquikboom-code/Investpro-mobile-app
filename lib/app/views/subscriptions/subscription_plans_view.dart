@@ -600,7 +600,11 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                                     padding: const EdgeInsets.only(bottom: 14),
                                     child: SubscriptionPlanCard(
                                       plan: plan,
+                                      isCurrentActive: controller.hasActivePlan &&
+                                          (controller.currentPlan?.id == plan.id ||
+                                              controller.currentPlan?.slug == plan.slug),
                                       disabled: buying || skipping,
+                                      ctaLabel: widget.onboarding ? 'Choose Plan' : 'Subscribe Now',
                                       onChoose: () => choose(plan),
                                     ),
                                   ),
@@ -673,12 +677,15 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
     final isExpiring = controller.isExpiringSoon;
     final startDate = controller.currentStartDate;
     final endDate = controller.currentEndDate;
+    final purchaseDate = controller.currentPurchaseDate;
     final startStr = startDate != null ? DateFormatter.formatDate(startDate) : '—';
     final endStr = endDate != null ? DateFormatter.formatDate(endDate) : '—';
+    final purchaseStr = purchaseDate != null ? DateFormatter.formatDate(purchaseDate) : startStr;
     final remaining = controller.remainingDays;
     final price = controller.currentPrice;
     final cycle = controller.currentBillingCycle;
     final progress = controller.validityProgress;
+    final txId = controller.currentPaymentReference ?? controller.currentSubscriptionReference;
 
     return Container(
       width: double.infinity,
@@ -795,12 +802,30 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
           Container(height: 1, color: Colors.white.withValues(alpha: 0.15)),
           const SizedBox(height: 14),
 
-          // Start & End dates
+          // Purchase, Activation & Expiry dates
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Purchased',
+                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white60),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    purchaseStr,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     'Activated',
@@ -810,7 +835,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                   Text(
                     startStr,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -828,7 +853,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                   Text(
                     endStr,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -837,6 +862,22 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
               ),
             ],
           ),
+          if (txId != null && txId.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Remix.receipt_line, size: 12, color: Colors.white60),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Tx / Ref ID: $txId',
+                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 14),
 
           // Validity Progress Bar
@@ -1423,13 +1464,17 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
 // ----------------------------------------------------
 class SubscriptionPlanCard extends StatelessWidget {
   final SubscriptionPlanModel plan;
+  final bool isCurrentActive;
   final bool disabled;
+  final String? ctaLabel;
   final VoidCallback onChoose;
 
   const SubscriptionPlanCard({
     super.key,
     required this.plan,
+    this.isCurrentActive = false,
     required this.disabled,
+    this.ctaLabel,
     required this.onChoose,
   });
 
@@ -1447,12 +1492,14 @@ class SubscriptionPlanCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isRecommended ? AppColors.primary : AppColors.border,
-          width: isRecommended ? 1.8 : 1.0,
+          color: isCurrentActive
+              ? AppColors.primary
+              : (isRecommended ? AppColors.primary : AppColors.border),
+          width: isCurrentActive ? 2.0 : (isRecommended ? 1.8 : 1.0),
         ),
         boxShadow: [
           BoxShadow(
-            color: isRecommended
+            color: isRecommended || isCurrentActive
                 ? AppColors.primary.withValues(alpha: 0.08)
                 : AppColors.textPrimary.withValues(alpha: 0.03),
             blurRadius: 10,
@@ -1478,7 +1525,31 @@ class SubscriptionPlanCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isRecommended)
+              if (isCurrentActive)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightMint,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Remix.checkbox_circle_fill, size: 12, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Active Plan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (isRecommended)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -1504,6 +1575,17 @@ class SubscriptionPlanCard extends StatelessWidget {
                 ),
             ],
           ),
+          if (plan.description != null && plan.description!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              plan.description!,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
 
           // Price & Duration
@@ -1519,6 +1601,36 @@ class SubscriptionPlanCard extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
+              if (plan.originalPrice != null && plan.originalPrice! > plan.price) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '₹${plan.originalPrice!.toStringAsFixed(0)}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+              ],
+              if (plan.discount != null && plan.discount! > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.badgeGreenBg,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${plan.discount!.toStringAsFixed(0)}% OFF',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 6),
               Text(
                 '/ ${plan.durationMonths} ${plan.durationMonths == 1 ? 'month' : 'months'}',
@@ -1581,19 +1693,37 @@ class SubscriptionPlanCard extends StatelessWidget {
           const SizedBox(height: 14),
 
           // CTA Button
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          if (isCurrentActive)
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: null,
+              child: Text(
+                'Current Active Plan',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  color: AppColors.primary,
+                ),
+              ),
+            )
+          else
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: disabled ? null : onChoose,
+              child: Text(
+                ctaLabel ?? 'Subscribe Now',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13.5),
+              ),
             ),
-            onPressed: disabled ? null : onChoose,
-            child: Text(
-              'Choose Plan',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13.5),
-            ),
-          ),
         ],
       ),
     );
