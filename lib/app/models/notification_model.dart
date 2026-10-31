@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 enum NotificationType {
   investorWelcome,
   requestUpdate,
@@ -13,6 +14,7 @@ enum NotificationType {
 }
 
 class NotificationModel {
+  final Map<String, String> recordIds;
   final String id;
   final NotificationType type;
   final String title;
@@ -24,6 +26,7 @@ class NotificationModel {
 
   const NotificationModel({
     required this.id,
+    this.recordIds = const {},
     required this.type,
     required this.title,
     required this.description,
@@ -48,6 +51,7 @@ class NotificationModel {
     String? relatedId,
   }) {
     return NotificationModel(
+      recordIds: recordIds,
       id: id ?? this.id,
       type: type ?? this.type,
       title: title ?? this.title,
@@ -62,6 +66,7 @@ class NotificationModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'recordIds': recordIds,
       'type': type.name,
       'title': title,
       'description': description,
@@ -146,6 +151,7 @@ class NotificationModel {
         : DateTime.now();
 
     return NotificationModel(
+      recordIds: DisplayValue.ids(json),
       id: (json['id'] ?? '').toString(),
       type: parsedType,
       title: (json['title'] ?? 'Notification').toString(),

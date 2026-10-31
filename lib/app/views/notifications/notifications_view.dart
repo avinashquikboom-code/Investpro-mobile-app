@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -215,7 +216,7 @@ class NotificationsView extends StatelessWidget {
                                   : AppColors.textSecondary,
                             ),
                           ),
-                          if (notif.relatedId != null) Text('Related ID: ${notif.relatedId}', style: Theme.of(context).textTheme.bodySmall),
+                          if (notif.relatedId != null) Text('Related ID: ${DisplayValue.id(notif.relatedId)}', style: Theme.of(context).textTheme.bodySmall),
                           const SizedBox(height: 4),
                           Text(
                             DateFormatter.formatDateTime(notif.timestamp),

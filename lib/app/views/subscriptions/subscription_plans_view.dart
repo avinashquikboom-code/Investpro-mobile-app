@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -862,6 +863,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
               ),
             ],
           ),
+          Text('Subscription ID: ${DisplayValue.id(controller.currentSubscriptionReference)}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
           if (txId != null && txId.isNotEmpty) ...[
             const SizedBox(height: 10),
             Row(
@@ -870,7 +872,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Tx / Ref ID: $txId',
+                    'Tx / Ref ID: ${DisplayValue.reference(txId)}',
                     style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70),
                     overflow: TextOverflow.ellipsis,
                   ),

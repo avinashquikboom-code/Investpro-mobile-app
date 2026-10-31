@@ -1,6 +1,8 @@
+import '../utils/display_value.dart';
 import '../utils/currency_formatter.dart';
 
 class SubscriptionPlanModel {
+  final Map<String, String> recordIds;
   final String id;
   final String name;
   final String slug;
@@ -20,6 +22,7 @@ class SubscriptionPlanModel {
 
   const SubscriptionPlanModel({
     required this.id,
+    this.recordIds = const {},
     required this.name,
     required this.slug,
     this.description,
@@ -63,6 +66,7 @@ class SubscriptionPlanModel {
         12;
 
     return SubscriptionPlanModel(
+      recordIds: DisplayValue.ids(json),
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
@@ -86,6 +90,7 @@ class SubscriptionPlanModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+      'recordIds': recordIds,
         'name': name,
         'slug': slug,
         'description': description,

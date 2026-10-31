@@ -1,6 +1,8 @@
+import '../utils/display_value.dart';
 import '../services/investment_calculator.dart';
 
 class ProjectModel {
+  final Map<String, String> recordIds;
   final String? location;
   final String? imageUrl;
   final int? investorCount;
@@ -31,6 +33,7 @@ class ProjectModel {
     this.minInvestment = 0,
     this.maxInvestment,
     required this.id,
+    this.recordIds = const {},
     required this.name,
     required this.category,
     this.categoryId,
@@ -96,6 +99,7 @@ class ProjectModel {
       hasReturnData: hasReturnData,
       minInvestment: minInvestment,
       maxInvestment: maxInvestment,
+      recordIds: recordIds,
       id: id ?? this.id,
       name: name ?? this.name,
       category: category ?? this.category,
@@ -122,6 +126,7 @@ class ProjectModel {
       'minInvestment': minInvestment,
       'maxInvestment': maxInvestment,
       'id': id,
+      'recordIds': recordIds,
       'name': name,
       'category': category,
       'categoryId': categoryId,
@@ -154,6 +159,7 @@ class ProjectModel {
       maxInvestment: json['maxInvestment'] == null
           ? null
           : number('maxInvestment'),
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
       name: json['title'] as String? ?? '',
       category: type?['name'] as String? ?? '',
@@ -181,6 +187,7 @@ class ProjectModel {
       hasReturnData: json['hasReturnData'] as bool? ?? true,
       minInvestment: (json['minInvestment'] as num?)?.toDouble() ?? 0,
       maxInvestment: (json['maxInvestment'] as num?)?.toDouble(),
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
       name: json['name'] as String,
       category: json['category'] as String,

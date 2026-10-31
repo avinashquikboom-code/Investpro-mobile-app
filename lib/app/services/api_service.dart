@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 import 'api_diagnostics.dart';
 import 'payment_error.dart';
 import 'dart:math';
@@ -83,6 +84,7 @@ class ApiService extends getx.GetxService {
           }
           return handler.next(options);
         },
+        onResponse: (response, handler) { DisplayValue.register(response.data); handler.next(response); },
         onError: (DioException error, handler) async {
           if (error.response?.statusCode == 429) {
             final retry = ApiDiagnostics.retryAt(

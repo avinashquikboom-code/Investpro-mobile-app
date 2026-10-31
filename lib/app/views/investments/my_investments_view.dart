@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -135,7 +136,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                 final matchesSearch = _searchQuery.isEmpty ||
                     inv.projectName.toLowerCase().contains(_searchQuery) ||
                     inv.reference.toLowerCase().contains(_searchQuery) ||
-                    inv.id.toLowerCase().contains(_searchQuery);
+                    DisplayValue.id(inv.recordIds['id']).contains(_searchQuery);
                 return matchesFilter && matchesSearch;
               }).toList();
 

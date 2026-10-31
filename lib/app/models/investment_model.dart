@@ -101,6 +101,7 @@ class InvestmentModel {
   }
 
   factory InvestmentModel.fromJson(Map<String, dynamic> json) {
+    DisplayValue.ids(json);
     return InvestmentModel(
       recordIds: DisplayValue.ids(json),
       id: json['id'] as String,

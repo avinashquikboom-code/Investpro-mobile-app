@@ -120,8 +120,8 @@ class InvestmentDetailsView extends StatelessWidget {
                   const SizedBox(height: 22),
 
                   // Investment Summary Card
-                  RecordId(label: 'Investment ID', value: investment.id),
-                  RecordId(label: 'Project ID', value: investment.projectId),
+                  RecordId(label: 'Investment ID', value: investment.recordIds['id']),
+                  RecordId(label: 'Project ID', value: investment.recordIds['projectId']),
                   RecordIds(values: Map.of(investment.recordIds)..remove('id')..remove('projectId')),
                   Text(
                     'investmentSummary'.tr,

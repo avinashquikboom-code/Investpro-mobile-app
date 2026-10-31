@@ -31,6 +31,8 @@ void main() {
         );
         final record = BackendSnapshot.investment({
           'id': id,
+          'displayId': 103,
+          'projectDisplayId': 102,
           'projectId': '5beffe56-c013-4828-9e12-0caf83a648f6',
           'investmentReference': legacy ? 'INV-$id' : 'INV-001',
           'project': {'title': 'Actual Project Name'},
@@ -62,8 +64,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Actual Project Name'), findsOneWidget);
         expect(find.text('Invoice Number'), findsOneWidget);
-        expect(find.text(legacy ? 'INV-$id' : 'INV-001'), findsOneWidget);
-        expect(find.text('Investment ID: $id'), findsOneWidget);
+        expect(find.text(legacy ? '103' : 'INV-001'), findsOneWidget);
+        expect(find.text('Investment ID: 103'), findsOneWidget);
         expect(find.byTooltip('Copy Investment ID'), findsOneWidget);
         await tester.ensureVisible(find.text('View Return Schedule'));
         await tester.tap(find.text('View Return Schedule'));

@@ -7,6 +7,7 @@ import 'package:investpro/app/utils/display_value.dart';
 void main() {
   const project = '5beffe56-c013-4828-9e12-0caf83a648f6';
   const transaction = '21d1f53f-37c5-402a-ae81-a35bc466f4d8';
+  setUp(() => DisplayValue.register({'displayIds': {transaction: 105, 'investment': 103}}));
   test('live transaction keeps navigation ID but displays joined name and actual transaction number', () {
     final model = BackendSnapshot.transaction({
       'id': transaction,
@@ -38,7 +39,7 @@ void main() {
         'referenceId': transaction,
       });
       expect(model.id, transaction);
-      expect(model.referenceId, transaction);
+      expect(model.referenceId, '105');
       expect(
         TransactionModel.fromJson({
           ...model.toJson(),
@@ -67,14 +68,14 @@ void main() {
     expect(
       InvestmentModel.fromJson({...model.toJson(), 'projectName': project})
           .projectName,
-      project,
+      'N/A',
     );
     expect(
       InvestmentModel.fromJson({
         ...model.toJson(),
         'investmentReference': 'INV-$transaction',
       }).reference,
-      'INV-$transaction',
+      '103',
     );
     expect(
       BackendSnapshot.investment({
@@ -82,11 +83,11 @@ void main() {
         'projectId': project,
         'investmentReference': 'INV-$transaction',
       }).reference,
-      'INV-$transaction',
+      '103',
     );
   });
   test('missing values use N/A while supplied IDs remain complete', () {
-    expect(DisplayValue.reference('INV-$transaction'), 'INV-$transaction');
+    expect(DisplayValue.reference('INV-$transaction'), '105');
     expect(DisplayValue.text(null), 'N/A');
     expect(DisplayValue.reference('INV-001'), 'INV-001');
     expect(BackendSnapshot.transaction({'id': transaction}).referenceId, 'N/A');

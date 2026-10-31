@@ -56,6 +56,7 @@ class TransactionModel {
   }
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    DisplayValue.ids(json);
     return TransactionModel(
       recordIds: DisplayValue.ids(json),
       id: json['id'] as String,

@@ -1,3 +1,4 @@
+import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -185,8 +186,8 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
             final monthlyRate = rate > 20 ? (rate / 12.0) : rate;
             list.add(
               InvestmentInterestBreakdown.calculate(
-                investmentId: (p['investmentIds'] as List?)?.firstOrNull?.toString() ?? 'PRJ-${p['projectId']}',
-                projectId: '${p['projectId']}',
+                investmentId: (p['investmentIds'] as List?)?.firstOrNull?.toString() ?? 'PRJ-${DisplayValue.id(p['projectId'])}',
+                projectId: DisplayValue.id(p['projectId']),
                 projectName: '${p['projectName']}',
                 principal: principal,
                 monthlyRate: monthlyRate,
@@ -542,7 +543,7 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  inv.investmentId,
+                  DisplayValue.id(inv.investmentId),
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w600,

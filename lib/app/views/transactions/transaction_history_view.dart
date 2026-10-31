@@ -44,7 +44,7 @@ class TransactionHistoryView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                RecordId(label: 'Transaction ID', value: txn.id),
+                RecordId(label: 'Transaction ID', value: txn.recordIds['id']),
                 RecordIds(values: Map.of(txn.recordIds)..remove('id')),
                 const SizedBox(height: 8),
                 Row(

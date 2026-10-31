@@ -109,7 +109,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                   ),
                   const SizedBox(height: 8),
                   // Top Summary Card
-                  RecordId(label: 'Project ID', value: project.id),
+                  RecordId(label: 'Project ID', value: project.recordIds['id']),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

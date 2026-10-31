@@ -35,6 +35,7 @@ class WithdrawalModel {
   }
 
   factory WithdrawalModel.fromJson(Map<String, dynamic> json) {
+    DisplayValue.ids(json);
     return WithdrawalModel(
       recordIds: DisplayValue.ids(json),
       id: json['id'] as String,

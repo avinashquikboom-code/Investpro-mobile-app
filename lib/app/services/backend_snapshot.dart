@@ -52,6 +52,7 @@ class BackendSnapshot {
   }
 
   static InvestmentModel investment(Map<String, dynamic> row) {
+    DisplayValue.ids(row);
     final project = row['project'] as Map? ?? {};
     final status = '${row['status']}';
     final verified = row['paymentVerified'] == true;
@@ -90,6 +91,7 @@ class BackendSnapshot {
   }
 
   static WithdrawalModel withdrawal(Map<String, dynamic> row) {
+    DisplayValue.ids(row);
     final bank = row['bankAccount'] as Map? ?? {};
     final account = '${bank['accountNumber'] ?? ''}';
     final ref = DisplayValue.reference(
@@ -119,7 +121,7 @@ class BackendSnapshot {
           : row['dueDate'],
     );
     return ReturnPayoutModel(
-      id: row['id'] as String? ?? '',
+      recordIds: DisplayValue.ids(row),      id: row['id'] as String? ?? '',
       investmentId: row['investmentId'] as String? ?? '',
       projectName:
           '${row['investment']?['project']?['title'] ?? row['projectTitle'] ?? ''}',
@@ -131,6 +133,7 @@ class BackendSnapshot {
   }
 
   static TransactionModel transaction(Map<String, dynamic> row) {
+    DisplayValue.ids(row);
     final type = '${row['type']}';
     final kind = type == 'REFUND'
         ? TransactionType.refund

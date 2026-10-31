@@ -1,3 +1,4 @@
+import '../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,12 +9,12 @@ class RecordId extends StatelessWidget {
   const RecordId({super.key, required this.label, required this.value});
   @override
   Widget build(BuildContext context) {
-    final id = value;
+    final id = DisplayValue.id(value);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(child: SelectableText('$label: ${id == null || id.isEmpty ? 'N/A' : id}', style: Theme.of(context).textTheme.bodySmall)),
-        if (id != null && id.isNotEmpty)
+        Expanded(child: SelectableText('$label: ${id == 'N/A' ? 'N/A' : id}', style: Theme.of(context).textTheme.bodySmall)),
+        if (id != 'N/A')
           IconButton(tooltip: 'Copy $label', visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.copy, size: 16),
             onPressed: () async {
