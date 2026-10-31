@@ -2,6 +2,7 @@ import '../utils/display_value.dart';
 import '../services/investment_calculator.dart';
 
 class InvestmentModel {
+  final Map<String, String> recordIds;
   final String id;
   final String reference;
   final String projectId;
@@ -22,6 +23,7 @@ class InvestmentModel {
 
   const InvestmentModel({
     required this.id,
+    this.recordIds = const {},
     this.reference = '',
     required this.projectId,
     required this.projectName,
@@ -58,6 +60,7 @@ class InvestmentModel {
     String? paymentMethod,
   }) {
     return InvestmentModel(
+      recordIds: recordIds,
       id: id ?? this.id,
       reference: reference ?? this.reference,
       projectId: projectId ?? this.projectId,
@@ -79,6 +82,7 @@ class InvestmentModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'recordIds': recordIds,
       'reference': reference,
       'projectId': projectId,
       'projectName': projectName,
@@ -98,6 +102,7 @@ class InvestmentModel {
 
   factory InvestmentModel.fromJson(Map<String, dynamic> json) {
     return InvestmentModel(
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
       reference: DisplayValue.reference(
         json['invoiceNumber'] ??

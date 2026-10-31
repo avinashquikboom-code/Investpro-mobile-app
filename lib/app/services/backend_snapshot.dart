@@ -33,7 +33,7 @@ class BackendSnapshot {
     final account = '${bank?['accountNumber'] ?? ''}';
     final owner = profile['user'] as Map? ?? {};
     return UserModel(
-      id: '${profile['id'] ?? ''}',
+      recordIds: DisplayValue.ids(profile),      id: '${profile['id'] ?? ''}',
       fullName: '${profile['fullName'] ?? ''}',
       email: '${owner['email'] ?? profile['email'] ?? ''}',
       mobileNumber: '${owner['mobileNumber'] ?? profile['mobileNumber'] ?? ''}',
@@ -60,7 +60,7 @@ class BackendSnapshot {
     );
     final projectName = '${project['title'] ?? row['projectName'] ?? ''}';
     return InvestmentModel(
-      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
       projectName: DisplayValue.text(projectName),
@@ -94,7 +94,7 @@ class BackendSnapshot {
       internalId: row['id'],
     );
     return WithdrawalModel(
-      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
       amount: number(row['amount']),
       bankName: '${bank['bankName'] ?? ''}',
       accountNumber: account.length >= 4
@@ -149,7 +149,7 @@ class BackendSnapshot {
       internalId: row['id'],
     );
     return TransactionModel(
-      id: '${row['id']}',
+      recordIds: DisplayValue.ids(row),      id: '${row['id']}',
       type: kind,
       title: label(type),
       subtitle: DisplayValue.text(pName ?? row['description']),

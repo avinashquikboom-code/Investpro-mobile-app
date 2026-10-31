@@ -10,6 +10,7 @@ enum TransactionType {
 }
 
 class TransactionModel {
+  final Map<String, String> recordIds;
   final String id;
   final TransactionType type;
   final String title;
@@ -24,6 +25,7 @@ class TransactionModel {
 
   const TransactionModel({
     required this.id,
+    this.recordIds = const {},
     required this.type,
     required this.title,
     required this.subtitle,
@@ -39,6 +41,7 @@ class TransactionModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'recordIds': recordIds,
       'type': type.name,
       'title': title,
       'subtitle': subtitle,
@@ -54,6 +57,7 @@ class TransactionModel {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
       type: TransactionType.values.firstWhere(
         (e) => e.name == json['type'],

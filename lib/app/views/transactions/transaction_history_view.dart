@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -29,6 +30,8 @@ class TransactionHistoryView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              RecordId(label: 'Transaction ID', value: txn.id),
+              RecordIds(values: Map.of(txn.recordIds)..remove('id')),
               Center(
                 child: Container(
                   width: 40,

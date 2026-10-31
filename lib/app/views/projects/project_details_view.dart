@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,6 +30,8 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
     final argument = Get.arguments;
     projectId = argument is String
         ? argument
+        : argument is Map && argument['projectId'] is String
+        ? argument['projectId'] as String
         : controller.selectedProject.value?.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && projectId != null) controller.loadDetails(projectId!);
@@ -106,6 +109,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                   ),
                   const SizedBox(height: 8),
                   // Top Summary Card
+                  RecordId(label: 'Project ID', value: project.id),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

@@ -1,6 +1,7 @@
 import '../utils/display_value.dart';
 
 class WithdrawalModel {
+  final Map<String, String> recordIds;
   final String id;
   final double amount;
   final String bankName;
@@ -11,6 +12,7 @@ class WithdrawalModel {
 
   const WithdrawalModel({
     required this.id,
+    this.recordIds = const {},
     required this.amount,
     required this.bankName,
     required this.accountNumber,
@@ -22,6 +24,7 @@ class WithdrawalModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'recordIds': recordIds,
       'amount': amount,
       'bankName': bankName,
       'accountNumber': accountNumber,
@@ -33,6 +36,7 @@ class WithdrawalModel {
 
   factory WithdrawalModel.fromJson(Map<String, dynamic> json) {
     return WithdrawalModel(
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
       amount: (json['amount'] as num).toDouble(),
       bankName: json['bankName'] as String,

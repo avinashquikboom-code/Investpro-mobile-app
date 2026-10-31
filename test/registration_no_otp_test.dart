@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:investpro/app/constants/app_strings.dart';
 import 'package:investpro/app/controllers/auth_controller.dart';
 import 'package:investpro/app/controllers/navigation_controller.dart';
 import 'package:investpro/app/routes/app_routes.dart';
@@ -85,10 +86,12 @@ void main() {
     Get.put<NavigationController>(NavigationController());
     Get.put<LocalStorageService>(storage);
     Get.put<DemoRepository>(repo);
-    final authCtrl = Get.put<AuthController>(AuthController(storage, repo, api));
+    Get.put<AuthController>(AuthController(storage, repo, api));
 
     await tester.pumpWidget(
       GetMaterialApp(
+        translations: AppTranslations(),
+        locale: const Locale('en', 'US'),
         initialRoute: AppRoutes.register,
         getPages: [
           GetPage(name: AppRoutes.register, page: () => const RegisterView()),
@@ -101,7 +104,7 @@ void main() {
     // 1. Verify RegisterView is rendered
     expect(find.text('Create Account'), findsOneWidget);
     expect(find.text('Full Name'), findsOneWidget);
-    expect(find.text('Email Address'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
     expect(find.text('Mobile Number'), findsOneWidget);
     expect(find.text('Password'), findsOneWidget);
     expect(find.text('Register'), findsOneWidget);
@@ -112,7 +115,6 @@ void main() {
     expect(find.text('Enter OTP'), findsNothing);
 
     // 3. Enter registration details
-    await tester.enterText(find.widgetWithText(TextField, ''), 'Jane Doe'); // Full Name is first empty textfield
     final textFields = find.byType(TextField);
     expect(textFields, findsNWidgets(4));
 
@@ -150,10 +152,12 @@ void main() {
     Get.put<NavigationController>(NavigationController());
     Get.put<LocalStorageService>(storage);
     Get.put<DemoRepository>(repo);
-    final authCtrl = Get.put<AuthController>(AuthController(storage, repo, api));
+    Get.put<AuthController>(AuthController(storage, repo, api));
 
     await tester.pumpWidget(
       GetMaterialApp(
+        translations: AppTranslations(),
+        locale: const Locale('en', 'US'),
         initialRoute: AppRoutes.register,
         getPages: [
           GetPage(name: AppRoutes.register, page: () => const RegisterView()),

@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import '../../controllers/subscription_controller.dart';
 import '../subscriptions/subscription_plans_view.dart';
 import 'package:remixicon/remixicon.dart';
@@ -204,6 +205,7 @@ class ProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  RecordIds(values: user.recordIds.isEmpty ? {'id': user.id} : user.recordIds),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

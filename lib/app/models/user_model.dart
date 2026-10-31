@@ -1,4 +1,6 @@
+import '../utils/display_value.dart';
 class UserModel {
+  final Map<String, String> recordIds;
   final String id;
   final String fullName;
   final String email;
@@ -15,6 +17,7 @@ class UserModel {
 
   const UserModel({
     required this.id,
+    this.recordIds = const {},
     required this.fullName,
     required this.email,
     required this.mobileNumber,
@@ -50,6 +53,7 @@ class UserModel {
     bool? isBankVerified,
   }) {
     return UserModel(
+      recordIds: recordIds,
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
@@ -69,6 +73,7 @@ class UserModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'recordIds': recordIds,
       'fullName': fullName,
       'email': email,
       'mobileNumber': mobileNumber,
@@ -86,6 +91,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      recordIds: DisplayValue.ids(json),
       id: json['id'] as String? ?? '',
       fullName: json['fullName'] as String? ?? '',
       email: json['email'] as String? ?? '',

@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import '../../utils/display_value.dart';
 
 import 'package:remixicon/remixicon.dart';
@@ -119,6 +120,9 @@ class InvestmentDetailsView extends StatelessWidget {
                   const SizedBox(height: 22),
 
                   // Investment Summary Card
+                  RecordId(label: 'Investment ID', value: investment.id),
+                  RecordId(label: 'Project ID', value: investment.projectId),
+                  RecordIds(values: Map.of(investment.recordIds)..remove('id')..remove('projectId')),
                   Text(
                     'investmentSummary'.tr,
                     style: TextStyle(

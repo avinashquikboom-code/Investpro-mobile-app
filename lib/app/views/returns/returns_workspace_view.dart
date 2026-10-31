@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -308,6 +309,8 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                 Text('Principal returned: ${money(p['principalAmount'])}'),
               Text('Wallet credit: ${money(p['totalAmount'])}'),
               SelectableText(DisplayValue.reference(p['reference'])),
+              RecordId(label: 'Return payment ID', value: p['id'] as String?),
+              if (p['investmentId'] is String) RecordId(label: 'Investment ID', value: p['investmentId'] as String),
             ],
           ),
         ),
@@ -325,6 +328,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(date(r['requestedAt'])),
+              RecordId(label: 'Withdrawal ID', value: r['id'] as String?),
               ...(r['allocations'] as List? ?? []).map(
                 (a) => Text(
                   '${a['projectName'] ?? 'Other wallet credit'} · ${a['component'].toString().replaceAll('_', ' ').toLowerCase()} · ${money(a['amount'])}${a['reconstructed'] == true ? ' (FIFO reconstructed)' : ''}',

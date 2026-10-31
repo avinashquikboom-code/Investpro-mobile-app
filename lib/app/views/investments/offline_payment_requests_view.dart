@@ -1,3 +1,4 @@
+import '../../widgets/record_id.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -76,6 +77,8 @@ class _OfflinePaymentRequestsViewState
             controller: scroll,
             padding: const EdgeInsets.all(24),
             children: [
+              RecordId(label: 'Payment request ID', value: row['id'] as String?),
+              RecordId(label: 'Investment ID', value: row['investment']?['id'] as String?),
               Text(
                 row['investment']['project']['title'].toString(),
                 style: Theme.of(context).textTheme.titleLarge,
