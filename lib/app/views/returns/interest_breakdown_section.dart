@@ -186,8 +186,8 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
             final monthlyRate = rate > 20 ? (rate / 12.0) : rate;
             list.add(
               InvestmentInterestBreakdown.calculate(
-                investmentId: (p['investmentIds'] as List?)?.firstOrNull?.toString() ?? 'PRJ-${DisplayValue.id(p['projectId'])}',
-                projectId: DisplayValue.id(p['projectId']),
+                investmentId: (p['investmentIds'] as List?)?.firstOrNull?.toString() ?? 'N/A',
+                projectId: p['projectId'] as String? ?? '',
                 projectName: '${p['projectName']}',
                 principal: principal,
                 monthlyRate: monthlyRate,

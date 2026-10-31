@@ -99,16 +99,16 @@ class ReturnsOverview extends StatelessWidget {
                     'Investment reference',
                     DisplayValue.reference(payout['invoiceNumber'] ?? payout['investmentReference']),
                   ),
-                  ('Project ID', DisplayValue.id(DisplayValue.id(payout['projectId']))),
-                  ('Investment ID', DisplayValue.id(DisplayValue.id(payout['investmentId']))),
-                  ('Transaction ID', DisplayValue.id(DisplayValue.id(payout['transactionId']))),
+                  ('Project ID', DisplayValue.id(payout['projectId'])),
+                  ('Investment ID', DisplayValue.id(payout['investmentId'])),
+                  ('Transaction ID', DisplayValue.id(payout['transactionId'])),
                   ('Payout amount', money(payout['profitAmount'])),
                   ('Payout time', time(payout['date'])),
                   if (payout['dueDate'] != null) ('Scheduled date', date(payout['dueDate'])),
                   ('Payment date', date(payout['date'])),
                   ('Payment status', payoutStatus(payout)),
                   if (payout['reference'] != null)
-                    ('Transaction reference', '${payout['reference']}'),
+                    ('Transaction reference', DisplayValue.reference(payout['reference'])),
                   if (number(payout['principalAmount']) > 0)
                     (
                       'Principal returned separately',

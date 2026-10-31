@@ -1,4 +1,3 @@
-import '../../utils/display_value.dart';
 import '../../widgets/record_id.dart';
 import 'dart:math';
 
@@ -219,7 +218,7 @@ class _ReturnsWithdrawalViewState extends State<ReturnsWithdrawalView> {
                           ),
                           ...projects.map(
                             (p) => DropdownMenuItem(
-                              value: DisplayValue.id(p['projectId']),
+                              value: p['projectId'] as String,
                               child: Text(
                                 '${p['projectName']}',
                                 overflow: TextOverflow.ellipsis,

@@ -1,3 +1,4 @@
+import 'package:investpro/app/utils/display_value.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +59,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     tester.view.physicalSize = const Size(320, 640); tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    DisplayValue.register({'displayIds': {'project':102,'investment':103,'transaction':105}});
     final snapshot = <String, dynamic>{
       'period': 'hourly', 'selectedDate': '2026-10-30', 'asOf': '2026-10-30T12:00:00Z',
       'summary': {'totalEarnedReturns': '0.70', 'todayEarnings': '0.70'},
@@ -72,7 +74,7 @@ void main() {
     expect(find.text('Monthly'), findsNothing);
     expect(find.text('Hourly payout history'), findsOneWidget);
     expect(find.text('Next Hourly Payout'), findsOneWidget);
-    expect(find.text('Transaction ID: transaction'), findsOneWidget);
+    expect(find.text('Transaction ID: 105'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

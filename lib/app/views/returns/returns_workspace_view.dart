@@ -772,7 +772,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                 child: OutlinedButton.icon(
                   onPressed: () => Get.toNamed(
                     AppRoutes.projectDetails,
-                    arguments: DisplayValue.id(p['projectId']),
+                    arguments: p['projectId'] as String,
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -786,7 +786,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => withdraw(DisplayValue.id(p['projectId'])),
+                    onPressed: () => withdraw(p['projectId'] as String),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
