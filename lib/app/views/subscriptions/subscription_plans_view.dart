@@ -24,7 +24,11 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
   @override
   void initState() {
     super.initState();
-    controller.load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        controller.load();
+      }
+    });
   }
 
   Future<void> skip() async {
@@ -37,10 +41,12 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
   Future<void> choose(SubscriptionPlanModel plan) async {
     if (!await controller.purchase(plan) || !mounted) return;
     await Get.find<AuthController>().finishSubscriptionOnboarding();
-    Get.snackbar(
-      'Subscription Activated',
-      'Your plan is active. Eligible investment opportunities are now available.',
-    );
+    if (!widget.onboarding) {
+      Get.snackbar(
+        'Subscription Activated',
+        'Your plan is active. Eligible investment opportunities are now available.',
+      );
+    }
   }
 
   @override
@@ -64,7 +70,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
               actions: [
                 IconButton(
                   tooltip: 'Refresh plans',
-                  onPressed: buying || skipping ? null : controller.load,
+                  onPressed: buying || skipping ? null : () => controller.load(force: true),
                   icon: const Icon(Remix.refresh_line),
                 ),
               ],
@@ -154,7 +160,7 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                                   ),
                                   TextButton(
                                     onPressed:
-                                        buying ? null : controller.load,
+                                        buying ? null : () => controller.load(force: true),
                                     child: const Text('Retry'),
                                   ),
                                 ],
@@ -643,7 +649,11 @@ class _SubscriptionProfileCardState extends State<SubscriptionProfileCard> {
   @override
   void initState() {
     super.initState();
-    controller.load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        controller.load();
+      }
+    });
   }
 
   @override

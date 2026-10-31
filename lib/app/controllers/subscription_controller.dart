@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -55,17 +56,37 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
   DateTime? get currentStartDate => DateTime.tryParse('${current.value?['startDate']}');
   DateTime? get currentEndDate => DateTime.tryParse('${current.value?['endDate']}');
   String get currentPlanName => current.value?['plan']?['name']?.toString() ?? 'Plan';
+  Future<void>? _inFlightLoad;
   @override
   void onInit() { super.onInit(); WidgetsBinding.instance.addObserver(this); }
   @override
   void onClose() { WidgetsBinding.instance.removeObserver(this); _checkout?.clear(); if (_completion?.isCompleted == false) _completion!.complete(false); super.onClose(); }
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
     if (purchasing.value) return;
+    if (!force && _inFlightLoad != null) return _inFlightLoad!;
+    final completer = Completer<void>();
+    _inFlightLoad = completer.future;
+
     final request = ++_request, session = api.sessionVersion;
-    loading.value = true; error.value = '';
+    void setStartingState() {
+      if (!isClosed && request == _request && session == api.sessionVersion) {
+        loading.value = true;
+        error.value = '';
+      }
+    }
+
+    if (WidgetsBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => setStartingState());
+    } else {
+      setStartingState();
+    }
+
     try {
       final result = await Future.wait([api.getSubscriptionPlans(), api.getCurrentSubscription(), api.getMe()]);
-      if (isClosed || request != _request || session != api.sessionVersion) return;
+      if (isClosed || request != _request || session != api.sessionVersion) {
+        if (!completer.isCompleted) completer.complete();
+        return;
+      }
       plans.assignAll((result[0] as List<Map<String, dynamic>>).map(SubscriptionPlanModel.fromJson).where((p) => p.isActive && p.price >= 1 && p.durationMonths > 0));
       current.value = result[1] as Map<String, dynamic>?;
       final owner = result[2] as Map<String, dynamic>?;
@@ -77,15 +98,43 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
           if (record is Map && record['subscriptionId'] == current.value!['id']) { await writeIntent(record['slot'].toString(), ''); await writeIntent(pointer, ''); }
         } catch (_) {}
       }
-    } catch (e) { if (!isClosed && request == _request) { plans.clear(); error.value = PaymentError.message(e, fallback: 'Unable to load subscription plans. You can retry or skip.'); } }
-    finally { if (!isClosed && request == _request) loading.value = false; }
+    } catch (e) {
+      if (!isClosed && request == _request) {
+        plans.clear();
+        error.value = PaymentError.message(e, fallback: 'Unable to load subscription plans. You can retry or skip.');
+      }
+    } finally {
+      _inFlightLoad = null;
+      if (!isClosed && request == _request) {
+        if (WidgetsBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!isClosed && request == _request) loading.value = false;
+          });
+        } else {
+          loading.value = false;
+        }
+      }
+      if (!completer.isCompleted) completer.complete();
+    }
   }
   Future<void> refreshCurrent() async {
     if (purchasing.value) return;
     final session = api.sessionVersion, request = _request;
     try { final active = await api.getCurrentSubscription(); if (!isClosed && !purchasing.value && session == api.sessionVersion && request == _request) current.value = active; } catch (_) {}
   }
-  void clearForSession() { _request++; plans.clear(); current.value = null; error.value = ''; _pendingId = null; if (_completion?.isCompleted == false) _completion!.complete(false); _completion = null; _checkout?.clear(); purchasing.value = false; }
+  void clearForSession() {
+    _request++;
+    _inFlightLoad = null;
+    plans.clear();
+    current.value = null;
+    error.value = '';
+    _pendingId = null;
+    if (_completion?.isCompleted == false) _completion!.complete(false);
+    _completion = null;
+    _checkout?.clear();
+    purchasing.value = false;
+    loading.value = false;
+  }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) { if (state == AppLifecycleState.resumed && purchasing.value) unawaited(_recover()); }
   Future<bool> _recover() async {

@@ -61,7 +61,7 @@ void main() {
     final auth = Get.put(AuthController(storage, repo, api)); Get.put<ApiService>(api);
     return (auth, subscription);
   }
-  Widget routes() => GetMaterialApp(home: const Scaffold(body: Text('Register')), getPages: [GetPage(name: AppRoutes.home, page: () => const Scaffold(body: Text('Dashboard'))), GetPage(name: AppRoutes.subscriptionOnboarding, page: () => const Scaffold(body: Text('Onboarding Plans')))]);
+  Widget routes({bool realPlans = false}) => GetMaterialApp(home: const Scaffold(body: Text('Register')), getPages: [GetPage(name: AppRoutes.home, page: () => const Scaffold(body: Text('Dashboard'))), GetPage(name: AppRoutes.subscriptionOnboarding, page: () => realPlans ? const SubscriptionPlansView(onboarding: true) : const Scaffold(body: Text('Onboarding Plans')))]);
   testWidgets('registration waits for OTP, then Skip persists session and does not purchase', (tester) async {
     final api = OnboardingApi(); final storage = LocalStorageService(backend: OnboardingStore()); final (auth, _) = setup(api, storage);
     await tester.pumpWidget(routes());
@@ -71,6 +71,17 @@ void main() {
     expect(find.text('Onboarding Plans'), findsOneWidget); expect(find.byType(RegistrationOtpView), findsNothing); expect(Get.key.currentState!.canPop(), isFalse); expect(auth.isLoggedIn.value, isTrue); expect(api.access, 'secure-access');
     await auth.finishSubscriptionOnboarding(skipped: true); await tester.pumpAndSettle(); expect(find.text('Dashboard'), findsOneWidget); expect(api.purchases, 0); expect(api.verifications, 0); expect(api.access, 'secure-access');
     expect(await auth.restoreSession(), isTrue); expect(auth.authenticatedRoute, AppRoutes.home);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+  testWidgets('verified checkout from onboarding activates the plan and replaces registration with dashboard', (tester) async {
+    final api = OnboardingApi(); final checkout = SubscriptionCheckout(); final (auth, _) = setup(api, LocalStorageService(backend: OnboardingStore()), checkout: checkout);
+    await tester.pumpWidget(routes(realPlans: true));
+    await auth.verifyRegistration(fullName: 'New Investor', email: 'new@example.test', mobileNumber: '9876543210', password: 'ValidPass123!', otp: '123456'); await tester.pumpAndSettle();
+    final choose = find.widgetWithText(FilledButton, 'Choose Plan').first;
+    await tester.ensureVisible(choose); await tester.tap(choose); await tester.pumpAndSettle(); expect(checkout.options, isNotNull);
+    await checkout.handlers[Razorpay.EVENT_PAYMENT_SUCCESS]!(PaymentSuccessResponse('pay_verified', 'order_plan', 'signature', null)); await tester.pumpAndSettle();
+    expect(find.text('Dashboard'), findsOneWidget); expect(auth.isLoggedIn.value, isTrue); expect(auth.onboardingPending.value, isFalse); expect(api.purchases, 1); expect(api.verifications, 1); expect(api.access, 'secure-access'); expect(Get.key.currentState!.canPop(), isFalse);
+    await tester.pump(const Duration(seconds: 4)); await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox.shrink());
   });
   testWidgets('offline Skip is remembered and retries server completion on restart without losing session', (tester) async {

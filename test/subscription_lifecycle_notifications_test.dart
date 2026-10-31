@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:investpro/app/models/notification_model.dart';
 import 'package:investpro/app/controllers/subscription_controller.dart';
 import 'package:investpro/app/services/api_service.dart';
-import 'package:dio/dio.dart';
 
 class MockApiService extends ApiService {
   MockApiService() : super();
@@ -63,7 +62,7 @@ void main() {
       final controller = SubscriptionController(
         MockApiService(),
         readIntent: (_) async => null,
-        writeIntent: (_, __) async {},
+        writeIntent: (_, _) async {},
       );
 
       final now = DateTime.now();
@@ -94,7 +93,7 @@ void main() {
       final controller = SubscriptionController(
         MockApiService(),
         readIntent: (_) async => null,
-        writeIntent: (_, __) async {},
+        writeIntent: (_, _) async {},
       );
 
       final now = DateTime.now();
