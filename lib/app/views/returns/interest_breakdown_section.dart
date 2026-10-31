@@ -81,7 +81,7 @@ class InvestmentInterestBreakdown {
 
     if (monthly != null && daily != null && hourly != null && minute != null) {
       return InvestmentInterestBreakdown(
-        investmentId: json['investmentId']?.toString() ?? json['id']?.toString() ?? '—',
+        investmentId: json['displayId']?.toString() ?? json['id']?.toString() ?? json['investmentId']?.toString() ?? 'N/A',
         projectId: json['projectId']?.toString() ?? '',
         projectName: json['projectName']?.toString() ?? 'Investment',
         principal: principal,
@@ -95,7 +95,7 @@ class InvestmentInterestBreakdown {
     }
 
     return InvestmentInterestBreakdown.calculate(
-      investmentId: json['investmentId']?.toString() ?? json['id']?.toString() ?? '—',
+      investmentId: json['displayId']?.toString() ?? json['id']?.toString() ?? json['investmentId']?.toString() ?? 'N/A',
       projectId: json['projectId']?.toString() ?? '',
       projectName: json['projectName']?.toString() ?? 'Investment',
       principal: principal,
