@@ -84,7 +84,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
       await syncToken();
     } catch (e) {
       if (kDebugMode) {
-        print('[FCM] Initialization warning: $e');
+        print('[FCM] Initialization failed: ${e.runtimeType}');
       }
     }
     return this;
@@ -217,6 +217,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   }
 
   Future<void> handleForegroundMessage(RemoteMessage message) async {
+    if (await _api.getAccessToken() == null || message.data['appType'] == 'ADMIN') return;
     if (kDebugMode) {
       print('[FCM] Foreground push received: ${message.messageId}');
     }
@@ -354,7 +355,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[FCM] Device token registration error: $e');
+        print('[FCM] Device token registration failed: ${e.runtimeType}');
       }
     }
   }
@@ -364,8 +365,6 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
       final token = _fcmToken ?? (_storage.read('fcm_device_token') as String?);
       if (token != null && token.isNotEmpty) {
         await _api.deleteDeviceToken(token);
-        await _messaging.unregister();
-        _pendingNavigation = null;
         await _storage.remove('fcm_device_token');
         _fcmToken = null;
         if (kDebugMode) {
@@ -374,8 +373,15 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
       }
     } catch (e) {
       if (kDebugMode) {
-        print('[FCM] deleteToken error: $e');
+        print('[FCM] Token unregister request failed');
       }
+    } finally {
+      try { await _messaging.unregister(); } catch (_) {}
+      _fcmToken = null;
+      _pendingNavigation = null;
+      _pendingKyc = false;
+      _pendingRequest = null;
+      await _storage.remove('fcm_device_token');
     }
   }
 

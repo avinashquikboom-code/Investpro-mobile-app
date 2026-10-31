@@ -1,3 +1,5 @@
+import 'package:investpro/app/controllers/auth_controller.dart';
+import 'package:investpro/app/services/demo_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -72,6 +74,8 @@ void main() {
       storage = LocalStorageService(backend: TestMemoryStore());
       api = TestMockApi();
       notificationService = NotificationService(storage, api);
+      final auth = Get.put(AuthController(storage, DemoRepository(storage, notificationService)));
+      auth.isLoggedIn.value = true;
       pushService = FirebaseNotificationService(
         storage,
         api,

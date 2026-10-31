@@ -12,11 +12,21 @@ class NotificationService extends GetxService {
 
   NotificationService(this._storage, [this._api]);
 
+  final hasMore = false.obs;
+  final loadingMore = false.obs;
+  final paginationError = ''.obs;
+  int _page = 1;
+  int _historyVersion = 0;
+
   final RxnInt _serverUnreadCount = RxnInt();
   int get unreadCount => _serverUnreadCount.value ?? notifications.where((n) => !n.isRead).length;
 
   void clear() {
     notifications.clear();
+    _historyVersion++;
+    _page = 1;
+    hasMore.value = false;
+    paginationError.value = '';
     _serverUnreadCount.value = null;
   }
 
@@ -28,12 +38,13 @@ class NotificationService extends GetxService {
   Future<void> refreshFromBackend() async {
     if (_api == null) return;
     try {
+      final version = ++_historyVersion;
       final session = _api.sessionVersion;
       final token = await _api.getAccessToken();
       if (token == null || token.isEmpty) { clear(); return; }
       final list = await _api.getNotifications();
       final count = await _api.getUnreadNotificationCount();
-      if (session != _api.sessionVersion) return;
+      if (session != _api.sessionVersion || version != _historyVersion) return;
       if (list != null) {
         final parsed = list
             .map(
@@ -42,11 +53,34 @@ class NotificationService extends GetxService {
               ),
             )
             .toList();
+        _page = 1;
+        hasMore.value = list.length == 50;
+        paginationError.value = '';
         notifications.value = parsed;
         _serverUnreadCount.value = count;
         _saveToStorage();
       }
     } catch (_) { rethrow; }
+  }
+
+  Future<void> loadMore() async {
+    if (_api == null || !hasMore.value || loadingMore.value) return;
+    loadingMore.value = true;
+    final version = _historyVersion;
+    final session = _api.sessionVersion;
+    try {
+      final result = await _api.getNotificationsPage(_page + 1);
+      if (version != _historyVersion || session != _api.sessionVersion) return;
+      final rows = (result['notifications'] as List).map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e as Map)));
+      final ids = notifications.map((n) => n.id).toSet();
+      notifications.addAll(rows.where((n) => ids.add(n.id)));
+      _page++;
+      hasMore.value = result['hasMore'] == true;
+      paginationError.value = '';
+      _saveToStorage();
+    } catch (_) {
+      if (version == _historyVersion && session == _api.sessionVersion) paginationError.value = 'Unable to load older notifications. Tap to retry.';
+    } finally { loadingMore.value = false; }
   }
 
   void loadNotifications() {

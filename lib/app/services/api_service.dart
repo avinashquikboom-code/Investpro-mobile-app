@@ -775,6 +775,11 @@ class ApiService extends getx.GetxService {
     return result['notifications'] as List<dynamic>;
   }
 
+  Future<Map<String, dynamic>> getNotificationsPage(int page) async {
+    final response = await dio.get('/mobile/notifications', queryParameters: {'page': page, 'limit': 50});
+    return Map<String, dynamic>.from(response.data['data'] as Map);
+  }
+
   Future<int?> getUnreadNotificationCount() async {
     try {
       final response = await dio.get('/mobile/notifications/unread-count');

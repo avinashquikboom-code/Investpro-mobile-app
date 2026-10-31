@@ -1,5 +1,4 @@
 import 'subscription_controller.dart';
-import '../views/auth/registration_otp_view.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -150,14 +149,13 @@ class AuthController extends GetxController {
     Get.offAllNamed(AppRoutes.home);
     return true;
   }
-  Future<bool> verifyRegistration({required String fullName, required String email, required String mobileNumber, required String password, required String otp}) async {
+  Future<bool> verifyRegistration({required String fullName, required String email, required String mobileNumber, required String password, String? otp}) async {
     if (isLoading.value || _api == null) return false;
     isLoading.value = true;
     try {
-      final result = await _api.verifyRegistrationOtp(fullName: fullName, email: email, mobileNumber: mobileNumber, password: password, otp: otp);
-      if (result['user']?['isMobileVerified'] != true) throw StateError('Mobile verification was not confirmed');
+      final result = await _api.register(fullName: fullName, email: email, mobileNumber: mobileNumber, password: password);
       return await _finish(result, registration: true);
-    } catch (_) { Get.snackbar('Unable to verify OTP', 'Check the code and connection. You can resend a code or retry.'); return false; }
+    } catch (_) { Get.snackbar('Unable to complete registration', 'Check your details and connection.'); return false; }
     finally { isLoading.value = false; }
   }
 
@@ -296,12 +294,33 @@ class AuthController extends GetxController {
     isLoading.value = true;
     try {
       if (_api == null) throw StateError('Account service is unavailable');
-      final challenge = await _api.sendRegistrationOtp(fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim());
-      Get.to(() => RegistrationOtpView(initialCooldown: (challenge['data']?['cooldownSeconds'] as num? ?? 60).toInt(), fullName: fullName.trim(), email: email.trim(), mobileNumber: mobileNumber.trim(), password: password));
-      return true;
-    } catch (_) {
+      final result = await _api.register(
+        fullName: fullName.trim(),
+        email: email.trim(),
+        mobileNumber: mobileNumber.trim(),
+        password: password,
+      );
+      if (result != null) {
+        Get.snackbar(
+          'Registration Successful',
+          'Account created successfully. Please sign in to continue.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF00854B),
+          colorText: Colors.white,
+        );
+        Get.offAllNamed(AppRoutes.login);
+        return true;
+      }
+      return false;
+    } catch (e) {
       isLoggedIn.value = false;
-      Get.snackbar('Unable to complete registration', 'Check your connection and account details. If registration succeeded, sign in to load the account.');
+      final msg = e.toString().replaceFirst('Exception: ', '').replaceFirst('StateError: ', '');
+      Get.snackbar(
+        'Unable to complete registration',
+        msg.contains('already exists')
+            ? msg
+            : 'Check your connection and account details. If registration succeeded, sign in to load the account.',
+      );
       return false;
     } finally { isLoading.value = false; }
   }

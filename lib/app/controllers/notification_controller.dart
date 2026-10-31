@@ -11,6 +11,10 @@ class NotificationController extends GetxController {
   NotificationController(this._service);
 
   List<NotificationModel> get notifications => _service.notifications;
+  bool get hasMore => _service.hasMore.value;
+  bool get loadingMore => _service.loadingMore.value;
+  String get paginationError => _service.paginationError.value;
+  Future<void> loadMore() => _service.loadMore();
   int get unreadCount => _service.unreadCount;
 
   void markAsRead(String id) {

@@ -29,6 +29,7 @@ class OnboardingApi extends ApiService {
   final planJson = {'id': 'configured-plan', 'name': 'Configured Investment Membership With A Long Name', 'slug': 'configured', 'price': 299, 'minInvestment': 1000, 'maxInvestment': 25000, 'durationMonths': 1, 'isActive': true, 'benefits': ['Configured investment benefits with long responsive text'], 'accessRules': {'recommended': true, 'features': ['Configured support feature']}};
   @override Future<Map<String, dynamic>> sendRegistrationOtp({required String mobileNumber, String? email, String? fullName}) async { sends++; return {'data': {'cooldownSeconds': 60}}; }
   @override Future<Map<String, dynamic>> verifyRegistrationOtp({required String fullName, required String email, required String mobileNumber, required String password, required String otp}) async { registrations++; access = 'secure-access'; refresh = 'secure-refresh'; return {'user': {'id': 'user', 'role': 'INVESTOR', 'isMobileVerified': true, 'fullName': fullName}}; }
+  @override Future<Map<String, dynamic>?> register({required String fullName, required String email, required String mobileNumber, required String password}) async { registrations++; access = 'secure-access'; refresh = 'secure-refresh'; return {'user': {'id': 'user', 'role': 'INVESTOR', 'isMobileVerified': true, 'fullName': fullName}, 'accessToken': 'secure-access', 'refreshToken': 'secure-refresh'}; }
   @override Future<Map<String, dynamic>> getOnboarding() async => {'requiresPlanSelection': pending};
   @override Future<void> skipSubscriptionOnboarding() async { skips++; if (skipOffline) throw DioException(requestOptions: RequestOptions(path: '/mobile/onboarding'), type: DioExceptionType.connectionTimeout); pending = false; }
   @override Future<Map<String, dynamic>?> getMe() async => {'id': 'user', 'role': 'INVESTOR', 'status': 'ACTIVE', 'fullName': 'Test Investor'};
@@ -62,15 +63,17 @@ void main() {
     return (auth, subscription);
   }
   Widget routes({bool realPlans = false}) => GetMaterialApp(home: const Scaffold(body: Text('Register')), getPages: [GetPage(name: AppRoutes.home, page: () => const Scaffold(body: Text('Dashboard'))), GetPage(name: AppRoutes.subscriptionOnboarding, page: () => realPlans ? const SubscriptionPlansView(onboarding: true) : const Scaffold(body: Text('Onboarding Plans')))]);
-  testWidgets('registration waits for OTP, then Skip persists session and does not purchase', (tester) async {
+  testWidgets('registration creates account without OTP and navigates directly', (tester) async {
     final api = OnboardingApi(); final storage = LocalStorageService(backend: OnboardingStore()); final (auth, _) = setup(api, storage);
-    await tester.pumpWidget(routes());
-    await auth.register(fullName: 'New Investor', email: 'new@example.test', mobileNumber: '9876543210', password: 'ValidPass123!'); await tester.pumpAndSettle();
-    expect(api.sends, 1); expect(api.registrations, 0); expect(auth.isLoggedIn.value, isFalse); expect(find.byType(RegistrationOtpView), findsOneWidget);
-    await auth.verifyRegistration(fullName: 'New Investor', email: 'new@example.test', mobileNumber: '9876543210', password: 'ValidPass123!', otp: '123456'); await tester.pumpAndSettle();
-    expect(find.text('Onboarding Plans'), findsOneWidget); expect(find.byType(RegistrationOtpView), findsNothing); expect(Get.key.currentState!.canPop(), isFalse); expect(auth.isLoggedIn.value, isTrue); expect(api.access, 'secure-access');
-    await auth.finishSubscriptionOnboarding(skipped: true); await tester.pumpAndSettle(); expect(find.text('Dashboard'), findsOneWidget); expect(api.purchases, 0); expect(api.verifications, 0); expect(api.access, 'secure-access');
-    expect(await auth.restoreSession(), isTrue); expect(auth.authenticatedRoute, AppRoutes.home);
+    await tester.pumpWidget(GetMaterialApp(home: const Scaffold(body: Text('Register')), getPages: [GetPage(name: AppRoutes.login, page: () => const Scaffold(body: Text('Login'))), GetPage(name: AppRoutes.home, page: () => const Scaffold(body: Text('Dashboard'))), GetPage(name: AppRoutes.subscriptionOnboarding, page: () => const Scaffold(body: Text('Onboarding Plans'))) ]));
+    final ok = await auth.register(fullName: 'New Investor', email: 'new@example.test', mobileNumber: '9876543210', password: 'ValidPass123!');
+    await tester.pumpAndSettle();
+    expect(ok, isTrue);
+    expect(api.registrations, 1);
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.byType(RegistrationOtpView), findsNothing);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox.shrink());
   });
   testWidgets('verified checkout from onboarding activates the plan and replaces registration with dashboard', (tester) async {

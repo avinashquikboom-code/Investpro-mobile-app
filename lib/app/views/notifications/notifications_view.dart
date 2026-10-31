@@ -134,8 +134,14 @@ class NotificationsView extends StatelessWidget {
                   horizontal: 16,
                   vertical: 8,
                 ),
-                itemCount: list.length,
+                itemCount: list.length + (notifCtrl.hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index == list.length) {
+                    return TextButton(
+                      onPressed: notifCtrl.loadingMore ? null : notifCtrl.loadMore,
+                      child: Text(notifCtrl.loadingMore ? 'Loading…' : notifCtrl.paginationError.isNotEmpty ? notifCtrl.paginationError : 'Load older notifications'),
+                    );
+                  }
                   final notif = list[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
