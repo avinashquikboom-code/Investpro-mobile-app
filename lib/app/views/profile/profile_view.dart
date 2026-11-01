@@ -205,7 +205,10 @@ class ProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RecordIds(values: user.recordIds.isEmpty ? {'id': user.id} : user.recordIds),
+                  RecordId(
+                    label: 'User ID',
+                    value: user.recordIds['userId'] ?? user.recordIds['id'] ?? user.id,
+                  ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

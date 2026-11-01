@@ -89,6 +89,10 @@ void main() {
     expect(find.byIcon(Remix.settings_3_line), findsOneWidget); // Menu list row only (removed from header)
 
     // 2. Profile Card checks
+    expect(find.textContaining('User ID'), findsOneWidget);
+    expect(find.textContaining('Record ID'), findsNothing);
+    expect(find.textContaining('Investor ID'), findsNothing);
+    expect(find.textContaining('Wallet ID'), findsNothing);
     expect(find.text('John Investor'), findsOneWidget);
     expect(find.text('john@investpro.com'), findsOneWidget);
     expect(find.byIcon(Remix.file_copy_line), findsOneWidget);

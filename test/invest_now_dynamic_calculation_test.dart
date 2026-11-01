@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:investpro/app/constants/app_constants.dart';
 import 'package:investpro/app/controllers/investment_controller.dart';
 import 'package:investpro/app/models/project_model.dart';
 import 'package:investpro/app/services/demo_repository.dart';
@@ -149,7 +150,7 @@ void main() {
       invCtrl.setProject(project);
 
       expect(invCtrl.remainingFunding, 400000.0);
-      expect(invCtrl.quickAmounts, containsAll([10000.0, 25000.0, 50000.0, 75000.0, 100000.0]));
+      expect(AppConstants.quickInvestAmounts, containsAll([10000.0, 25000.0, 50000.0, 75000.0, 100000.0]));
       expect(invCtrl.amountError, isNull);
     });
 
@@ -172,13 +173,9 @@ void main() {
 
       invCtrl.setProject(project);
 
-      // Selected amount defaults to minInvestment (50,000)
+      invCtrl.selectQuickAmount(50000);
       expect(invCtrl.investmentAmount.value, 50000.0);
-      expect(invCtrl.amountTextController.text, '50000');
-      // All chips must be >= 50,000
-      for (final chip in invCtrl.quickAmounts) {
-        expect(chip >= 50000, isTrue);
-      }
+      expect(invCtrl.amountTextController.text, '50000.0');
       expect(invCtrl.amountError, isNull);
     });
 

@@ -9,7 +9,8 @@ class RecordId extends StatelessWidget {
   const RecordId({super.key, required this.label, required this.value});
   @override
   Widget build(BuildContext context) {
-    final id = DisplayValue.id(value);
+    final fallbackValue = value?.toString().trim().isNotEmpty == true ? value!.toString().trim() : 'N/A';
+    final id = DisplayValue.id(value, fallback: fallbackValue);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

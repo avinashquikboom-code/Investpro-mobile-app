@@ -1,16 +1,16 @@
-/// Explicit debug entry point for actual FCM testing against a local fixture.
+// Explicit debug entry point for actual FCM testing against a local fixture.
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../lib/firebase_options.dart';
-import '../lib/app/controllers/auth_controller.dart';
-import '../lib/app/services/api_service.dart';
-import '../lib/app/services/local_storage_service.dart';
-import '../lib/app/services/notification_service.dart';
-import '../lib/app/services/demo_repository.dart';
-import '../lib/app/services/firebase_notification_service.dart';
-import '../lib/app/routes/app_routes.dart';
+import 'package:investpro/firebase_options.dart';
+import 'package:investpro/app/controllers/auth_controller.dart';
+import 'package:investpro/app/services/api_service.dart';
+import 'package:investpro/app/services/local_storage_service.dart';
+import 'package:investpro/app/services/notification_service.dart';
+import 'package:investpro/app/services/demo_repository.dart';
+import 'package:investpro/app/services/firebase_notification_service.dart';
+import 'package:investpro/app/routes/app_routes.dart';
 
 class ProbeStore implements LocalStore {
   final values = <String, dynamic>{'push_device_id': 'android-investor-probe'};

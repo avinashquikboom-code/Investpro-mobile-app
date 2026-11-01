@@ -117,28 +117,22 @@ class DemoRepository extends GetxService {
   }
 
   String? investmentError(ProjectModel project, double amount) {
-    final p = liveProject(project);
-    final remainingMinor = minor(p.targetAmount) - minor(p.raisedAmount);
     if (isLive) {
       if (!amount.isFinite || amount <= 0) return 'Enter a positive amount';
-      if (amount < p.minInvestment || (p.maxInvestment != null && amount > p.maxInvestment!)) return 'Amount is outside the project investment limits';
-      if (p.status != 'Active') return 'Project is not available';
-      if (minor(amount) > remainingMinor) return 'Amount exceeds the remaining project funding';
+      if (amount < project.minInvestment || (project.maxInvestment != null && amount > project.maxInvestment!)) return 'Amount is outside the project investment limits';
+      if (project.status != 'Active') return 'Project is not available';
+      if (minor(amount) > minor(project.targetAmount)-minor(project.raisedAmount)) return 'Amount exceeds the remaining project funding';
       return null;
     }
-    final minLimit = p.minInvestment > 0 ? p.minInvestment : AppConstants.minInvestmentAmount;
-    final maxLimit = (p.maxInvestment != null && p.maxInvestment! > 0)
-        ? p.maxInvestment!
-        : AppConstants.maxInvestmentAmount;
-
     if (!amount.isFinite ||
         amount <= 0 ||
-        minor(amount) < minor(minLimit) ||
-        minor(amount) > minor(maxLimit)) {
-      return 'Enter an amount between ${CurrencyFormatter.format(minLimit)} and ${CurrencyFormatter.format(maxLimit)}';
+        minor(amount) < minor(AppConstants.minInvestmentAmount) ||
+        minor(amount) > minor(AppConstants.maxInvestmentAmount)) {
+      return 'Enter an amount between ₹5,000.00 and ₹1,00,000.00';
     }
+    final p = liveProject(project);
     if (p.status != 'Active') return 'This project is closed for investment';
-    if (minor(amount) > remainingMinor) {
+    if (minor(amount) > minor(p.targetAmount) - minor(p.raisedAmount)) {
       return 'Amount exceeds remaining project funding';
     }
     return null;

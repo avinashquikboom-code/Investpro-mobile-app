@@ -286,52 +286,20 @@ class _InvestNowViewState extends State<InvestNowView> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
 
-                    // Dynamic Project Limits & Available to Fund Info
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Min: ${_formatQuickAmount(project.minInvestment > 0 ? project.minInvestment : AppConstants.minInvestmentAmount)} · Max: ${_formatQuickAmount((project.maxInvestment != null && project.maxInvestment! > 0) ? project.maxInvestment! : AppConstants.maxInvestmentAmount)}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.5,
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Available: ${_formatQuickAmount(project.remainingFunding)}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Preset quick amounts use dynamic project bounds and compact labels.
+                    // Preset quick amounts use compact labels; financial summaries retain decimals.
                     Wrap(
                       runSpacing: 8,
-                      children: invCtrl.quickAmounts.map((amt) {
+                      children: AppConstants.quickInvestAmounts.map((amt) {
                           final isSelected =
                               (invCtrl.investmentAmount.value - amt).abs() <
                                   0.01;
-                          final label = _formatQuickAmount(amt);
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
                               label: Text(
-                                label,
+                                amt == 100000 ? '₹1L' : '₹${(amt / 1000).toStringAsFixed(0)}K',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
@@ -782,13 +750,6 @@ class _InvestNowViewState extends State<InvestNowView> {
         return CurrencyFormatter.format(calc.expectedTotalReturn,
             showDecimals: true);
     }
-  }
-
-  String _formatQuickAmount(double amt) {
-    if (amt >= 10000000) return '₹${(amt / 10000000).toStringAsFixed(amt % 10000000 == 0 ? 0 : 1)}Cr';
-    if (amt >= 100000) return amt % 100000 == 0 ? '₹${(amt / 100000).toStringAsFixed(0)}L' : '₹${(amt / 100000).toStringAsFixed(1)}L';
-    if (amt >= 1000) return amt % 1000 == 0 ? '₹${(amt / 1000).toStringAsFixed(0)}K' : '₹${(amt / 1000).toStringAsFixed(1)}K';
-    return '₹${amt.toStringAsFixed(0)}';
   }
 
   Widget _buildDynamicScheduleTable(

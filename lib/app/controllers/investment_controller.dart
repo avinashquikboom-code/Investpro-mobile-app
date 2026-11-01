@@ -6,7 +6,6 @@ import '../services/backend_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../constants/app_constants.dart';
 import '../models/investment_model.dart';
 import '../models/project_model.dart';
 import '../routes/app_routes.dart';
@@ -93,8 +92,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     paymentError.value = '';
     _requestId = _repo.newReference('INV');
     _pendingId = null;
-    final initial = project.minInvestment > 0 ? project.minInvestment : 10000.0;
-    selectQuickAmount(initial);
+    selectQuickAmount(10000);
   }
 
   double get remainingFunding {
@@ -103,42 +101,9 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     return (proj.targetAmount - proj.raisedAmount).clamp(0.0, double.infinity);
   }
 
-  List<double> get quickAmounts {
-    final proj = currentProject.value;
-    if (proj == null) return AppConstants.quickInvestAmounts;
-    final minLimit = proj.minInvestment > 0 ? proj.minInvestment : AppConstants.minInvestmentAmount;
-    final remaining = remainingFunding;
-    final maxLimit = (proj.maxInvestment != null && proj.maxInvestment! > 0)
-        ? proj.maxInvestment!
-        : (remaining > 0 ? remaining : AppConstants.maxInvestmentAmount);
-
-    final standardFits = AppConstants.quickInvestAmounts
-        .where((amt) => amt >= minLimit && amt <= maxLimit && amt <= remaining)
-        .toList();
-    if (standardFits.length >= 3) {
-      return standardFits;
-    }
-    final availableCap = remaining < maxLimit ? remaining : maxLimit;
-    if (availableCap <= minLimit) {
-      return [minLimit];
-    }
-    final step = (availableCap - minLimit) / 4;
-    final list = <double>[minLimit];
-    for (int i = 1; i <= 3; i++) {
-      final val = (minLimit + step * i).roundToDouble();
-      if (!list.contains(val) && val < availableCap) {
-        list.add(val);
-      }
-    }
-    if (!list.contains(availableCap)) {
-      list.add(availableCap);
-    }
-    return list;
-  }
-
   void selectQuickAmount(double amount) {
     investmentAmount.value = amount;
-    amountTextController.text = amount % 1 == 0 ? amount.toInt().toString() : amount.toString();
+    amountTextController.text = amount.toString();
   }
 
   void setPaymentMethod(String method) {
