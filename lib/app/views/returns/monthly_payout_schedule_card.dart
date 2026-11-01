@@ -11,7 +11,20 @@ class MonthlyPayoutScheduleCard extends StatelessWidget {
   );
   String date(dynamic value) {
     final parsed = DateTime.tryParse('$value');
-    return parsed == null ? '—' : DateFormatter.formatDate(parsed.toLocal());
+    return parsed == null ? '—' : DateFormatter.formatDate(parsed.toUtc());
+  }
+
+  String status(Map<String, dynamic> item) {
+    switch (item['status']) {
+      case 'PAID': return 'Paid';
+      case 'FAILED': return 'Failed';
+      case 'PROCESSING': return 'Processing';
+      case 'SCHEDULED':
+        final due = DateTime.tryParse('${item['dueDate']}');
+        return due != null && due.isAfter(DateTime.now()) ? 'Upcoming' : 'Pending';
+      case 'PENDING': return 'Pending';
+      default: return '${item['status']}';
+    }
   }
 
   @override
@@ -28,8 +41,8 @@ class MonthlyPayoutScheduleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${item['projectName']} • Month ${item['installmentNumber']}'),
-                Text('${date(item['dueDate'])} • ${item['status']}'),
+                Text('${item['projectName']} • ${num.tryParse("${item['principalAmount']}") != null && num.parse("${item['principalAmount']}") > 0 ? 'Final maturity payout' : 'Month ${item['installmentNumber']}'}'),
+                Text('${date(item['dueDate'])} • ${status(item)}'),
                 Wrap(spacing: 16, runSpacing: 4, children: [
                   Text('Interest: ${money(item['profitAmount'])}'),
                   Text('Principal: ${money(item['principalAmount'])}'),

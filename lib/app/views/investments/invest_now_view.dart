@@ -190,7 +190,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      '|  ${project.durationMonths} Months',
+                                      '|  ${calc.investmentDuration ?? calc.durationMonths} ${calc.durationUnit.toLowerCase()}',
                                       style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
@@ -370,6 +370,10 @@ class _InvestNowViewState extends State<InvestNowView> {
                           ),
                           const SizedBox(height: 14),
 
+                          if (invCtrl.isLive && invCtrl.backendProjection.value == null) ...[
+                            Text(invCtrl.projectionError.value.isEmpty ? 'Loading latest project projection…' : invCtrl.projectionError.value),
+                            if (invCtrl.projectionError.value.isNotEmpty) TextButton(onPressed: invCtrl.fetchBackendProjection, child: const Text('Retry projection')),
+                          ],
                           // Investment Amount
                           _buildSummaryRow(
                             label: 'Investment Amount',
@@ -384,7 +388,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                           // Projected Return (Total)
                           _buildSummaryRow(
                             label:
-                                'Projected Return (${project.returnRatePercent.toStringAsFixed(2)}%)',
+                                'Total Projected Return',
                             value: CurrencyFormatter.format(
                               calc.expectedTotalReturn,
                               showDecimals: true,
@@ -400,7 +404,7 @@ class _InvestNowViewState extends State<InvestNowView> {
 
                           // Monthly Projected Return
                           _buildSummaryRow(
-                            label: 'Monthly Projected Return',
+                            label: 'Monthly Return (${calc.returnRatePercent.toStringAsFixed(2)}%)',
                             value: CurrencyFormatter.formatPrecise(
                               calc.monthlyProjectedReturn,
                               decimalDigits: 2,
@@ -418,7 +422,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                             label: 'Daily Projected Return',
                             value: CurrencyFormatter.formatPrecise(
                               calc.dailyProjectedReturn,
-                              decimalDigits: 2,
+                              decimalDigits: 4,
                             ),
                             isDark: isDark,
                           ),
@@ -432,7 +436,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                             label: 'Hourly Projected Return',
                             value: CurrencyFormatter.formatPrecise(
                               calc.hourlyProjectedReturn,
-                              decimalDigits: 2,
+                              decimalDigits: 4,
                             ),
                             isDark: isDark,
                           ),
@@ -444,9 +448,15 @@ class _InvestNowViewState extends State<InvestNowView> {
                           // Investment Period
                           _buildSummaryRow(
                             label: 'Investment Period',
-                            value: '${project.durationMonths} Months',
+                            value: '${calc.investmentDuration ?? calc.durationMonths} ${calc.durationUnit.toLowerCase()}',
                             isDark: isDark,
                           ),
+                          _buildSummaryRow(label: 'Previous Monthly Interest Payouts', value: CurrencyFormatter.format(calc.previousMonthlyInterestPayouts, showDecimals: true), isDark: isDark),
+                          _buildSummaryRow(label: 'Final Month Interest', value: CurrencyFormatter.format(calc.finalMonthInterest, showDecimals: true), isDark: isDark),
+                          _buildSummaryRow(label: 'Principal Repayment at Maturity', value: CurrencyFormatter.format(calc.principalRepaymentAtMaturity, showDecimals: true), isDark: isDark),
+                          _buildSummaryRow(label: 'Total Received Over Investment Period', value: CurrencyFormatter.format(calc.totalReceivedOverInvestmentPeriod, showDecimals: true), isDark: isDark),
+                          _buildSummaryRow(label: 'Project End Date', value: calc.projectEndDate ?? project.endDate?.toIso8601String().split('T').first ?? '—', isDark: isDark),
+                          _buildSummaryRow(label: 'Final Eligible Date', value: calc.finalEligibleDate ?? '—', isDark: isDark),
                           const SizedBox(height: 16),
 
                           // Dark Green Highlight Bar for Projected Maturity Amount
@@ -483,7 +493,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                 Flexible(
                                   child: Text(
                                     CurrencyFormatter.format(
-                                      calc.projectedMaturityAmount,
+                                      calc.finalMonthPayment,
                                       showDecimals: true,
                                     ),
                                     style: GoogleFonts.poppins(
@@ -597,7 +607,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                   color: AppColors.primary,
                                 ),
                                 const SizedBox(width: 8),
-                                Flexible(
+                                Expanded(
                                   child: Text(
                                     '$_selectedScheduleTab Return Rate:',
                                     style: GoogleFonts.poppins(
@@ -616,12 +626,16 @@ class _InvestNowViewState extends State<InvestNowView> {
                           ),
                           const SizedBox(width: 8),
                           Flexible(
-                            child: Text(
-                              _getTabReturnValue(calc, _selectedScheduleTab),
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                _getTabReturnValue(calc, _selectedScheduleTab),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
                           ),
@@ -757,6 +771,21 @@ class _InvestNowViewState extends State<InvestNowView> {
     ProjectModel project,
     bool isDark,
   ) {
+    if (_selectedScheduleTab == 'Monthly' && calc.payoutSchedule.isNotEmpty) {
+      String amount(dynamic value) => CurrencyFormatter.format((value as num).toDouble(), showDecimals: true);
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(columns: const [
+          DataColumn(label: Text('Month / Date')), DataColumn(label: Text('Interest')),
+          DataColumn(label: Text('Principal')), DataColumn(label: Text('Total Payout')),
+          DataColumn(label: Text('Status')),
+        ], rows: calc.payoutSchedule.map((p) => DataRow(cells: [
+          DataCell(Text('${p['payoutType'] == 'MATURITY' ? 'Final maturity' : 'Month ${p['payoutNumber']}'}\n${p['payoutDate'].toString().split('T').first}')),
+          DataCell(Text(amount(p['interestAmount']))), DataCell(Text(amount(p['principalAmount']))),
+          DataCell(Text(amount(p['totalPayoutAmount']))), DataCell(Text(p['payoutStatus'] == 'UPCOMING' ? 'Upcoming' : p['payoutStatus'].toString())),
+        ])).toList()),
+      );
+    }
     final String col1Header;
     final String col2Header;
     final String col3Header;
@@ -769,7 +798,7 @@ class _InvestNowViewState extends State<InvestNowView> {
         col1Header = 'Day';
         col2Header = 'Daily Return';
         col3Header = 'Cumulative';
-        footerLabel = '30-Day Accrual';
+        footerLabel = 'Total Eligible Accrual';
         footerValue = CurrencyFormatter.format(
           calc.dailySchedule.isNotEmpty
               ? calc.dailySchedule.last.cumulativeReturn
@@ -805,7 +834,7 @@ class _InvestNowViewState extends State<InvestNowView> {
         col1Header = 'Milestone';
         col2Header = 'Period Return';
         col3Header = 'Cumulative';
-        footerLabel = 'Projected Maturity Amount';
+        footerLabel = 'Total Received Over Investment Period';
         footerValue = CurrencyFormatter.format(
           calc.projectedMaturityAmount,
           showDecimals: true,
@@ -823,7 +852,7 @@ class _InvestNowViewState extends State<InvestNowView> {
         col1Header = 'Month';
         col2Header = 'Monthly Return';
         col3Header = 'Cumulative Return';
-        footerLabel = 'Total Return (${project.durationMonths} Mos)';
+        footerLabel = 'Total Eligible Return';
         footerValue = CurrencyFormatter.format(
           calc.expectedTotalReturn,
           showDecimals: true,

@@ -33,6 +33,35 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   String? _pendingId;
   Razorpay? _checkout;
   Completer<bool>? _payment;
+  Timer? _projectionTimer;
+  int _projectionRequest = 0;
+  final backendProjection = Rxn<InvestmentCalculationResult>();
+  final projectionError = ''.obs;
+
+  void _scheduleProjection() {
+    _projectionTimer?.cancel();
+    _projectionRequest++;
+    backendProjection.value = null;
+    projectionError.value = '';
+    if (isLive) _projectionTimer = Timer(const Duration(milliseconds: 250), fetchBackendProjection);
+  }
+
+  Future<void> fetchBackendProjection() async {
+    if (!isLive) return;
+    final project = currentProject.value, amount = investmentAmount.value;
+    final request = ++_projectionRequest;
+    backendProjection.value = null; projectionError.value = '';
+    if (project == null || amount <= 0) return;
+    try {
+      final result = await Get.find<ApiService>().getInvestmentProjection(projectId: project.id, amount: amount);
+      if (isClosed || request != _projectionRequest || currentProject.value?.id != project.id || investmentAmount.value != amount) return;
+      if (result == null) throw StateError('Projection unavailable');
+      backendProjection.value = InvestmentCalculationResult.fromJson(result);
+      if (result['isAmountValid'] == false) projectionError.value = result['validationError']?.toString() ?? 'Invalid amount';
+    } catch (_) {
+      if (!isClosed && request == _projectionRequest) projectionError.value = 'Unable to load the latest project projection. Retry.';
+    }
+  }
   String? get amountError {
     final format = _repo.isLive
         ? (Validators.amount(amountTextController.text.trim()) == null ? 'Enter an amount with at most two decimal places' : null)
@@ -71,12 +100,15 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       if (parsed != investmentAmount.value) {
         if (_pendingId != null && !isProcessingPayment.value) { _pendingId = null; _requestId = _repo.newReference('INV'); }
         investmentAmount.value = parsed;
+        _scheduleProjection();
       }
     });
   }
 
   @override
   void onClose() {
+    _projectionTimer?.cancel();
+    _projectionRequest++;
     WidgetsBinding.instance.removeObserver(this);
     _checkout?.clear();
     if (_payment?.isCompleted == false) _payment!.complete(false);
@@ -92,7 +124,10 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     paymentError.value = '';
     _requestId = _repo.newReference('INV');
     _pendingId = null;
-    selectQuickAmount(10000);
+    _projectionTimer?.cancel();
+    _projectionRequest++;
+    backendProjection.value = null;
+    selectQuickAmount(project.minInvestment);
   }
 
   double get remainingFunding {
@@ -104,6 +139,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   void selectQuickAmount(double amount) {
     investmentAmount.value = amount;
     amountTextController.text = amount.toString();
+    _scheduleProjection();
   }
 
   void setPaymentMethod(String method) {
@@ -134,9 +170,12 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
         monthlyProjectedReturn: 0,
       );
     }
+    if (isLive) {
+      return backendProjection.value ?? InvestmentCalculationResult(principal: investmentAmount.value, returnRatePercent: 0, durationMonths: 0, expectedTotalReturn: 0, projectedMaturityAmount: 0, monthlyProjectedReturn: 0);
+    }
     return InvestmentCalculator.calculate(
       principal: investmentAmount.value,
-      returnRatePercent: _repo.isLive ? proj.returnRatePercent * proj.durationMonths / 12 : proj.returnRatePercent,
+      returnRatePercent: proj.returnRatePercent,
       durationMonths: proj.durationMonths,
       startDate: proj.startDate,
     );
@@ -159,7 +198,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> proceedToPaymentConfirmation() async {
-    final error = amountError;
+    final error = amountError ?? (isLive && (backendProjection.value == null || projectionError.value.isNotEmpty) ? (projectionError.value.isEmpty ? 'Wait for the latest projection' : projectionError.value) : null);
     if (error != null) {
       Get.snackbar(
         'Invalid Amount',

@@ -279,7 +279,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Daily Return Rate:'), findsOneWidget);
       expect(find.text('Day 1'), findsOneWidget);
-      expect(find.text('30-Day Accrual'), findsOneWidget);
+      expect(find.text('Total Eligible Accrual'), findsOneWidget);
 
       // 3. Switch to Hourly
       await tester.tap(find.text('Hourly'));
@@ -292,7 +292,7 @@ void main() {
       await tester.tap(find.text('Total'));
       await tester.pumpAndSettle();
       expect(find.text('Total Return Rate:'), findsOneWidget);
-      expect(find.text('Projected Maturity Amount'), findsWidgets);
+      expect(find.text('Total Received Over Investment Period'), findsWidgets);
 
       // 5. Switch back to Monthly
       await tester.tap(find.text('Monthly'));

@@ -16,8 +16,9 @@ void main() {
     expect(find.textContaining('Interest: '), findsNWidgets(2));
     expect(find.textContaining('Principal: '), findsNWidgets(2));
     expect(find.textContaining('Total payment: '), findsNWidgets(2));
-    expect(find.textContaining('SCHEDULED'), findsNWidgets(2));
+    expect(find.textContaining('Upcoming'), findsNWidgets(2));
     expect(find.textContaining('Only successfully confirmed payouts'), findsOneWidget);
+    expect(find.textContaining('Final maturity payout'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

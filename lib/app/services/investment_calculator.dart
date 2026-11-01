@@ -38,6 +38,11 @@ class MonthlyScheduleItem {
 }
 
 class InvestmentCalculationResult {
+  final String? projectEndDate, finalEligibleDate;
+  final String durationUnit;
+  final int? investmentDuration;
+  final List<Map<String, dynamic>> payoutSchedule;
+  final double previousMonthlyInterestPayouts, finalMonthInterest, principalRepaymentAtMaturity, finalMonthPayment, totalReceivedOverInvestmentPeriod;
   final double principal;
   final double returnRatePercent;
   final int durationMonths;
@@ -55,6 +60,9 @@ class InvestmentCalculationResult {
   final DayCountConvention dayCountConvention;
 
   const InvestmentCalculationResult({
+    this.projectEndDate, this.finalEligibleDate, this.durationUnit = 'MONTHS', this.investmentDuration,
+    this.payoutSchedule = const [], this.previousMonthlyInterestPayouts = 0, this.finalMonthInterest = 0,
+    this.principalRepaymentAtMaturity = 0, this.finalMonthPayment = 0, this.totalReceivedOverInvestmentPeriod = 0,
     required this.principal,
     required this.returnRatePercent,
     required this.durationMonths,
@@ -71,6 +79,24 @@ class InvestmentCalculationResult {
     this.totalSchedule = const [],
     this.dayCountConvention = DayCountConvention.thirty360,
   });
+  factory InvestmentCalculationResult.fromJson(Map<String, dynamic> json) {
+    double number(String key) => (json[key] as num?)?.toDouble() ?? 0;
+    final schedules = json['schedules'] as Map? ?? {};
+    List<ReturnScheduleItem> rows(String key) => (schedules[key] as List? ?? []).map((e) => ReturnScheduleItem(
+      index: (e['index'] as num).toInt(), label: e['label'].toString(), date: DateTime.tryParse('${e['date']}'),
+      dateLabel: e['dateLabel']?.toString(), returnAmount: (e['returnAmount'] as num).toDouble(), cumulativeReturn: (e['cumulativeReturn'] as num).toDouble(),
+    )).toList();
+    return InvestmentCalculationResult(
+      principal: number('principal'), returnRatePercent: number('monthlyReturnRate'), durationMonths: (json['durationMonths'] as num).toInt(), durationDays: (json['durationDays'] as num).toInt(),
+      expectedTotalReturn: number('totalProjectedReturn'), projectedMaturityAmount: number('totalReceivedOverInvestmentPeriod'), monthlyProjectedReturn: number('monthlyProjectedReturn'), dailyProjectedReturn: number('dailyProjectedReturn'), hourlyProjectedReturn: number('hourlyProjectedReturn'), minuteProjectedReturn: number('minuteProjectedReturn'),
+      projectEndDate: json['projectEndDate']?.toString(), finalEligibleDate: json['interestAccrualEndDate']?.toString(), durationUnit: json['durationUnit']?.toString() ?? 'MONTHS', investmentDuration: (json['investmentDuration'] as num?)?.toInt(),
+      previousMonthlyInterestPayouts: number('previousMonthlyInterestPayouts'), finalMonthInterest: number('finalMonthInterest'), principalRepaymentAtMaturity: number('principalRepaymentAtMaturity'), finalMonthPayment: number('finalMonthPayment'), totalReceivedOverInvestmentPeriod: number('totalReceivedOverInvestmentPeriod'),
+      payoutSchedule: (json['payoutSchedule'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList(),
+      dailySchedule: rows('daily'), hourlySchedule: rows('hourly'), totalSchedule: rows('total'),
+      monthlySchedule: (schedules['monthly'] as List? ?? []).map((e) => MonthlyScheduleItem(month: (e['month'] as num).toInt(), monthlyReturn: (e['monthlyReturn'] as num).toDouble(), cumulativeReturn: (e['cumulativeReturn'] as num).toDouble(),date: DateTime.tryParse('${e['date']}'),dateLabel: e['dateLabel']?.toString())).toList(),
+    );
+  }
+
 }
 
 class InvestmentCalculator {

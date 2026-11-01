@@ -656,6 +656,8 @@ class ApiService extends getx.GetxService {
 
   Future<Map<String,dynamic>?> getProject(String id)=>object('/mobile/projects/$id');
 
+  Future<Map<String, dynamic>?> getInvestmentProjection({required String projectId, required double amount}) => _paymentPost('/mobile/investments/calculate-projection', {'projectId': projectId, 'investmentAmount': amount});
+
   Future<List<dynamic>?> getInvestments() async => collection('/mobile/investments');
 
 
