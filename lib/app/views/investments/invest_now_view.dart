@@ -5,6 +5,8 @@ import 'package:remixicon/remixicon.dart';
 
 import '../../constants/app_constants.dart';
 import '../../controllers/investment_controller.dart';
+import '../../models/project_model.dart';
+import '../../services/investment_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
@@ -25,6 +27,12 @@ class InvestNowView extends StatefulWidget {
 class _InvestNowViewState extends State<InvestNowView> {
   // Return schedule tab: 'Daily', 'Hourly', 'Monthly', 'Total'
   String _selectedScheduleTab = 'Monthly';
+
+  @override
+  void didUpdateWidget(covariant InvestNowView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _selectedScheduleTab = 'Monthly';
+  }
 
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
@@ -284,20 +292,52 @@ class _InvestNowViewState extends State<InvestNowView> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
 
-                    // Preset quick amounts use compact labels; financial summaries retain decimals.
+                    // Dynamic Project Limits & Available to Fund Info
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Min: ${_formatQuickAmount(project.minInvestment > 0 ? project.minInvestment : AppConstants.minInvestmentAmount)} · Max: ${_formatQuickAmount((project.maxInvestment != null && project.maxInvestment! > 0) ? project.maxInvestment! : AppConstants.maxInvestmentAmount)}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Available: ${_formatQuickAmount(project.remainingFunding)}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Preset quick amounts use dynamic project bounds and compact labels.
                     Wrap(
                       runSpacing: 8,
-                      children: AppConstants.quickInvestAmounts.map((amt) {
+                      children: invCtrl.quickAmounts.map((amt) {
                           final isSelected =
                               (invCtrl.investmentAmount.value - amt).abs() <
                                   0.01;
+                          final label = _formatQuickAmount(amt);
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
                               label: Text(
-                                amt == 100000 ? '₹1L' : '₹${(amt / 1000).toStringAsFixed(0)}K',
+                                label,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
@@ -628,9 +668,15 @@ class _InvestNowViewState extends State<InvestNowView> {
                     ),
                     const SizedBox(height: 24),
 
-                    // 5. Dynamic Monthly Return Schedule Table
+                    // 5. Dynamic Return Schedule Table
                     Text(
-                      'Monthly Return Schedule',
+                      _selectedScheduleTab == 'Monthly'
+                          ? 'Monthly Return Schedule'
+                          : _selectedScheduleTab == 'Daily'
+                              ? 'Daily Return Schedule'
+                              : _selectedScheduleTab == 'Hourly'
+                                  ? 'Hourly Return Schedule'
+                                  : 'Total Return Milestones',
                       style: GoogleFonts.poppins(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
@@ -641,201 +687,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                     ),
                     const SizedBox(height: 10),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceDark : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? AppColors.borderDark
-                              : AppColors.border,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          // Table Header
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.surfaceDarkElevated
-                                  : const Color(0xFFF7FAF8),
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(15),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Month',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textSecondaryDark
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    'Monthly Return',
-                                    textAlign: TextAlign.right,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textSecondaryDark
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    'Cumulative Return',
-                                    textAlign: TextAlign.right,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textSecondaryDark
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Divider(height: 1, color: AppColors.border),
-
-                          // Table Rows (Dynamic for each month)
-                          ...calc.monthlySchedule.map((item) {
-                            final isEven = item.month % 2 == 0;
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              color: isEven && !isDark
-                                  ? const Color(0xFFFAFCFA)
-                                  : Colors.transparent,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      'Month ${item.month}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark
-                                            ? AppColors.textPrimaryDark
-                                            : AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      CurrencyFormatter.format(
-                                        item.monthlyReturn,
-                                        showDecimals: true,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      CurrencyFormatter.format(
-                                        item.cumulativeReturn,
-                                        showDecimals: true,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppColors.textPrimaryDark
-                                            : AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-
-                          const Divider(height: 1, color: AppColors.border),
-
-                          // Final Total Return Footer Row
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.surfaceDarkElevated
-                                  : const Color(0xFFF1FAF4),
-                              borderRadius: const BorderRadius.vertical(
-                                bottom: Radius.circular(15),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: Text(
-                                    'Total Return (${project.durationMonths} Mos)',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerRight,
-                                    child: Text(
-                                      CurrencyFormatter.format(
-                                        calc.expectedTotalReturn,
-                                        showDecimals: true,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildDynamicScheduleTable(calc, project, isDark),
                     const SizedBox(height: 28),
 
                     // 6. Primary Action: Proceed to Pay Button
@@ -942,6 +794,287 @@ class _InvestNowViewState extends State<InvestNowView> {
         return CurrencyFormatter.format(calc.expectedTotalReturn,
             showDecimals: true);
     }
+  }
+
+  String _formatQuickAmount(double amt) {
+    if (amt >= 10000000) return '₹${(amt / 10000000).toStringAsFixed(amt % 10000000 == 0 ? 0 : 1)}Cr';
+    if (amt >= 100000) return amt % 100000 == 0 ? '₹${(amt / 100000).toStringAsFixed(0)}L' : '₹${(amt / 100000).toStringAsFixed(1)}L';
+    if (amt >= 1000) return amt % 1000 == 0 ? '₹${(amt / 1000).toStringAsFixed(0)}K' : '₹${(amt / 1000).toStringAsFixed(1)}K';
+    return '₹${amt.toStringAsFixed(0)}';
+  }
+
+  Widget _buildDynamicScheduleTable(
+    InvestmentCalculationResult calc,
+    ProjectModel project,
+    bool isDark,
+  ) {
+    final String col1Header;
+    final String col2Header;
+    final String col3Header;
+    final String footerLabel;
+    final String footerValue;
+    final List<Map<String, String>> rows = [];
+
+    switch (_selectedScheduleTab) {
+      case 'Daily':
+        col1Header = 'Day';
+        col2Header = 'Daily Return';
+        col3Header = 'Cumulative';
+        footerLabel = '30-Day Accrual';
+        footerValue = CurrencyFormatter.format(
+          calc.dailySchedule.isNotEmpty
+              ? calc.dailySchedule.last.cumulativeReturn
+              : 0.0,
+          showDecimals: true,
+        );
+        for (final item in calc.dailySchedule) {
+          rows.add({
+            'col1': item.label,
+            'col2': CurrencyFormatter.format(item.returnAmount, showDecimals: true),
+            'col3': CurrencyFormatter.format(item.cumulativeReturn, showDecimals: true),
+          });
+        }
+        break;
+      case 'Hourly':
+        col1Header = 'Hour';
+        col2Header = 'Hourly Accrual';
+        col3Header = 'Cumulative';
+        footerLabel = '24-Hour Total (1 Day)';
+        footerValue = CurrencyFormatter.format(
+          calc.dailyProjectedReturn,
+          showDecimals: true,
+        );
+        for (final item in calc.hourlySchedule) {
+          rows.add({
+            'col1': item.label,
+            'col2': CurrencyFormatter.formatPrecise(item.returnAmount, decimalDigits: 2),
+            'col3': CurrencyFormatter.format(item.cumulativeReturn, showDecimals: true),
+          });
+        }
+        break;
+      case 'Total':
+        col1Header = 'Milestone';
+        col2Header = 'Period Return';
+        col3Header = 'Cumulative';
+        footerLabel = 'Projected Maturity Amount';
+        footerValue = CurrencyFormatter.format(
+          calc.projectedMaturityAmount,
+          showDecimals: true,
+        );
+        for (final item in calc.totalSchedule) {
+          rows.add({
+            'col1': item.label,
+            'col2': CurrencyFormatter.format(item.returnAmount, showDecimals: true),
+            'col3': CurrencyFormatter.format(item.cumulativeReturn, showDecimals: true),
+          });
+        }
+        break;
+      case 'Monthly':
+      default:
+        col1Header = 'Month';
+        col2Header = 'Monthly Return';
+        col3Header = 'Cumulative Return';
+        footerLabel = 'Total Return (${project.durationMonths} Mos)';
+        footerValue = CurrencyFormatter.format(
+          calc.expectedTotalReturn,
+          showDecimals: true,
+        );
+        for (final item in calc.monthlySchedule) {
+          rows.add({
+            'col1': 'Month ${item.month}',
+            'col2': CurrencyFormatter.format(item.monthlyReturn, showDecimals: true),
+            'col3': CurrencyFormatter.format(item.cumulativeReturn, showDecimals: true),
+          });
+        }
+        break;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+        ),
+      ),
+      child: Column(
+        children: [
+          // Table Header
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceDarkElevated
+                  : const Color(0xFFF7FAF8),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    col1Header,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    col2Header,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    col3Header,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+
+          // Table Rows
+          ...rows.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            final isEven = idx % 2 == 1;
+            return Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              color: isEven && !isDark
+                  ? const Color(0xFFFAFCFA)
+                  : Colors.transparent,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      item['col1'] ?? '',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      item['col2'] ?? '',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      item['col3'] ?? '',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          const Divider(height: 1, color: AppColors.border),
+
+          // Total Footer Row
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceDarkElevated
+                  : const Color(0xFFF1FAF4),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(15),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: Text(
+                    footerLabel,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      footerValue,
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSummaryRow({

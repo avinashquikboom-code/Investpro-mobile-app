@@ -70,6 +70,8 @@ class ProjectModel {
   int get target => (targetAmount * 100).round();
   int get baseRaised => (raisedAmount * 100).round();
   bool get completed => status == 'Completed';
+  double get remainingFunding => (targetAmount - raisedAmount).clamp(0.0, double.infinity);
+  String get displayId => recordIds['displayId'] ?? recordIds['customId'] ?? id;
   double get progressPercentage {
     final progress = fundingProgress ?? (targetAmount > 0 ? raisedAmount / targetAmount * 100 : 0);
     return progress.isFinite ? (progress.clamp(0, 100) * 100).round() / 100 : 0;
