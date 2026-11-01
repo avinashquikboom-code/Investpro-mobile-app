@@ -42,6 +42,7 @@ class ProjectController extends GetxController with WidgetsBindingObserver {
   int _request = 0;
   int _detailRequest=0;
   Timer? _searchTimer;
+  Worker? _resetWorker;
 
   void clearForSession(){
     _request++;_detailRequest++;_searchTimer?.cancel();
@@ -100,6 +101,7 @@ class ProjectController extends GetxController with WidgetsBindingObserver {
 
   @override
   void onClose() {
+    _resetWorker?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _searchTimer?.cancel();
     _request++;
@@ -110,6 +112,7 @@ class ProjectController extends GetxController with WidgetsBindingObserver {
   @override
   void onInit() {
     super.onInit();
+    _resetWorker = ever(_repo.applicationDataGeneration, (_) => clearForSession());
     WidgetsBinding.instance.addObserver(this);
     if (_api != null) refreshProjects();
   }

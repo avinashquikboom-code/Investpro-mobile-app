@@ -42,6 +42,22 @@ class DemoRepository extends GetxService {
   final withdrawals = <WithdrawalModel>[].obs;
   final availableBalance = 0.0.obs;
   int _generation = 0;
+  final applicationDataGeneration = 0.obs;
+  String? _dataRevision;
+
+  Future<void> _acceptDataRevision(String revision) async {
+    final previous = _dataRevision ?? _storage.read('application_data_revision') as String?;
+    if (previous != revision) {
+      projects.clear(); investments.clear(); withdrawals.clear(); transactions.clear(); returns.clear();
+      availableBalance.value = 0; serverTotalInvested.value = 0; serverTotalReturns.value = 0;
+      currentUser.value = const UserModel(id: '', fullName: '', email: '', mobileNumber: '');
+      _notificationService.clear();
+      applicationDataGeneration.value++;
+      await _storage.clearApplicationSnapshots();
+    }
+    _dataRevision = revision;
+    await _storage.write('application_data_revision', revision);
+  }
   bool get isLive => _api != null;
   final syncError = ''.obs;
   final isSyncing = false.obs;
@@ -140,10 +156,8 @@ class DemoRepository extends GetxService {
 
   Future<DemoRepository> init() async {
     if (isLive) {
-      final profile = _storage.readMap(AppConstants.keyUserData);
-      if (profile != null) {
-        currentUser.value = UserModel.fromJson(profile);
-      }
+      // Do not restore a live account snapshot before its server revision is checked.
+      await _storage.clearApplicationSnapshots();
       return this;
     }
     await loadData();
@@ -220,6 +234,8 @@ class DemoRepository extends GetxService {
         currentUser.value = previous.copyWith(accountStatus: '${account['status']}');
         throw StateError('Account is not active');
       }
+      final revision = account['dataRevision']?.toString();
+      if (revision != null) await _acceptDataRevision(revision);
       final data = await Future.wait<dynamic>([
         _api.getProfile(), _api.getDashboard(), _api.getEligibleProjects(),
         _api.getInvestments(), _api.getWithdrawals(), _api.getTransactions(), _api.getReturns(),
@@ -237,6 +253,14 @@ class DemoRepository extends GetxService {
       final snapshotWithdrawals=(data[4] as List).map((v)=>BackendSnapshot.withdrawal(Map<String,dynamic>.from(v as Map))).toList();
       final snapshotTransactions=(data[5] as List).map((v)=>BackendSnapshot.transaction(Map<String,dynamic>.from(v as Map))).toList();
       final snapshotReturns=(data[6] as List).map((v)=>BackendSnapshot.payout(Map<String,dynamic>.from(v as Map))).toList();
+      if (revision != null) {
+        final verified = await _api.object('/mobile/account-status');
+        if (verified['dataRevision']?.toString() != revision) {
+          await _acceptDataRevision(verified['dataRevision']?.toString() ?? revision);
+          throw StateError('Application data changed during synchronization');
+        }
+      }
+      if (generation != _generation || session != _api.sessionVersion) throw StateError('Session changed');
       // Commit one coherent server snapshot; successful empty collections clear stale data.
       currentUser.value = user;
       await _storage.writeMap(AppConstants.keyUserData, user.toJson());

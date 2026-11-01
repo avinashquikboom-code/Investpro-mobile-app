@@ -74,6 +74,14 @@ class LocalStorageService implements LocalStore {
   Future<void> writeMap(String key, Map<String, dynamic> map) =>
       write(key, map);
 
+  // Business snapshots only. Authentication, theme and notification consent stay intact.
+  Future<void> clearApplicationSnapshots() async {
+    for (final key in ['ledger_v2', AppConstants.keyProjectsData, AppConstants.keyInvestmentsData, AppConstants.keyTransactionsData, AppConstants.keyReturnsData, AppConstants.keyNotificationsData, AppConstants.keyUserData]) {
+      await remove(key);
+    }
+    await setAvailableBalance(0);
+  }
+
   // Clear Session
   Future<void> clearSession() async {
     await setLoggedIn(false);

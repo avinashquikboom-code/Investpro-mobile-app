@@ -34,6 +34,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   Razorpay? _checkout;
   Completer<bool>? _payment;
   Timer? _projectionTimer;
+  Worker? _resetWorker;
   int _projectionRequest = 0;
   final backendProjection = Rxn<InvestmentCalculationResult>();
   final projectionError = ''.obs;
@@ -87,6 +88,11 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   @override
   void onInit() {
     super.onInit();
+    _resetWorker = ever(_repo.applicationDataGeneration, (_) {
+      if (isProcessingPayment.value) return;
+      _projectionRequest++; _projectionTimer?.cancel();
+      backendProjection.value = null; currentProject.value = null; selectedInvestment.value = null;
+    });
     if(isLive)WidgetsBinding.instance.addObserver(this);
     amountTextController.addListener(() {
       final parsed =
@@ -107,6 +113,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
 
   @override
   void onClose() {
+    _resetWorker?.dispose();
     _projectionTimer?.cancel();
     _projectionRequest++;
     WidgetsBinding.instance.removeObserver(this);
