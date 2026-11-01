@@ -180,7 +180,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                             BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        '${project.returnRatePercent.toStringAsFixed(2)}% Return',
+                                        '${project.returnRatePercent.toStringAsFixed(2)}% / month',
                                         style: GoogleFonts.poppins(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
@@ -404,7 +404,7 @@ class _InvestNowViewState extends State<InvestNowView> {
 
                           // Monthly Projected Return
                           _buildSummaryRow(
-                            label: 'Monthly Return (${calc.returnRatePercent.toStringAsFixed(2)}%)',
+                            label: 'Monthly Return (${calc.returnRatePercent.toStringAsFixed(2)}% / mo)',
                             value: CurrencyFormatter.formatPrecise(
                               calc.monthlyProjectedReturn,
                               decimalDigits: 2,

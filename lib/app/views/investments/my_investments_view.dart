@@ -560,7 +560,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                       ),
                       _buildInvestmentDetail(
                         label: 'Return',
-                        value: '${inv.returnRatePercent.toStringAsFixed(2)}%',
+                        value: '${inv.returnRatePercent.toStringAsFixed(2)}% / mo',
                         isDark: isDark,
                         valueColor: AppColors.success,
                       ),

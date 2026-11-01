@@ -95,7 +95,7 @@ class InvestmentCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            '${CurrencyFormatter.format(investment.investedAmount)}  |  ${investment.returnRatePercent.toStringAsFixed(2)}%  |  ${investment.durationMonths} Months',
+                            '${CurrencyFormatter.format(investment.investedAmount)}  |  ${investment.returnRatePercent.toStringAsFixed(2)}% / mo  |  ${investment.durationMonths} Months',
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark

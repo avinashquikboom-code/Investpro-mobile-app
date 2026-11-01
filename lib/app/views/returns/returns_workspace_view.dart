@@ -863,7 +863,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     final breakdown = p['interestBreakdown'] as Map?;
     final invested = number(p['investedAmount']);
     final rate = number(p['interestRate'] ?? p['expectedRoi']);
-    final monthlyRate = rate > 20 ? (rate / 12.0) : rate;
+    final monthlyRate = rate;
 
     final monthly = breakdown != null && breakdown['monthlyInterest'] != null
         ? number(breakdown['monthlyInterest'])

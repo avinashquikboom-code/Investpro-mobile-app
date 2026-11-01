@@ -158,8 +158,7 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
           final rate = double.tryParse('${p['interestRate'] ?? p['expectedRoi']}') ?? 0.0;
           final isProjectActive = '${p['investmentStatus'] ?? p['projectStatus']}'.toUpperCase() == 'ACTIVE';
           if (principal > 0 && isProjectActive) {
-            // Check if rate is annual or monthly
-            final monthlyRate = rate > 20 ? (rate / 12.0) : rate;
+            final monthlyRate = rate;
             list.add(
               InvestmentInterestBreakdown.calculate(
                 investmentId: (p['investmentIds'] as List?)?.firstOrNull?.toString() ?? 'N/A',

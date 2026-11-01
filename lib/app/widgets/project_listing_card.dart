@@ -185,7 +185,7 @@ class ProjectListingCard extends StatelessWidget {
                           context,
                           'Expected ROI',
                           project.hasReturnData
-                              ? '${project.returnRatePercent}% p.a.'
+                              ? '${project.returnRatePercent}% / month'
                               : 'Not available',
                           metricWidth,
                         ),

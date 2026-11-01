@@ -238,7 +238,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      '${project.returnRatePercent.toStringAsFixed(2)}% p.a.',
+                                      '${project.returnRatePercent.toStringAsFixed(2)}% / month',
                                       style: GoogleFonts.poppins(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w700,
@@ -420,7 +420,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                       children: [
                         _buildDetailRow(
                           label:
-                              '${'expectedReturnTotal'.tr} (${project.returnRatePercent.toStringAsFixed(2)}%)',
+                              '${'expectedReturnTotal'.tr} (${project.returnRatePercent.toStringAsFixed(2)}% / mo)',
                           value: CurrencyFormatter.format(
                             calc.expectedTotalReturn,
                             showDecimals: true,

@@ -274,7 +274,7 @@ class ExploreProjectCard extends StatelessWidget {
                               const SizedBox(height: 2),
                               Text(
                                 project.hasReturnData
-                                    ? '${project.returnRatePercent.toStringAsFixed(2)}% p.a.'
+                                    ? '${project.returnRatePercent.toStringAsFixed(2)}% / month'
                                     : '${project.returnRatePercent.toStringAsFixed(2)}%',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,

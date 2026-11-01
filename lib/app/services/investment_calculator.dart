@@ -110,13 +110,13 @@ class InvestmentCalculator {
   static String formatDate(DateTime dt) =>
       '${dt.day.toString().padLeft(2, '0')} ${_monthNames[dt.month - 1]} ${dt.year}';
 
-  // All financial values are integer paise; rates are full-term percentages.
-  static int totalReturn(int principal, int rate) =>
+  // All financial values are integer paise; rate is monthly percentage.
+  static int monthly(int principal, int rate) =>
       (principal * rate + 50) ~/ 100;
-  static int maturity(int principal, int rate) =>
-      principal + totalReturn(principal, rate);
-  static int monthly(int principal, int rate, int months) =>
-      totalReturn(principal, rate) ~/ months;
+  static int totalReturn(int principal, int rate, [int months = 1]) =>
+      monthly(principal, rate) * months;
+  static int maturity(int principal, int rate, [int months = 1]) =>
+      principal + totalReturn(principal, rate, months);
 
   static DateTime addMonths(DateTime date, int months) {
     final first = DateTime(date.year, date.month + months);
@@ -177,38 +177,45 @@ class InvestmentCalculator {
             ? actualDaysInTerm
             : (durationMonths * 365.0 / 12.0).round());
 
-    double totalReturn;
-    double maturityAmount;
-    double monthlyReturn;
-    double dailyReturn;
-    double hourlyReturn;
-    double minuteReturn;
+    // Confirmed business rule: The return percentage represents MONTHLY INTEREST, not annual interest.
+    // monthlyInterest = principal * monthlyReturnRate / 100
+    // totalInterest = monthlyInterest * durationMonths
+    // maturityAmount = principal + totalInterest
+    final monthlyReturn = ((principal * (returnRatePercent / 100.0)) * 100).round() / 100.0;
+    final totalReturn = ((monthlyReturn * durationMonths) * 100).round() / 100.0;
+    final maturityAmount = ((principal + totalReturn) * 100).round() / 100.0;
 
-    if (convention == DayCountConvention.thirty360) {
-      // Decimal-safe rounded to 2 places matching backend ReturnCalculator
-      final principalMinor = (principal * 100).round();
-      final rateBasisPoints = (returnRatePercent * 100).round();
-      // Total Interest for duration = Principal * Rate * (durationMonths / 12)
-      final totalMinor =
-          ((principalMinor * rateBasisPoints * durationMonths + 60000) ~/
-              120000);
-      totalReturn = totalMinor / 100.0;
-      maturityAmount = (principalMinor + totalMinor) / 100.0;
-      monthlyReturn = totalReturn / durationMonths;
-      dailyReturn = monthlyReturn / 30.0;
-      hourlyReturn = dailyReturn / 24.0;
-      minuteReturn = hourlyReturn / 60.0;
-    } else {
-      final annualInterest = principal * (returnRatePercent / 100.0);
-      dailyReturn = annualInterest / 365.0;
-      hourlyReturn = dailyReturn / 24.0;
-      minuteReturn = hourlyReturn / 60.0;
-      monthlyReturn = dailyReturn * (365.0 / 12.0);
-      totalReturn =
-          (principal * (returnRatePercent / 100.0) * (durationDays / 365.0) * 100)
-                  .round() /
-              100.0;
-      maturityAmount = ((principal + totalReturn) * 100).round() / 100.0;
+    // Daily & hourly return:
+    // In 30/360: exactly 30 days per month. In calendar: days in current calendar month.
+    final now = start;
+    final daysInCurrentMonth = DateTime(now.year, now.month + 1, 0).day;
+    final daysInMonth = convention == DayCountConvention.thirty360 ? 30 : daysInCurrentMonth;
+    final dailyReturn = monthlyReturn / daysInMonth;
+    final hourlyReturn = dailyReturn / 24.0;
+    final minuteReturn = hourlyReturn / 60.0;
+
+    final finalMonthInterest = monthlyReturn;
+    final previousMonthlyInterestPayouts = durationMonths > 1
+        ? ((monthlyReturn * (durationMonths - 1)) * 100).round() / 100.0
+        : 0.0;
+    final principalRepaymentAtMaturity = principal;
+    final finalMonthPayment = ((principal + finalMonthInterest) * 100).round() / 100.0;
+    final totalReceivedOverInvestmentPeriod = maturityAmount;
+
+    // Monthly payout schedule
+    final payoutSchedule = <Map<String, dynamic>>[];
+    for (int m = 1; m <= durationMonths; m++) {
+      final isLast = m == durationMonths;
+      final payoutDate = addMonths(start, m);
+      payoutSchedule.add({
+        'payoutNumber': m,
+        'payoutDate': payoutDate.toIso8601String(),
+        'interestAmount': monthlyReturn,
+        'principalAmount': isLast ? principal : 0.0,
+        'totalPayoutAmount': isLast ? (principal + monthlyReturn) : monthlyReturn,
+        'payoutType': isLast ? 'MATURITY' : 'MONTHLY_INTEREST',
+        'payoutStatus': 'UPCOMING',
+      });
     }
 
     // 1. Monthly amortization schedule (Month 1..M)
@@ -331,6 +338,12 @@ class InvestmentCalculator {
       dailyProjectedReturn: (dailyReturn * 100).round() / 100.0,
       hourlyProjectedReturn: (hourlyReturn * 10000).round() / 10000.0,
       minuteProjectedReturn: (minuteReturn * 100000).round() / 100000.0,
+      previousMonthlyInterestPayouts: previousMonthlyInterestPayouts,
+      finalMonthInterest: finalMonthInterest,
+      principalRepaymentAtMaturity: principalRepaymentAtMaturity,
+      finalMonthPayment: finalMonthPayment,
+      totalReceivedOverInvestmentPeriod: totalReceivedOverInvestmentPeriod,
+      payoutSchedule: payoutSchedule,
       monthlySchedule: monthlySchedule,
       dailySchedule: dailySchedule,
       hourlySchedule: hourlySchedule,

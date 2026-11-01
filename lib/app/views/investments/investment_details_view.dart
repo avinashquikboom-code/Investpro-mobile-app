@@ -103,7 +103,7 @@ class InvestmentDetailsView extends StatelessWidget {
                               Text(investment.projectCityLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 3),
                               Text(
-                                '${investment.returnRatePercent.toStringAsFixed(2)}% Return  |  ${investment.durationMonths} Months',
+                                '${investment.returnRatePercent.toStringAsFixed(2)}% / month  |  ${investment.durationMonths} Months',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark

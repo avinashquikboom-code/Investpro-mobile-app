@@ -26,22 +26,22 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Dynamic Investment Calculation Engine Tests', () {
-    test('Calculates exact annual return, monthly, daily, hourly for 12-month tenure', () {
+    test('Calculates exact monthly return, daily, hourly for 12-month tenure', () {
       final res = InvestmentCalculator.calculate(
         principal: 100000,
-        returnRatePercent: 24.0,
+        returnRatePercent: 2.0, // 2% per month
         durationMonths: 12,
         convention: DayCountConvention.thirty360,
       );
 
-      // Principal: ₹1,00,000 | 24% p.a. for 12 months
-      // Expected Total Return: ₹24,000.00
+      // Principal: ₹1,00,000 | 2% per month for 12 months
+      // Monthly Return: ₹2,000.00 (100,000 * 2%)
+      // Expected Total Return: ₹24,000.00 (2,000 * 12)
       // Projected Maturity: ₹1,24,000.00
-      // Monthly Return: ₹2,000.00
-      // Daily Return: ₹66.67
+      // Daily Return: ₹66.67 (2,000 / 30)
       // Hourly Return: ~₹2.7778
       expect(res.principal, 100000.0);
-      expect(res.returnRatePercent, 24.0);
+      expect(res.returnRatePercent, 2.0);
       expect(res.durationMonths, 12);
       expect(res.expectedTotalReturn, 24000.0);
       expect(res.projectedMaturityAmount, 124000.0);
@@ -68,18 +68,30 @@ void main() {
       expect(res.totalSchedule.last.cumulativeReturn, 24000.0);
     });
 
-    test('Reconciles sum of scheduled returns with total interest for 6-month term', () {
+    test('Calculates ₹10,000 at 18% monthly for 6 months (confirmed business rule)', () {
       final res = InvestmentCalculator.calculate(
-        principal: 50000,
+        principal: 10000,
         returnRatePercent: 18.0,
         durationMonths: 6,
         convention: DayCountConvention.thirty360,
       );
 
-      // 50,000 * 18% * (6/12) = 4,500.00
-      expect(res.expectedTotalReturn, 4500.0);
-      expect(res.projectedMaturityAmount, 54500.0);
-      expect(res.monthlyProjectedReturn, 750.0);
+      // 10,000 * 18% = 1,800 monthly interest
+      // 6 months * 1,800 = 10,800 total interest
+      // Maturity = 10,000 + 10,800 = 20,800
+      expect(res.principal, 10000.0);
+      expect(res.returnRatePercent, 18.0);
+      expect(res.durationMonths, 6);
+      expect(res.monthlyProjectedReturn, 1800.0);
+      expect(res.expectedTotalReturn, 10800.0);
+      expect(res.projectedMaturityAmount, 20800.0);
+      expect(res.dailyProjectedReturn, 60.0); // 1800 / 30
+      expect(res.hourlyProjectedReturn, 2.5); // 60 / 24
+      expect(res.previousMonthlyInterestPayouts, 9000.0); // 1800 * 5
+      expect(res.finalMonthInterest, 1800.0);
+      expect(res.principalRepaymentAtMaturity, 10000.0);
+      expect(res.finalMonthPayment, 11800.0);
+      expect(res.totalReceivedOverInvestmentPeriod, 20800.0);
 
       // Check sum of monthly returns equals expectedTotalReturn exactly
       final sumMonthly = res.monthlySchedule.fold<double>(
@@ -90,19 +102,47 @@ void main() {
       expect(res.monthlySchedule.last.cumulativeReturn, res.expectedTotalReturn);
     });
 
-    test('Supports Actual/365 convention with exact day-count calculation', () {
-      final res365 = InvestmentCalculator.calculate(
+    test('Calculates ₹10,000 at 10% monthly for 12 months', () {
+      final res = InvestmentCalculator.calculate(
+        principal: 10000,
+        returnRatePercent: 10.0,
+        durationMonths: 12,
+        convention: DayCountConvention.thirty360,
+      );
+
+      // 10,000 * 10% = 1,000 monthly. Total = 12,000. Maturity = 22,000.
+      expect(res.monthlyProjectedReturn, 1000.0);
+      expect(res.expectedTotalReturn, 12000.0);
+      expect(res.projectedMaturityAmount, 22000.0);
+    });
+
+    test('Calculates ₹25,000 at 12% monthly for 3 months', () {
+      final res = InvestmentCalculator.calculate(
+        principal: 25000,
+        returnRatePercent: 12.0,
+        durationMonths: 3,
+        convention: DayCountConvention.thirty360,
+      );
+
+      // 25,000 * 12% = 3,000 monthly. Total = 9,000. Maturity = 34,000.
+      expect(res.monthlyProjectedReturn, 3000.0);
+      expect(res.expectedTotalReturn, 9000.0);
+      expect(res.projectedMaturityAmount, 34000.0);
+    });
+
+    test('Supports monthly convention with exact day-count calculation', () {
+      final res = InvestmentCalculator.calculate(
         principal: 73000,
         returnRatePercent: 10.0,
         durationMonths: 12,
-        convention: DayCountConvention.actual365,
+        convention: DayCountConvention.thirty360,
       );
 
-      // 73000 * 10% = 7300 annual. Daily = 7300 / 365 = 20.0 per day.
-      expect(res365.dailyProjectedReturn, closeTo(20.0, 0.01));
-      expect(res365.hourlyProjectedReturn, closeTo(20.0 / 24.0, 0.0001));
-      expect(res365.expectedTotalReturn, closeTo(7300.0, 1.0));
-      expect(res365.projectedMaturityAmount, closeTo(80300.0, 1.0));
+      // 73000 * 10% = 7300 monthly. Daily = 7300 / 30 = 243.33 per day. Total = 87600.
+      expect(res.monthlyProjectedReturn, 7300.0);
+      expect(res.dailyProjectedReturn, closeTo(243.33, 0.01));
+      expect(res.expectedTotalReturn, 87600.0);
+      expect(res.projectedMaturityAmount, 160600.0);
     });
   });
 
@@ -272,7 +312,7 @@ void main() {
       expect(find.text('Return Schedule'), findsOneWidget);
       expect(find.text('Monthly Return Schedule'), findsOneWidget);
       expect(find.text('Monthly Return Rate:'), findsOneWidget);
-      expect(find.text('Month 1'), findsOneWidget);
+      expect(find.textContaining('Month 1\n'), findsOneWidget);
 
       // 2. Switch to Daily
       await tester.tap(find.text('Daily'));
@@ -298,7 +338,7 @@ void main() {
       await tester.tap(find.text('Monthly'));
       await tester.pumpAndSettle();
       expect(find.text('Monthly Return Rate:'), findsOneWidget);
-      expect(find.text('Month 1'), findsOneWidget);
+      expect(find.textContaining('Month 1\n'), findsOneWidget);
 
       expect(tester.takeException(), isNull);
     });
