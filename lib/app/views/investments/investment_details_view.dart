@@ -1,4 +1,3 @@
-import '../../widgets/record_id.dart';
 import '../../utils/display_value.dart';
 
 import 'package:remixicon/remixicon.dart';
@@ -54,6 +53,12 @@ class InvestmentDetailsView extends StatelessWidget {
             if (investment == null) {
               return const Center(child: Text('No investment selected'));
             }
+
+            final invoice = DisplayValue.reference(investment.reference, internalId: investment.id);
+            final hasInvoice = invoice != 'N/A' &&
+                invoice != investment.id &&
+                invoice != investment.projectId &&
+                !investment.recordIds.values.contains(invoice);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -119,9 +124,6 @@ class InvestmentDetailsView extends StatelessWidget {
                   const SizedBox(height: 22),
 
                   // Investment Summary Card
-                  RecordId(label: 'Investment ID', value: investment.recordIds['id']),
-                  RecordId(label: 'Project ID', value: investment.recordIds['projectId']),
-                  RecordIds(values: Map.of(investment.recordIds)..remove('id')..remove('projectId')),
                   Text(
                     'investmentSummary'.tr,
                     style: TextStyle(
@@ -145,15 +147,14 @@ class InvestmentDetailsView extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _buildSummaryRow(
-                          context: context,
-                          label: 'Invoice Number',
-                          value: DisplayValue.reference(
-                            investment.reference,
-                            internalId: investment.id,
+                        if (hasInvoice) ...[
+                          _buildSummaryRow(
+                            context: context,
+                            label: 'Invoice Number',
+                            value: invoice,
                           ),
-                        ),
-                        const Divider(height: 22, color: AppColors.border),
+                          const Divider(height: 22, color: AppColors.border),
+                        ],
                         _buildSummaryRow(
                           context: context,
                           label: 'amountInvested'.tr,

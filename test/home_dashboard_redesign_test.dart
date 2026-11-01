@@ -323,7 +323,7 @@ void main() {
           final explore=tester.getRect(find.text('Explore Projects'));
           final activity=tester.getRect(find.text('Recent Activity'));
           final firstActivity=tester.getRect(find.byType(RecentActivityItem).first),lastActivity=tester.getRect(find.byType(RecentActivityItem).last);
-          expect(top-portfolio.bottom,closeTo(20,.1));
+          expect(top-portfolio.bottom,closeTo(32,.1));
           expect(explore.top-bottom,closeTo(22,.1));
           expect(activity.top,greaterThan(explore.bottom));
           expect(firstActivity.top-activity.bottom,closeTo(14,.1));

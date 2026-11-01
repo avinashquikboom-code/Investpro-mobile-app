@@ -10,6 +10,7 @@ import 'package:investpro/app/services/demo_repository.dart';
 import 'package:investpro/app/services/local_storage_service.dart';
 import 'package:investpro/app/services/notification_service.dart';
 import 'package:investpro/app/views/investments/investment_details_view.dart';
+import 'package:investpro/app/widgets/record_id.dart';
 
 import 'razorpay_payment_test.dart' as fixture;
 
@@ -22,7 +23,7 @@ void main() {
   tearDown(() => Get.reset());
   for (final legacy in [false, true]) {
     testWidgets(
-      'investment detail uses actual project/invoice labels and preserves navigation ($legacy)',
+      'investment detail hides all IDs, preserves real invoices and keeps return navigation ($legacy)',
       (tester) async {
         final api = Get.put<ApiService>(fixture.PaymentApi());
         final storage = LocalStorageService(backend: fixture.MemoryStore());
@@ -63,10 +64,16 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text('Actual Project Name'), findsOneWidget);
-        expect(find.text('Invoice Number'), findsOneWidget);
-        expect(find.text(legacy ? '103' : 'INV-001'), findsOneWidget);
-        expect(find.text('Investment ID: 103'), findsOneWidget);
-        expect(find.byTooltip('Copy Investment ID'), findsOneWidget);
+        expect(find.text('Invoice Number'), legacy ? findsNothing : findsOneWidget);
+        expect(find.text('INV-001'), legacy ? findsNothing : findsOneWidget);
+        expect(find.text('103'), findsNothing);
+        expect(find.byType(RecordId), findsNothing);
+        expect(find.byType(RecordIds), findsNothing);
+        expect(find.text('Investment ID: 103'), findsNothing);
+        expect(find.text('Project ID: 102'), findsNothing);
+        expect(find.byTooltip('Copy Investment ID'), findsNothing);
+        expect(find.byTooltip('Copy Project ID'), findsNothing);
+        expect(find.text(id), findsNothing);
         await tester.ensureVisible(find.text('View Return Schedule'));
         await tester.tap(find.text('View Return Schedule'));
         await tester.pumpAndSettle();

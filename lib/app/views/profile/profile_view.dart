@@ -1,4 +1,3 @@
-import '../../widgets/record_id.dart';
 import '../../controllers/subscription_controller.dart';
 import '../subscriptions/subscription_plans_view.dart';
 import 'package:remixicon/remixicon.dart';
@@ -123,8 +122,8 @@ class ProfileView extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -134,6 +133,8 @@ class ProfileView extends StatelessWidget {
         final user = profileCtrl.user;
         final hasName = user.fullName.isNotEmpty;
         final displayName = hasName ? user.fullName : (user.email.isNotEmpty ? user.email.split('@')[0] : 'Investor');
+        final rawUserId = (user.recordIds['userId'] ?? user.recordIds['id'] ?? user.id).trim();
+        final userId = rawUserId.isNotEmpty ? rawUserId : 'N/A';
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,24 +175,30 @@ class ProfileView extends StatelessWidget {
                 Positioned(
                   bottom: -2,
                   right: -2,
-                  child: InkWell(
-                    onTap: () {
-                      profileCtrl.populateFields();
-                      Get.toNamed(AppRoutes.editProfile)?.then((_) => profileCtrl.refreshProfile());
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Remix.edit_line,
-                        size: 12,
-                        color: Colors.white,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        profileCtrl.populateFields();
+                        Get.toNamed(AppRoutes.editProfile)?.then((_) => profileCtrl.refreshProfile());
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? AppColors.surfaceDark : Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Remix.edit_line,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -205,10 +212,7 @@ class ProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RecordId(
-                    label: 'User ID',
-                    value: user.recordIds['userId'] ?? user.recordIds['id'] ?? user.id,
-                  ),
+                  // Full Name with Verified Badge
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -216,7 +220,7 @@ class ProfileView extends StatelessWidget {
                         child: Text(
                           displayName,
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: 16.5,
                             fontWeight: FontWeight.w700,
                             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                             letterSpacing: -0.2,
@@ -228,41 +232,62 @@ class ProfileView extends StatelessWidget {
                       if (user.isKycVerified)
                         const KycVerifiedBadge(
                           size: 16,
-                          padding: EdgeInsets.only(left: 4.0),
+                          padding: EdgeInsets.only(left: 6.0),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
+
+                  // User ID (displayed below User Name, without copy icon)
+                  if (userId.isNotEmpty && userId != 'N/A') ...[
+                    Text(
+                      'User ID: $userId',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        letterSpacing: 0.1,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                  ],
 
                   // Email with Copy Action
                   if (user.email.isNotEmpty) ...[
                     InkWell(
                       onTap: () => _copyToClipboard(context, user.email, 'Email'),
                       borderRadius: BorderRadius.circular(6),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              user.email,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                user.email,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Remix.file_copy_line,
-                            size: 11,
-                            color: AppColors.primary,
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Remix.file_copy_line,
+                              size: 11,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                  ] else ...[
                     const SizedBox(height: 8),
                   ],
 
@@ -320,23 +345,28 @@ class ProfileView extends StatelessWidget {
   }) {
     Color bg;
     Color text;
+    Color border;
 
     if (isSuccess) {
-      bg = AppColors.badgeGreenBg;
-      text = AppColors.badgeGreenText;
+      bg = isDark ? const Color(0xFF0F2E22) : AppColors.badgeGreenBg;
+      text = isDark ? const Color(0xFF34D399) : AppColors.badgeGreenText;
+      border = isDark ? const Color(0xFF1E523A) : const Color(0xFFB8E6CB);
     } else if (isWarning) {
-      bg = AppColors.badgeAmberBg;
-      text = AppColors.badgeAmberText;
+      bg = isDark ? const Color(0xFF32240E) : AppColors.badgeAmberBg;
+      text = isDark ? const Color(0xFFFBBF24) : AppColors.badgeAmberText;
+      border = isDark ? const Color(0xFF6B4E1A) : const Color(0xFFFDE68A);
     } else {
       bg = isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF1F5F3);
       text = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+      border = isDark ? AppColors.borderDark : const Color(0xFFE2E8F0);
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: border, width: 0.8),
       ),
       child: Text(
         label,

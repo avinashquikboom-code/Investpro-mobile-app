@@ -233,7 +233,7 @@ class HomeView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 16),
 
                         Obx(() {
                           if (homeCtrl.user.id.isNotEmpty ||

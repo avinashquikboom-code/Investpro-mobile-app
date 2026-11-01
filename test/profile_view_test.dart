@@ -95,7 +95,7 @@ void main() {
     expect(find.textContaining('Wallet ID'), findsNothing);
     expect(find.text('John Investor'), findsOneWidget);
     expect(find.text('john@investpro.com'), findsOneWidget);
-    expect(find.byIcon(Remix.file_copy_line), findsOneWidget);
+    expect(find.byIcon(Remix.file_copy_line), findsOneWidget); // Email copy icon only (User ID has no copy button)
     expect(find.text('Account: Active'), findsOneWidget);
     expect(find.text('KYC: Not Submitted'), findsOneWidget);
 
@@ -185,5 +185,68 @@ void main() {
       await mount(tester, size: size);
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('Renders long name and email gracefully on 320px width without overflow', (tester) async {
+    repo.currentUser.value = const UserModel(
+      id: 'inv-usr-very-long-unique-uuid-identifier-999',
+      fullName: 'Alexander Bartholomew Montgomery-Fitzgerald III',
+      email: 'alexander.fitzgerald.verylongemailaddress@organizationdomain.com',
+      mobileNumber: '+91 9999999999',
+      accountStatus: 'ACTIVE',
+      kycStatus: 'VERIFIED',
+    );
+
+    await mount(tester, size: const Size(320, 568));
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Alexander'), findsOneWidget);
+    expect(find.textContaining('User ID:'), findsOneWidget);
+    expect(find.text('Account: Active'), findsOneWidget);
+    expect(find.text('KYC: Verified'), findsOneWidget);
+    expect(find.byIcon(Remix.file_copy_line), findsOneWidget); // Only email has copy icon
+  });
+
+  testWidgets('User ID is rendered below User Name and has no copy button', (tester) async {
+    repo.currentUser.value = const UserModel(
+      id: 'inv-usr-below-name-test',
+      fullName: 'Placement Tester',
+      email: 'placement@test.com',
+      mobileNumber: '+91 9999999999',
+    );
+
+    await mount(tester);
+
+    final nameFinder = find.text('Placement Tester');
+    final userIdFinder = find.text('User ID: inv-usr-below-name-test');
+
+    expect(nameFinder, findsOneWidget);
+    expect(userIdFinder, findsOneWidget);
+
+    // Verify User ID is vertically below User Name
+    final nameBottom = tester.getBottomLeft(nameFinder).dy;
+    final userIdTop = tester.getTopLeft(userIdFinder).dy;
+    expect(userIdTop, greaterThan(nameBottom));
+
+    // Verify only 1 copy icon exists on the entire card (email copy icon)
+    expect(find.byIcon(Remix.file_copy_line), findsOneWidget);
+  });
+
+  testWidgets('Tapping edit profile photo button navigates to edit profile', (tester) async {
+    repo.currentUser.value = const UserModel(
+      id: 'inv-usr-12345',
+      fullName: 'Photo Tester',
+      email: 'photo@test.com',
+      mobileNumber: '+91 9999999999',
+    );
+
+    await mount(tester);
+
+    final editPhotoBtn = find.byIcon(Remix.edit_line);
+    expect(editPhotoBtn, findsOneWidget);
+    await tester.tap(editPhotoBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit Profile Screen'), findsOneWidget);
   });
 }
