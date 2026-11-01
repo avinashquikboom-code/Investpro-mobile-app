@@ -142,11 +142,14 @@ class InvestmentCalculator {
     }
 
     final start = startDate ?? DateTime.now();
-    final end = addMonths(start, durationMonths);
-    final actualDaysInTerm = end.difference(start).inDays;
+    final cleanStart = DateTime(start.year, start.month, start.day);
+    final end = addMonths(cleanStart, durationMonths);
+    final actualDaysInTerm = end.difference(cleanStart).inDays;
     final durationDays = convention == DayCountConvention.thirty360
         ? durationMonths * 30
-        : (actualDaysInTerm > 0 ? actualDaysInTerm : durationMonths * 30);
+        : (actualDaysInTerm > 0
+            ? actualDaysInTerm
+            : (durationMonths * 365.0 / 12.0).round());
 
     double totalReturn;
     double maturityAmount;

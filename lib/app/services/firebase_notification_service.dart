@@ -35,7 +35,11 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
 
   final FirebaseMessaging _messaging;
   final FlutterLocalNotificationsPlugin _localNotifications;
-  final Set<String> _welcomeShown = {};
+  final Set<String> _shown = {};
+  Future<FirebaseNotificationService>? _initialization;
+  Future<void>? _tokenSync;
+  bool _syncRequested = false;
+  int _sessionGeneration = 0;
 
   static const String channelId = 'investpro_high_importance_channel';
   static const String channelName = 'InvestPro Push Notifications';
@@ -63,7 +67,9 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   }) : _messaging = messaging ?? FirebaseMessaging.instance,
        _localNotifications = localNotifications ?? FlutterLocalNotificationsPlugin();
 
-  Future<FirebaseNotificationService> init() async {
+  Future<FirebaseNotificationService> init() => _initialization ??= _initialize();
+
+  Future<FirebaseNotificationService> _initialize() async {
     WidgetsBinding.instance.addObserver(this);
     try {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -217,7 +223,17 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   }
 
   Future<void> handleForegroundMessage(RemoteMessage message) async {
-    if (await _api.getAccessToken() == null || message.data['appType'] == 'ADMIN') return;
+    if (await _api.getAccessToken() == null || (message.data['appType'] != null && message.data['appType'] != 'INVESTOR') || message.data['audience'] == 'ADMIN') return;
+    await _recordReceipt(message.data, 'RECEIVED');
+    final notificationId = message.data['notificationId']?.toString() ?? message.messageId;
+    if (notificationId != null) {
+      if (!_shown.add(notificationId)) return;
+      final recent = List<String>.from(_storage.read('push_recent_ids') as List? ?? []);
+      if (recent.contains(notificationId) || _storage.read('welcome_push_seen_$notificationId') == true) return;
+      recent.add(notificationId);
+      await _storage.write('push_recent_ids', recent.length > 250 ? recent.sublist(recent.length - 250) : recent);
+      if (_shown.length > 250) _shown.remove(_shown.first);
+    }
     if (kDebugMode) {
       print('[FCM] Foreground push received: ${message.messageId}');
     }
@@ -243,24 +259,12 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
     if (welcome || message.data['resource']=='REQUEST') {
       // The server record is authoritative: never insert a second synthetic history row.
       _notificationService.refreshFromBackend().catchError((_) {});
-      final id = message.data['notificationId']?.toString() ?? message.messageId;
-      if (id == null || (_welcomeShown.add(id) && _storage.read('welcome_push_seen_$id') != true)) {
-        if (id != null) await _storage.write('welcome_push_seen_$id', true);
-        await _showLocalNotification(
-          id: message.hashCode,
-          title: title,
-          body: body,
-          payload: jsonEncode(message.data),
-          channel: targetChannelId,
-          channelName: targetChannelName,
-          channelDesc: targetChannelDesc,
-        ).catchError((_) {});
-      }
+      await _showLocalNotification(id: message.hashCode, title: title, body: body, payload: jsonEncode(message.data), channel: targetChannelId, channelName: targetChannelName, channelDesc: targetChannelDesc).catchError((_) {});
       return;
     }
 
     // Show local heads-up notification
-    _showLocalNotification(
+    await _showLocalNotification(
       id: message.hashCode,
       title: title,
       body: body,
@@ -275,6 +279,12 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
     if ((typeStr.toUpperCase().contains('INVESTMENT') || message.data['resource'] == 'OFFLINE_PAYMENT' || message.data['event']?.startsWith('OFFLINE_PAYMENT_') == true) && Get.isRegistered<DemoRepository>()) {
       Get.find<DemoRepository>().syncFromBackend().catchError((Object _) {});
     }
+  }
+
+  Future<void> _recordReceipt(Map<String, dynamic> data, String event) async {
+    final id = data['notificationId']?.toString();
+    final deviceId = _storage.read('push_device_id') as String?;
+    if (id != null && deviceId != null && await _api.getAccessToken() != null) await _api.recordNotificationEvent(id, deviceId, event);
   }
 
   Future<void> _showLocalNotification({
@@ -320,7 +330,16 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
     );
   }
 
-  Future<void> syncToken([String? explicitToken]) async {
+  Future<void> syncToken([String? explicitToken]) {
+    if (explicitToken != null) _fcmToken = explicitToken;
+    _syncRequested = true;
+    return _tokenSync ??= (() async {
+      while (_syncRequested) { _syncRequested = false; await _syncTokenOnce(); }
+    })().whenComplete(() { _tokenSync = null; });
+  }
+
+  Future<void> _syncTokenOnce() async {
+    final generation = _sessionGeneration;
     try {
       final accessToken = await _api.getAccessToken();
       if (accessToken == null || accessToken.isEmpty) return;
@@ -329,7 +348,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
         debugPrint('[FCM] APNs registration pending; retry on resume');
         return;
       }
-      String? token = explicitToken ?? _fcmToken;
+      String? token = _fcmToken;
       if (token == null || token.isEmpty) {
         try {
           await _messaging.register();
@@ -347,6 +366,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
       var deviceId = _storage.read('push_device_id') as String?;
       deviceId ??= base64UrlEncode(List.generate(24, (_) => Random.secure().nextInt(256)));
       await _storage.write('push_device_id', deviceId);
+      if (generation != _sessionGeneration || await _api.getAccessToken() != accessToken) return;
       final registered = await _api.registerDeviceToken(token: token, platform: platform, deviceId: deviceId);
       if (!registered) return;
 
@@ -361,6 +381,9 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   }
 
   Future<void> deleteToken() async {
+    _sessionGeneration++;
+    _syncRequested = false;
+    await _tokenSync;
     try {
       final token = _fcmToken ?? (_storage.read('fcm_device_token') as String?);
       if (token != null && token.isNotEmpty) {
@@ -386,13 +409,14 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   }
 
   void handleNotificationRouting(Map<String, dynamic> data) {
-    if (data['appType'] == 'ADMIN' || data['audience'] == 'ADMIN') return;
+    if ((data['appType'] != null && data['appType'] != 'INVESTOR') || data['audience'] == 'ADMIN') return;
     if (Get.context == null || !Get.isRegistered<AuthController>() ||
         !Get.find<AuthController>().isLoggedIn.value ||
         Get.currentRoute == AppRoutes.splash || Get.currentRoute == AppRoutes.login) {
       _pendingNavigation = Map<String, dynamic>.from(data);
       return;
     }
+    _recordReceipt(data, 'OPENED');
     final type = (data['type'] ?? '').toString().toUpperCase();
     final relatedId = (data['referenceId'] ?? data['targetId'] ?? data['id'])
         ?.toString();
@@ -405,7 +429,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
 
     // 2. Campaign routing
     if (type == 'CAMPAIGN' || data['campaignId'] != null) {
-      final projectId = (data['projectId'] ?? data['targetId'])?.toString();
+      final projectId = (data.containsKey('projectId') ? data['projectId'] : data['targetId'])?.toString();
       if (projectId != null && projectId.isNotEmpty) {
         Get.toNamed(
           AppRoutes.projectDetails,

@@ -224,11 +224,6 @@ void main() {
         expect(find.text('Investment Summary'), findsOneWidget);
         expect(find.text('Projected Maturity Amount'), findsOneWidget);
         expect(find.text('Return Schedule'), findsOneWidget);
-        for (final w in tester.widgetList<Text>(find.byType(Text))) {
-          if (w.data != null && w.data!.contains('Schedule')) {
-            print('DEBUG TEXT: ${w.data}');
-          }
-        }
         expect(find.text('Monthly Return Schedule'), findsOneWidget);
         expect(find.text('Proceed to Pay'), findsOneWidget);
 

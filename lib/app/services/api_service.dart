@@ -813,13 +813,17 @@ class ApiService extends getx.GetxService {
     try {
       final response = await dio.post(
         '/mobile/device-tokens',
-        data: {'token': token, 'platform': platform, 'deviceId': ?deviceId},
+        data: {'token': token, 'appType': 'INVESTOR', 'platform': platform, 'deviceId': ?deviceId},
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       debugPrint('[ApiService] registerDeviceToken error: $e');
       return false;
     }
+  }
+
+  Future<void> recordNotificationEvent(String notificationId, String deviceId, String event) async {
+    try { await dio.post('/mobile/notifications/$notificationId/events', data: {'deviceId': deviceId, 'event': event}); } catch (_) {}
   }
 
   Future<bool> deleteDeviceToken(String token) async {

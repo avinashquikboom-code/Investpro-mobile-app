@@ -28,12 +28,6 @@ class _InvestNowViewState extends State<InvestNowView> {
   // Return schedule tab: 'Daily', 'Hourly', 'Monthly', 'Total'
   String _selectedScheduleTab = 'Monthly';
 
-  @override
-  void didUpdateWidget(covariant InvestNowView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _selectedScheduleTab = 'Monthly';
-  }
-
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
       case 'code':
@@ -670,13 +664,7 @@ class _InvestNowViewState extends State<InvestNowView> {
 
                     // 5. Dynamic Return Schedule Table
                     Text(
-                      _selectedScheduleTab == 'Monthly'
-                          ? 'Monthly Return Schedule'
-                          : _selectedScheduleTab == 'Daily'
-                              ? 'Daily Return Schedule'
-                              : _selectedScheduleTab == 'Hourly'
-                                  ? 'Hourly Return Schedule'
-                                  : 'Total Return Milestones',
+                      'Monthly Return Schedule',
                       style: GoogleFonts.poppins(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
