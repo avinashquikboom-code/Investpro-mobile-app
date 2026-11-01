@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../models/subscription_plan_model.dart';
 import '../services/api_service.dart';
+import '../services/demo_repository.dart';
 import '../services/payment_error.dart';
 import 'project_controller.dart';
 
@@ -92,10 +93,17 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
     return (elapsed / total).clamp(0.0, 1.0);
   }
   Future<void>? _inFlightLoad;
+  Worker? _resetWorker;
   @override
-  void onInit() { super.onInit(); WidgetsBinding.instance.addObserver(this); }
+  void onInit() { super.onInit(); WidgetsBinding.instance.addObserver(this);
+    if (Get.isRegistered<DemoRepository>()) {
+      _resetWorker = ever(Get.find<DemoRepository>().applicationDataGeneration, (_) {
+        if (!purchasing.value) clearForSession();
+      });
+    }
+  }
   @override
-  void onClose() { WidgetsBinding.instance.removeObserver(this); _checkout?.clear(); if (_completion?.isCompleted == false) _completion!.complete(false); super.onClose(); }
+  void onClose() { _resetWorker?.dispose(); WidgetsBinding.instance.removeObserver(this); _checkout?.clear(); if (_completion?.isCompleted == false) _completion!.complete(false); super.onClose(); }
   Future<void> load({bool force = false}) async {
     if (purchasing.value) return;
     if (!force && _inFlightLoad != null) return _inFlightLoad!;
@@ -171,15 +179,17 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
     try { final active = await api.getCurrentSubscription(); if (!isClosed && !purchasing.value && session == api.sessionVersion && request == _request) current.value = active; } catch (_) {}
   }
   Future<void> loadHistory() async {
+    final request = _request, session = api.sessionVersion;
     try {
       final list = await api.getSubscriptionHistory();
-      if (!isClosed) history.assignAll(list);
+      if (!isClosed && request == _request && session == api.sessionVersion) history.assignAll(list);
     } catch (_) {}
   }
   void clearForSession() {
     _request++;
     _inFlightLoad = null;
     plans.clear();
+    history.clear();
     current.value = null;
     error.value = '';
     _pendingId = null;
