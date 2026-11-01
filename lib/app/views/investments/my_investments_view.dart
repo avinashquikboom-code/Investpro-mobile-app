@@ -14,6 +14,7 @@ import '../../utils/currency_formatter.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/project_image.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/status_badge.dart';
 
@@ -507,7 +508,8 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(_getCategoryIcon(inv.iconType), color: AppColors.primary, size: 22),
+                      clipBehavior: Clip.antiAlias,
+                      child: ProjectImage.url(imageUrl: inv.projectImageUrl, updatedAt: inv.projectUpdatedAt, label: inv.projectName, width: 42, height: 42, placeholder: Icon(_getCategoryIcon(inv.iconType), color: AppColors.primary, size: 22)),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

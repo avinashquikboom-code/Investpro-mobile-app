@@ -163,6 +163,14 @@ class ProjectModel {
     };
   }
 
+  static String? _backendImage(Map<String, dynamic> json) {
+    final images = json['images'];
+    for (final value in [json['bannerUrl'], json['imageUrl'], json['image'], if (images is List) ...images]) {
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+    }
+    return null;
+  }
+
   factory ProjectModel.fromBackend(Map<String, dynamic> json) {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
@@ -175,7 +183,7 @@ class ProjectModel {
       endDate: DateTime.tryParse('${json['endDate']}'),
       updatedAt: DateTime.tryParse('${json['updatedAt']}'),
       location: json['location'] as String?,
-      imageUrl: json['bannerUrl'] as String?,
+      imageUrl: _backendImage(json),
       investorCount: (json['investorsCount'] as num?)?.toInt(),
       hasFundingData:
           num.tryParse('${json['targetAmount']}')?.isFinite == true &&
@@ -216,7 +224,7 @@ class ProjectModel {
       endDate: DateTime.tryParse('${json['endDate']}'),
       updatedAt: DateTime.tryParse('${json['updatedAt']}'),
       location: json['location'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: (json['imageUrl'] ?? json['bannerUrl'] ?? json['image']) as String?,
       investorCount: (json['investorCount'] as num?)?.toInt(),
       hasFundingData: json['hasFundingData'] as bool? ?? true,
       hasReturnData: json['hasReturnData'] as bool? ?? true,

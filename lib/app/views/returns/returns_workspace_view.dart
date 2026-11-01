@@ -10,6 +10,7 @@ import '../../controllers/returns_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/currency_formatter.dart';
 import '../../widgets/app_app_bar.dart';
+import '../../widgets/project_image.dart';
 import 'returns_withdrawal_view.dart';
 import 'returns_overview.dart';
 import 'interest_breakdown_section.dart';
@@ -692,16 +693,14 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   width: 48,
                   height: 48,
                   color: AppColors.primary.withValues(alpha: 0.1),
-                  child: imageUrl != null && imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Remix.community_line,
-                            color: AppColors.primary,
-                          ),
-                        )
-                      : const Icon(Remix.community_line, color: AppColors.primary),
+                  child: ProjectImage.url(
+                    imageUrl: imageUrl,
+                    updatedAt: DateTime.tryParse('${p['projectUpdatedAt']}'),
+                    label: p['projectName'] as String?,
+                    width: 48,
+                    height: 48,
+                    placeholder: const Icon(Remix.community_line, color: AppColors.primary),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

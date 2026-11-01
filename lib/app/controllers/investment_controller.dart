@@ -78,6 +78,11 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
 
   // Selected Records
   final Rxn<ProjectModel> currentProject = Rxn<ProjectModel>();
+  // Refresh image metadata without changing an in-flight investment's terms or amount.
+  ProjectModel? get currentProjectImageSource {
+    final selected = currentProject.value;
+    return _repo.projects.firstWhereOrNull((project) => project.id == selected?.id) ?? selected;
+  }
   final Rxn<InvestmentModel> lastSuccessfulInvestment = Rxn<InvestmentModel>();
   final Rxn<InvestmentModel> selectedInvestment = Rxn<InvestmentModel>();
 

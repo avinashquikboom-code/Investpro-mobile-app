@@ -69,6 +69,8 @@ class BackendSnapshot {
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
       projectName: DisplayValue.text(projectName),
       projectCity: project['city'] as String?,
+      projectImageUrl: project['bannerUrl'] as String?,
+      projectUpdatedAt: DateTime.tryParse('${project['updatedAt']}'),
       iconType: 'folder',
       investedAmount: number(row['amount']),
       returnRatePercent: number(row['agreedRoi']),

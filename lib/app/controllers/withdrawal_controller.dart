@@ -1,4 +1,7 @@
 import '../utils/currency_formatter.dart';
+import 'package:dio/dio.dart';
+import '../services/backend_snapshot.dart';
+import '../routes/app_routes.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +11,7 @@ import '../services/api_service.dart';
 import '../services/demo_repository.dart';
 import '../utils/validators.dart';
 
-class WithdrawalController extends GetxController {
+class WithdrawalController extends GetxController with WidgetsBindingObserver {
   final DemoRepository _repo;
 
   WithdrawalController(this._repo);
@@ -20,6 +23,55 @@ class WithdrawalController extends GetxController {
   String? _requestId;
   final RxBool isSubmitting = false.obs;
   final RxBool isLoadingWallet = false.obs;
+  final isLoadingHistory = false.obs;
+  final historyError = ''.obs, walletError = ''.obs;
+  final hasWalletData = false.obs;
+  int _historyRequest = 0, _walletRequest = 0;
+  Worker? _syncWorker, _resetWorker, _userWorker;
+  String? _historyUser;
+
+  Future<void> refreshData() async {
+    await Future.wait([loadWalletData(), loadHistory()]);
+  }
+
+  Future<void> loadHistory() async {
+    if (!isLive) return;
+    if (!Get.isRegistered<ApiService>()) { historyError.value='Sign in again to load withdrawal requests.'; isLoadingHistory.value=false; return; }
+    final api = Get.find<ApiService>(), request = ++_historyRequest;
+    final session = api.sessionVersion, revision = _repo.applicationDataGeneration.value;
+    final userId = _repo.currentUser.value.id;
+    bool current() => !isClosed && request == _historyRequest && session == api.sessionVersion && revision == _repo.applicationDataGeneration.value && userId == _repo.currentUser.value.id;
+    isLoadingHistory.value = true; historyError.value = '';
+    final failures = <String>[];
+    Future<void> withdrawals() async {
+      try {
+        final rows = await api.getWithdrawals();
+        if (rows == null) throw StateError('Withdrawal history unavailable');
+        final parsed = rows.map((row) {
+          if (row is! Map || row['id'] is! String || (row['id'] as String).isEmpty) throw StateError('Invalid withdrawal response');
+          return BackendSnapshot.withdrawal(Map<String,dynamic>.from(row));
+        }).toList();
+        if (current()) _repo.withdrawals.assignAll(parsed);
+      } catch (error) { failures.add(_historyMessage(error, 'withdrawal requests')); }
+    }
+    Future<void> transactions() async {
+      try {
+        final rows = await api.getTransactions();
+        if (rows == null) throw StateError('Transaction history unavailable');
+        final parsed = rows.map((row) => BackendSnapshot.transaction(Map<String,dynamic>.from(row as Map))).toList();
+        if (current()) _repo.transactions.assignAll(parsed);
+      } catch (error) { failures.add(_historyMessage(error, 'transaction history')); }
+    }
+    try { await Future.wait([withdrawals(), transactions()]); }
+    finally { if (current()) { historyError.value = failures.toSet().join(' '); isLoadingHistory.value = false; } }
+  }
+
+  String _historyMessage(Object error, String resource) {
+    if (error is DioException && error.response?.statusCode == 401) return 'Your session expired. Sign in again.';
+    if (error is DioException && error.response?.statusCode == 403) return 'This account cannot access $resource.';
+    return 'Unable to load $resource. Please retry.';
+  }
+
 
   // Authoritative limits & balance from backend
   final RxDouble backendAvailableBalance = 0.0.obs;
@@ -103,7 +155,7 @@ class WithdrawalController extends GetxController {
                 referenceId: request.referenceId,
               ),
             ),
-            ..._repo.transactions.where((record) => record.type == TransactionType.deposit),
+            ..._repo.transactions.where((record) => record.type != TransactionType.withdrawal),
           ]
         : _repo.transactions;
 
@@ -128,7 +180,35 @@ class WithdrawalController extends GetxController {
     super.onInit();
     amountController.addListener(_onAmountChanged);
     _tickerTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateLiveCounter());
+    WidgetsBinding.instance.addObserver(this);
+    _syncWorker = ever(_repo.isSyncing, (syncing) {
+      if (!syncing && Get.currentRoute == AppRoutes.withdrawals) unawaited(refreshData());
+    });
+    _resetWorker = ever(_repo.applicationDataGeneration, (_) => clearForSession());
+    _historyUser = _repo.currentUser.value.id;
+    _userWorker = ever(_repo.currentUser, (user) {
+      if (user.id == _historyUser) return;
+      _historyUser = user.id; clearForSession();
+    });
     loadWalletData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && Get.currentRoute == AppRoutes.withdrawals) unawaited(refreshData());
+  }
+
+  void clearForSession() {
+    _historyRequest++; _walletRequest++;
+    isLoadingHistory.value = false; isLoadingWallet.value = false;
+    historyError.value = ''; walletError.value = ''; hasWalletData.value=false;
+    backendAvailableBalance.value = 0; backendReservedBalance.value = 0;
+    totalInvested.value=0; totalReturns.value=0; todayEarnings.value=0; totalWithdrawn.value=0;
+    hourlyEarningRate.value=0; perMinuteEarningRate.value=0; perSecondEarningRate.value=0;
+    asOf.value=null; liveAnimatedBalance.value=0; activeInvestments.clear(); verifiedBanks.clear(); selectedBankId.value='';
+    minimumWithdrawal.value=100; maximumWithdrawal.value=null; withdrawalFee.value=0;
+    amountController.clear(); netPayoutAmount.value=0; lastSubmittedReference.value='';
+    _requestId=null;
   }
 
   void _updateLiveCounter() {
@@ -162,11 +242,20 @@ class WithdrawalController extends GetxController {
       backendAvailableBalance.value = _repo.availableBalance.value;
       return;
     }
+    if (!Get.isRegistered<ApiService>()) { walletError.value='Sign in again to load wallet details.'; isLoadingWallet.value=false; return; }
+    final request = ++_walletRequest, revision = _repo.applicationDataGeneration.value;
+    final userId = _repo.currentUser.value.id;
+    final session = Get.isRegistered<ApiService>() ? Get.find<ApiService>().sessionVersion : -1;
+    bool current() => !isClosed && request == _walletRequest && revision == _repo.applicationDataGeneration.value && Get.isRegistered<ApiService>() && session == Get.find<ApiService>().sessionVersion && userId == _repo.currentUser.value.id;
     try {
-      isLoadingWallet.value = true;
+      isLoadingWallet.value = true; walletError.value = '';
       if (Get.isRegistered<ApiService>()) {
         final api = Get.find<ApiService>();
         final wallet = await api.getWallet();
+        if (!current()) return;
+        final balance=double.tryParse('${wallet['availableBalance']}'), reserved=double.tryParse('${wallet['reservedBalance']}');
+        if (balance==null || !balance.isFinite || reserved==null || !reserved.isFinite) throw StateError('Invalid wallet balances');
+        hasWalletData.value=true;
         backendAvailableBalance.value =
             double.tryParse(wallet['availableBalance']?.toString() ?? '0') ?? 0.0;
         backendReservedBalance.value =
@@ -230,10 +319,10 @@ class WithdrawalController extends GetxController {
           }
         }
       }
-    } catch (_) {
-      backendAvailableBalance.value = _repo.availableBalance.value;
+    } catch (error) {
+      if (current()) walletError.value = _historyMessage(error, 'wallet details');
     } finally {
-      isLoadingWallet.value = false;
+      if (current()) isLoadingWallet.value = false;
     }
   }
 
@@ -313,7 +402,7 @@ class WithdrawalController extends GetxController {
 
           // Await fresh authoritative data from server
           await Future.wait([
-            loadWalletData(),
+            refreshData(),
             _repo.syncFromBackend().catchError((_) {}),
           ]);
 
@@ -366,6 +455,9 @@ class WithdrawalController extends GetxController {
 
   @override
   void onClose() {
+    _historyRequest++; _walletRequest++;
+    _syncWorker?.dispose(); _resetWorker?.dispose(); _userWorker?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     _tickerTimer?.cancel();
     amountController.removeListener(_onAmountChanged);
     amountController.dispose();

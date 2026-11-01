@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/withdrawal_controller.dart';
-import '../../services/demo_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
@@ -14,8 +13,20 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/transaction_tile.dart';
 
-class WithdrawalView extends StatelessWidget {
+class WithdrawalView extends StatefulWidget {
   const WithdrawalView({super.key});
+  @override
+  State<WithdrawalView> createState() => _WithdrawalViewState();
+}
+
+class _WithdrawalViewState extends State<WithdrawalView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Get.find<WithdrawalController>().refreshData();
+    });
+  }
 
   void _showWithdrawModal(
     BuildContext context,
@@ -469,7 +480,6 @@ class WithdrawalView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final withCtrl = Get.find<WithdrawalController>();
-    final demoRepo = Get.find<DemoRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final filterTabs = ['All', 'Withdrawals', 'Deposits', 'Returns', 'Investments'];
@@ -485,12 +495,15 @@ class WithdrawalView extends StatelessWidget {
             color: AppColors.primary,
             onRefresh: () async {
               await Future.wait([
-                withCtrl.loadWalletData(),
-                demoRepo.syncFromBackend().catchError((_) {}),
+                withCtrl.refreshData(),
               ]);
             },
-            child: Column(
-              children: [
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
                 // Available Balance Card
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
@@ -540,9 +553,9 @@ class WithdrawalView extends StatelessWidget {
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        CurrencyFormatter.format(
-                                          withCtrl.liveAnimatedBalance.value,
-                                        ),
+                                        withCtrl.isLive && !withCtrl.hasWalletData.value
+                                            ? (withCtrl.isLoadingWallet.value ? 'Loading…' : 'Unavailable')
+                                            : CurrencyFormatter.format(withCtrl.liveAnimatedBalance.value),
                                         style: TextStyle(
                                           fontSize: 22,
                                           fontWeight: FontWeight.w700,
@@ -920,55 +933,51 @@ class WithdrawalView extends StatelessWidget {
                   ),
                 ),
 
-                // Transactions List
-                Expanded(
-                  child: Obx(() {
-                    final txns = withCtrl.filteredTransactions;
-
-                    if (txns.isEmpty) {
-                      return ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          const SizedBox(height: 60),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Remix.receipt_line,
-                                  size: 48,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondary,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'noTransactions'.tr,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    return ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                Obx(() {
+                  final message = [withCtrl.walletError.value, withCtrl.historyError.value].where((value) => value.isNotEmpty).join(' ');
+                  if (message.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(children: [Expanded(child: Text(message, style: const TextStyle(color: AppColors.error))), TextButton(onPressed: withCtrl.refreshData, child: const Text('Retry'))]),
+                  );
+                }),
+                    ],
+                  ),
+                ),
+                // History shares the page scroll, so summary cards cannot hide requests.
+                Obx(() {
+                  final txns = withCtrl.filteredTransactions;
+                  if (withCtrl.isLoadingHistory.value && txns.isEmpty) {
+                    return const SliverToBoxAdapter(child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Column(children: [CircularProgressIndicator(), SizedBox(height: 12), Text('Loading withdrawal requests…')]),
+                    ));
+                  }
+                  if (withCtrl.historyError.value.isNotEmpty && txns.isEmpty) {
+                    return const SliverToBoxAdapter(child: SizedBox(height: 80));
+                  }
+                  if (txns.isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Remix.receipt_line, size: 48, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                          const SizedBox(height: 12),
+                          Text('noTransactions'.tr, style: TextStyle(fontSize: 14, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+                        ]),
+                      )),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    sliver: SliverList.separated(
                       itemCount: txns.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        return TransactionTile(transaction: txns[index]);
-                      },
-                    );
-                  }),
-                ),
+                      itemBuilder: (context, index) => TransactionTile(transaction: txns[index]),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

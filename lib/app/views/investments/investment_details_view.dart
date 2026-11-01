@@ -14,6 +14,7 @@ import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/project_image.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/progress_indicator.dart';
 import '../../widgets/status_badge.dart';
@@ -79,11 +80,8 @@ class InvestmentDetailsView extends StatelessWidget {
                             color: AppColors.primaryDark,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            _getIcon(investment.iconType),
-                            color: Colors.white,
-                            size: 24,
-                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: ProjectImage.url(imageUrl: investment.projectImageUrl, updatedAt: investment.projectUpdatedAt, label: investment.projectName, width: 48, height: 48, placeholder: Icon(_getIcon(investment.iconType), color: Colors.white, size: 24)),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

@@ -7,6 +7,7 @@ import '../models/project_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
 import 'status_badge.dart';
+import 'project_image.dart';
 
 class MyProjectCard extends StatelessWidget {
   final InvestmentModel investment;
@@ -71,11 +72,8 @@ class MyProjectCard extends StatelessWidget {
                   color: AppColors.primaryDark,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  _getIcon(investment.iconType),
-                  color: Colors.white,
-                  size: 24,
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: ProjectImage.url(imageUrl: investment.projectImageUrl, updatedAt: investment.projectUpdatedAt, label: investment.projectName, width: 48, height: 48, placeholder: Icon(_getIcon(investment.iconType), color: Colors.white, size: 24)),
               ),
               const SizedBox(width: 14),
               // Details
@@ -195,10 +193,11 @@ class ProjectCard extends StatelessWidget {
                     color: AppColors.primaryDark,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    _getIcon(project.iconType),
-                    color: Colors.white,
-                    size: 24,
+                  child: ProjectImage(
+                    project: project,
+                    width: 48,
+                    height: 48,
+                    placeholder: Icon(_getIcon(project.iconType), color: Colors.white, size: 24),
                   ),
                 ),
                 const SizedBox(width: 14),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../models/project_model.dart';
+import 'project_image.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
 
@@ -79,14 +80,12 @@ class ExploreProjectCard extends StatelessWidget {
                     child: SizedBox(
                       height: 144,
                       width: double.infinity,
-                      child: project.imageUrl != null && project.imageUrl!.trim().isNotEmpty
-                          ? Image.network(
-                              project.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildImagePlaceholder(isDark),
-                            )
-                          : _buildImagePlaceholder(isDark),
+                      child: ProjectImage(
+                        project: project,
+                        height: 144,
+                        width: double.infinity,
+                        placeholder: _buildImagePlaceholder(isDark),
+                      ),
                     ),
                   ),
 

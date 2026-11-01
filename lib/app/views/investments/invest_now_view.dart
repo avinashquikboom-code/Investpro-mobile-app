@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/project_image.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/unsaved_changes_guard.dart';
 
@@ -135,17 +136,12 @@ class _InvestNowViewState extends State<InvestNowView> {
                           // Project Icon / Image
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: project.imageUrl != null &&
-                                    project.imageUrl!.isNotEmpty
-                                ? Image.network(
-                                    project.imageUrl!,
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) =>
-                                        _buildIconPlaceholder(project.iconType),
-                                  )
-                                : _buildIconPlaceholder(project.iconType),
+                            child: ProjectImage(
+                              project: invCtrl.currentProjectImageSource ?? project,
+                              width: 48,
+                              height: 48,
+                              placeholder: _buildIconPlaceholder(project.iconType),
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(

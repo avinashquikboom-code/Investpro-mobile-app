@@ -2,6 +2,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 
 import '../models/project_model.dart';
+import 'project_image.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
 
@@ -68,14 +69,7 @@ class ProjectListingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (project.imageUrl?.trim().isNotEmpty == true)
-            Image.network(
-              project.imageUrl!,
-              height: 160,
-              fit: BoxFit.cover,
-              semanticLabel: project.name,
-              errorBuilder: (_, error, stack) => const SizedBox.shrink(),
-            ),
+          ProjectImage(project: project, height: 160, width: double.infinity),
           Padding(
             padding: const EdgeInsets.all(18),
             child: LayoutBuilder(

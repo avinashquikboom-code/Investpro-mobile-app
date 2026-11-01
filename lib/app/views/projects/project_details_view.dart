@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/project_image.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/progress_indicator.dart';
 import '../../widgets/record_id.dart';
@@ -164,6 +165,24 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
 
                   RecordId(label: 'Project ID', value: project.recordIds['id']),
 
+                  // 0. Hero Project Image Banner
+                  if (project.imageUrl != null && project.imageUrl!.trim().isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox(
+                        height: 180,
+                        width: double.infinity,
+                        child: ProjectImage(
+                          project: project,
+                          height: 180,
+                          width: double.infinity,
+                          placeholder: _buildIconPlaceholder(project.iconType),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
                   // 1. Top Project Card
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -189,17 +208,12 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: project.imageUrl != null &&
-                                  project.imageUrl!.isNotEmpty
-                              ? Image.network(
-                                  project.imageUrl!,
-                                  width: 48,
-                                  height: 48,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) =>
-                                      _buildIconPlaceholder(project.iconType),
-                                )
-                              : _buildIconPlaceholder(project.iconType),
+                          child: ProjectImage(
+                              project: project,
+                              width: 48,
+                              height: 48,
+                              placeholder: _buildIconPlaceholder(project.iconType),
+                            ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

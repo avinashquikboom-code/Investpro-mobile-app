@@ -35,6 +35,8 @@ class ApiService extends getx.GetxService {
   static const String _keyRefreshToken = 'investpro_refresh_token';
 
   late final Dio dio;
+  String _mediaApiBaseUrl = defaultBaseUrl;
+  String get mediaApiBaseUrl => _mediaApiBaseUrl;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(resetOnError: false),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -46,6 +48,7 @@ class ApiService extends getx.GetxService {
 
   Future<ApiService> init({String? baseUrl}) async {
     final url = baseUrl ?? defaultBaseUrl;
+    _mediaApiBaseUrl = url;
     dio = Dio(
       BaseOptions(
         baseUrl: url,

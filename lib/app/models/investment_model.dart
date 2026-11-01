@@ -9,6 +9,8 @@ class InvestmentModel {
   final String projectId;
   final String projectName;
   final String? projectCity;
+  final String? projectImageUrl;
+  final DateTime? projectUpdatedAt;
   String get projectCityLabel => projectCity?.trim().isNotEmpty == true ? projectCity!.trim() : 'Location not specified';
   final String iconType;
   final double investedAmount;
@@ -31,6 +33,8 @@ class InvestmentModel {
     required this.projectId,
     required this.projectName,
     this.projectCity,
+    this.projectImageUrl,
+    this.projectUpdatedAt,
     required this.iconType,
     required this.investedAmount,
     required this.returnRatePercent,
@@ -70,6 +74,8 @@ class InvestmentModel {
       projectId: projectId ?? this.projectId,
       projectName: projectName ?? this.projectName,
       projectCity: projectCity,
+      projectImageUrl: projectImageUrl,
+      projectUpdatedAt: projectUpdatedAt,
       iconType: iconType ?? this.iconType,
       investedAmount: investedAmount ?? this.investedAmount,
       returnRatePercent: returnRatePercent ?? this.returnRatePercent,
@@ -92,6 +98,8 @@ class InvestmentModel {
       'projectId': projectId,
       'projectName': projectName,
       'projectCity': projectCity,
+      'projectImageUrl': projectImageUrl,
+      'projectUpdatedAt': projectUpdatedAt?.toIso8601String(),
       'iconType': iconType,
       'investedAmount': investedAmount,
       'returnRatePercent': returnRatePercent,
@@ -120,6 +128,8 @@ class InvestmentModel {
       projectId: json['projectId'] as String,
       projectName: DisplayValue.text(json['projectName']),
       projectCity: json['projectCity'] as String?,
+      projectImageUrl: json['projectImageUrl'] as String?,
+      projectUpdatedAt: DateTime.tryParse('${json['projectUpdatedAt']}'),
       iconType: json['iconType'] as String? ?? 'code',
       investedAmount: CurrencyFormatter.number(json['investedAmount']),
       returnRatePercent: CurrencyFormatter.number(json['returnRatePercent']),
