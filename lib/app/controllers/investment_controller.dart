@@ -97,7 +97,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
 
   void selectQuickAmount(double amount) {
     investmentAmount.value = amount;
-    amountTextController.text = amount.toInt().toString();
+    amountTextController.text = amount.toString();
   }
 
   void setPaymentMethod(String method) {

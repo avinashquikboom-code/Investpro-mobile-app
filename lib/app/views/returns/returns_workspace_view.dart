@@ -461,7 +461,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           Row(
             children: [
               Expanded(
-                child: _buildMetricItem('Hourly Rate', '₹ $hourlyRate/hr', isDark, isHighlight: true),
+                child: _buildMetricItem('Hourly Rate', '${money(hourlyRate)}/hr', isDark, isHighlight: true),
               ),
               Expanded(
                 child: _buildMetricItem('Awaiting credit', totalAccrued, isDark),
@@ -816,7 +816,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     final metrics = [
       ('Invested', money(p['investedAmount'])),
       ('Returns Earned', money(p['totalReturnsEarned'] ?? p['earnedReturns'])),
-      ('Hourly Rate', '₹ ${p['hourlyReturnRate'] ?? '0.0000'}/hr'),
+      ('Hourly Rate', '${money(p['hourlyReturnRate'])}/hr'),
       ('Accrued', money(p['accruedReturns'])),
       ('Start Date', shortDate(p['startDate'])),
       ('Maturity Date', shortDate(p['maturityDate'])),
@@ -909,7 +909,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
             ),
           ),
           subtitle: Text(
-            '₹ ${hourly.toStringAsFixed(4)}/hr • ${monthlyRate.toStringAsFixed(1)}% monthly',
+            '${money(hourly)}/hr • ${monthlyRate.toStringAsFixed(2)}% monthly',
             style: TextStyle(
               fontSize: 11,
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
@@ -1117,7 +1117,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '+ ₹ $amount',
+                '+ $amount',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

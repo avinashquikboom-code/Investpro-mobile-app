@@ -27,7 +27,7 @@ class AppConstants {
   static const double minWithdrawalAmount = 500.0;
 
   // Preset Chips
-  static const List<double> quickInvestAmounts = [10000, 25000, 50000, 100000];
+  static const List<double> quickInvestAmounts = [10000, 25000, 50000, 75000, 100000];
 
   // Bank Info & Demo Disclosures
   static const String demoBankName = 'HDFC Bank';

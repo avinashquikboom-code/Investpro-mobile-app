@@ -285,21 +285,21 @@ class WithdrawalView extends StatelessWidget {
                         children: [
                           _summaryRow(
                             'Minimum limit',
-                            '₹ ${minAmt.toStringAsFixed(minAmt.truncateToDouble() == minAmt ? 0 : 2)}',
+                            CurrencyFormatter.format(minAmt),
                             isDark,
                           ),
                           const SizedBox(height: 6),
                           _summaryRow(
                             'Maximum limit',
                             maxAmt != null
-                                ? '₹ ${maxAmt.toStringAsFixed(maxAmt.truncateToDouble() == maxAmt ? 0 : 2)}'
+                                ? CurrencyFormatter.format(maxAmt)
                                 : 'No ceiling',
                             isDark,
                           ),
                           const SizedBox(height: 6),
                           _summaryRow(
                             'Applicable fee',
-                            fee > 0 ? CurrencyFormatter.format(fee) : '₹ 0.00 (Zero fee)',
+                            fee > 0 ? CurrencyFormatter.format(fee) : '${CurrencyFormatter.format(0)} (Zero fee)',
                             isDark,
                           ),
                           const Divider(height: 16, color: Color(0xFFE1ECE5)),
@@ -375,7 +375,7 @@ class WithdrawalView extends StatelessWidget {
   Widget _quickChip(WithdrawalController ctrl, String label, double amount) {
     return InkWell(
       onTap: () {
-        ctrl.amountController.text = amount.toStringAsFixed(0);
+        ctrl.amountController.text = amount.toString();
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
@@ -566,7 +566,7 @@ class WithdrawalView extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 5),
                                           Text(
-                                            '+₹${hourlyRate.toStringAsFixed(2)}/hr',
+                                            '+${CurrencyFormatter.format(hourlyRate)}/hr',
                                             style: const TextStyle(
                                               fontSize: 11,
                                               color: Color(0xFF00854B),
@@ -804,7 +804,7 @@ class WithdrawalView extends StatelessWidget {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         Text(
-                                          'Principal: ₹ ${item['principal'] ?? '0.00'}',
+                                          'Principal: ${CurrencyFormatter.format(item['principal'])}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: isDark
@@ -819,7 +819,7 @@ class WithdrawalView extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Text(
-                                        '+₹ ${item['hourlyReturnRate'] ?? '0.00'}/hr',
+                                        '+${CurrencyFormatter.format(item['hourlyReturnRate'])}/hr',
                                         style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
@@ -827,7 +827,7 @@ class WithdrawalView extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        'Earned: ₹ ${item['totalEarned'] ?? '0.00'}',
+                                        'Earned: ${CurrencyFormatter.format(item['totalEarned'])}',
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: isDark

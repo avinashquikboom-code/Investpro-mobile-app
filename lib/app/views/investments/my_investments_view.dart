@@ -91,7 +91,6 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
         title: widget.isTab ? 'myInvestments'.tr : 'investmentHistory'.tr,
         showBackButton: !widget.isTab,
         actions: [
-          if (repo.isLive) IconButton(tooltip: 'Offline Payment Requests', icon: const Icon(Remix.bank_line), onPressed: () => Get.toNamed(AppRoutes.offlinePayments)),
           IconButton(
             icon: _isRefreshing
                 ? const SizedBox(
@@ -561,7 +560,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                       ),
                       _buildInvestmentDetail(
                         label: 'Return',
-                        value: '${inv.returnRatePercent.toStringAsFixed(1)}%',
+                        value: '${inv.returnRatePercent.toStringAsFixed(2)}%',
                         isDark: isDark,
                         valueColor: AppColors.success,
                       ),
@@ -635,7 +634,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                       Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
                       _buildScheduleMiniMetric('Daily Return', CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2), isDark),
                       Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
-                      _buildScheduleMiniMetric('Hourly Return', CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4), isDark),
+                      _buildScheduleMiniMetric('Hourly Return', CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 2), isDark),
                     ],
                   ),
                 ),

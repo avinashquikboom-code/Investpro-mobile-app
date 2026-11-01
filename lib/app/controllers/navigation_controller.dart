@@ -1,3 +1,4 @@
+import 'project_controller.dart';
 import 'package:get/get.dart';
 
 class NavigationController extends GetxController {
@@ -6,6 +7,7 @@ class NavigationController extends GetxController {
   void changeTab(int index) {
     if (index >= 0 && index <= 4) {
       currentIndex.value = index;
+      if (index == 1 && Get.isRegistered<ProjectController>()) Get.find<ProjectController>().refreshProjects();
     }
   }
 

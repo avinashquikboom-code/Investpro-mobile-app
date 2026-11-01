@@ -1,7 +1,6 @@
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../theme/app_colors.dart';
@@ -105,35 +104,12 @@ class InvestmentInterestBreakdown {
   }
 }
 
-/// Formatter with specified precision:
-/// Monthly: 2 decimal places
-/// Daily: 2 decimal places
-/// Hourly: 2-4 decimal places
-/// Minute: 4-6 decimal places
+/// Interest uses the same two-decimal presentation as other financial values.
 class InterestFormatter {
-  static String formatMonthly(double amount) {
-    if (amount == amount.roundToDouble()) {
-      return '₹${NumberFormat('#,##0', 'en_IN').format(amount)}';
-    }
-    return '₹${NumberFormat('#,##0.00', 'en_IN').format(amount)}';
-  }
-
-  static String formatDaily(double amount) {
-    if (amount == amount.roundToDouble()) {
-      return '₹${NumberFormat('#,##0', 'en_IN').format(amount)}';
-    }
-    return '₹${NumberFormat('#,##0.00', 'en_IN').format(amount)}';
-  }
-
-  static String formatHourly(double amount) {
-    final formatted = NumberFormat('#,##0.00##', 'en_IN').format(amount);
-    return '₹$formatted';
-  }
-
-  static String formatMinute(double amount) {
-    final formatted = NumberFormat('#,##0.0000#', 'en_IN').format(amount);
-    return '₹$formatted';
-  }
+  static String formatMonthly(double amount) => CurrencyFormatter.format(amount);
+  static String formatDaily(double amount) => CurrencyFormatter.format(amount);
+  static String formatHourly(double amount) => CurrencyFormatter.format(amount);
+  static String formatMinute(double amount) => CurrencyFormatter.format(amount);
 }
 
 /// Standalone & embedded widget rendering the Daily, Hourly & Minute Interest breakdown table.
@@ -594,8 +570,9 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
           color: isDark ? AppColors.borderDark : const Color(0xFFE5EDE8),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 12, runSpacing: 6,
         children: [
           Text(
             'Total Active Principal',
@@ -632,7 +609,7 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Sample calculation for ₹10,000 at 12% monthly interest:',
+              'Sample calculation for ₹10,000.00 at 12.00% monthly interest:',
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -706,10 +683,12 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
               color: i % 2 == 1
                   ? (isDark ? AppColors.surfaceDarkElevated.withValues(alpha: 0.3) : const Color(0xFFFAFCFA))
                   : (isDark ? AppColors.surfaceDark : Colors.white),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 12, runSpacing: 6,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         _getIconForDuration(i),

@@ -1,3 +1,4 @@
+import '../../utils/currency_formatter.dart';
 import '../../widgets/record_id.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,7 @@ class _OfflinePaymentRequestsViewState
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SelectableText(
-                'Invoice: ${DisplayValue.reference(row['investment']?['invoiceNumber'] ?? row['investment']?['investmentReference'])}\n₹${row['investment']['amount']}\nUTR: ${row['utrNumber']}\nStatus: ${row['status']}\nSubmitted: ${row['submittedAt']}',
+                'Invoice: ${DisplayValue.reference(row['investment']?['invoiceNumber'] ?? row['investment']?['investmentReference'])}\n${CurrencyFormatter.format(row['investment']['amount'])}\nUTR: ${row['utrNumber']}\nStatus: ${row['status']}\nSubmitted: ${row['submittedAt']}',
               ),
               if (row['rejectionReason'] != null)
                 Text('Rejection reason: ${row['rejectionReason']}'),
@@ -202,7 +203,7 @@ class _OfflinePaymentRequestsViewState
                                     ),
                                   ),
                                   Text(
-                                    '₹${row['investment']['amount']} · ${row['utrNumber']}',
+                                    '${CurrencyFormatter.format(row['investment']['amount'])} · ${row['utrNumber']}',
                                   ),
                                   Text(
                                     '${row['status']}',

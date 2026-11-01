@@ -336,7 +336,7 @@ class ReturnsView extends StatelessWidget {
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.centerRight,
                                             child: Text(
-                                              '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr',
+                                              '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr',
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
@@ -356,9 +356,9 @@ class ReturnsView extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 _buildSummaryTagRow("Daily Equivalent", CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
                                 const SizedBox(height: 8),
-                                _buildSummaryTagRow("Hourly Equivalent", '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                _buildSummaryTagRow("Hourly Equivalent", '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
                                 const SizedBox(height: 8),
-                                _buildSummaryTagRow("Total Returns Credited", CurrencyFormatter.format(totalReturnsVal), 'Credited', const Color(0xFFE8F7EC), AppColors.primary, isDark),
+                                _buildSummaryTagRow("Total Returns Credited", CurrencyFormatter.formatPrecise(totalReturnsVal, decimalDigits: 2), 'Credited', const Color(0xFFE8F7EC), AppColors.primary, isDark),
                                 const SizedBox(height: 8),
                                 _buildSummaryTagRow("Accrued, Not Credited", CurrencyFormatter.formatPrecise(dailyEq * 0.75, decimalDigits: 2), 'Accrued', const Color(0xFFFEF3C7), const Color(0xFF92400E), isDark),
                                 const SizedBox(height: 8),
@@ -421,7 +421,7 @@ class ReturnsView extends StatelessWidget {
                                       margin: const EdgeInsets.symmetric(horizontal: 6),
                                     ),
                                     Expanded(
-                                      child: _buildScheduleCol('Hourly Equivalent', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', isDark),
+                                      child: _buildScheduleCol('Hourly Equivalent', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', isDark),
                                     ),
                                   ],
                                 ),
@@ -486,7 +486,7 @@ class ReturnsView extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 14),
-                                _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', 0.25, isDark),
+                                _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', 0.25, isDark),
                                 const SizedBox(height: 10),
                                 _buildAnalyticsBarRow('Daily Return', CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 0.55, isDark),
                                 const SizedBox(height: 10),

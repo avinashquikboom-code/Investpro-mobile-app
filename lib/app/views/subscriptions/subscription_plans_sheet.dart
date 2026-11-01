@@ -1,3 +1,4 @@
+import '../../utils/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:remixicon/remixicon.dart';
@@ -319,7 +320,7 @@ class _PlanCard extends StatelessWidget {
               if (plan.originalPrice != null && plan.originalPrice! > plan.price) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '₹${plan.originalPrice!.toStringAsFixed(0)}',
+                  CurrencyFormatter.format(plan.originalPrice),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,

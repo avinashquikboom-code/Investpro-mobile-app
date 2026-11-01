@@ -109,7 +109,7 @@ class MyProjectCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${investment.returnRatePercent.toInt()}% Return',
+                      '${investment.returnRatePercent.toStringAsFixed(2)}% Return',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -219,7 +219,7 @@ class ProjectCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Text(project.locationLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(project.cityLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 4),
                       if (isDashboardVariant) ...[
                         Text(
@@ -235,7 +235,7 @@ class ProjectCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${project.returnRatePercent.toInt()}% Return',
+                          '${project.returnRatePercent.toStringAsFixed(2)}% Return',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -246,7 +246,7 @@ class ProjectCard extends StatelessWidget {
                         ),
                       ] else ...[
                         Text(
-                          '${project.returnRatePercent.toInt()}% Return  |  ${project.durationMonths} Months',
+                          '${project.returnRatePercent.toStringAsFixed(2)}% Return  |  ${project.durationMonths} Months',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark

@@ -3,6 +3,13 @@ import 'package:investpro/app/models/project_model.dart';
 import 'package:investpro/app/services/backend_snapshot.dart';
 
 void main() {
+  test('canonical funding percentage survives API parsing and caching', () {
+    final project = ProjectModel.fromBackend({'id': 'funding', 'targetAmount': 50000, 'fundedAmount': 99999, 'fundingProgress': 20});
+    expect(project.progressPercentage, 20);
+    expect(project.copyWith(name: 'Updated').progressPercentage, 20);
+    expect(ProjectModel.fromJson(project.toJson()).progressPercentage, 20);
+    expect(ProjectModel.fromBackend({'id': 'zero', 'fundingProgress': -1}).progressPercentage, 0);
+  });
   test('city survives API parsing, copies, and cached model round trips', () {
     final project = ProjectModel.fromBackend({'id': 'project', 'city': '  नवी मुंबई  ', 'location': 'Maharashtra'});
     expect(project.cityLabel, 'नवी मुंबई');

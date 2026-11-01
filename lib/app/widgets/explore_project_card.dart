@@ -171,7 +171,7 @@ class ExploreProjectCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(project.locationLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(project.cityLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 4),
 
                     // Short Description
@@ -200,7 +200,7 @@ class ExploreProjectCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${project.progressPercentage.toStringAsFixed(0)}% funded',
+                          '${project.progressPercentage.toStringAsFixed(2)}% funded',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -274,8 +274,8 @@ class ExploreProjectCard extends StatelessWidget {
                               const SizedBox(height: 2),
                               Text(
                                 project.hasReturnData
-                                    ? '${project.returnRatePercent.toInt()}% p.a.'
-                                    : '${project.returnRatePercent.toInt()}%',
+                                    ? '${project.returnRatePercent.toStringAsFixed(2)}% p.a.'
+                                    : '${project.returnRatePercent.toStringAsFixed(2)}%',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,

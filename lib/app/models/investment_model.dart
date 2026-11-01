@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 import '../services/investment_calculator.dart';
 
@@ -120,11 +121,11 @@ class InvestmentModel {
       projectName: DisplayValue.text(json['projectName']),
       projectCity: json['projectCity'] as String?,
       iconType: json['iconType'] as String? ?? 'code',
-      investedAmount: (json['investedAmount'] as num).toDouble(),
-      returnRatePercent: (json['returnRatePercent'] as num).toDouble(),
+      investedAmount: CurrencyFormatter.number(json['investedAmount']),
+      returnRatePercent: CurrencyFormatter.number(json['returnRatePercent']),
       durationMonths: json['durationMonths'] as int,
-      expectedReturn: (json['expectedReturn'] as num).toDouble(),
-      maturityAmount: (json['maturityAmount'] as num).toDouble(),
+      expectedReturn: CurrencyFormatter.number(json['expectedReturn']),
+      maturityAmount: CurrencyFormatter.number(json['maturityAmount']),
       startDate: DateTime.parse(json['startDate'] as String),
       maturityDate: DateTime.parse(json['maturityDate'] as String),
       progressPercent: (json['progressPercent'] as num).toDouble(),

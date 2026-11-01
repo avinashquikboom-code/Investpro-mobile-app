@@ -178,7 +178,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                             BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        '${project.returnRatePercent.toInt()}% Return',
+                                        '${project.returnRatePercent.toStringAsFixed(2)}% Return',
                                         style: GoogleFonts.poppins(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
@@ -286,11 +286,10 @@ class _InvestNowViewState extends State<InvestNowView> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Preset Quick Chips: ₹10K, ₹25K, ₹50K, ₹1L
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: AppConstants.quickInvestAmounts.map((amt) {
+                    // Preset quick amounts use compact labels; financial summaries retain decimals.
+                    Wrap(
+                      runSpacing: 8,
+                      children: AppConstants.quickInvestAmounts.map((amt) {
                           final isSelected =
                               (invCtrl.investmentAmount.value - amt).abs() <
                                   0.01;
@@ -298,7 +297,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
                               label: Text(
-                                CurrencyFormatter.formatCompact(amt),
+                                amt == 100000 ? '₹1L' : '₹${(amt / 1000).toStringAsFixed(0)}K',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
@@ -329,7 +328,6 @@ class _InvestNowViewState extends State<InvestNowView> {
                             ),
                           );
                         }).toList(),
-                      ),
                     ),
                     const SizedBox(height: 22),
 
@@ -384,7 +382,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                           // Projected Return (Total)
                           _buildSummaryRow(
                             label:
-                                'Projected Return (${project.returnRatePercent.toInt()}%)',
+                                'Projected Return (${project.returnRatePercent.toStringAsFixed(2)}%)',
                             value: CurrencyFormatter.format(
                               calc.expectedTotalReturn,
                               showDecimals: true,
@@ -432,7 +430,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                             label: 'Hourly Projected Return',
                             value: CurrencyFormatter.formatPrecise(
                               calc.hourlyProjectedReturn,
-                              decimalDigits: 4,
+                              decimalDigits: 2,
                             ),
                             isDark: isDark,
                           ),
@@ -936,7 +934,7 @@ class _InvestNowViewState extends State<InvestNowView> {
       case 'Daily':
         return '${CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2)} / day';
       case 'Hourly':
-        return '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4)} / hr';
+        return '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 2)} / hr';
       case 'Monthly':
         return '${CurrencyFormatter.formatPrecise(calc.monthlyProjectedReturn, decimalDigits: 2)} / mo';
       case 'Total':

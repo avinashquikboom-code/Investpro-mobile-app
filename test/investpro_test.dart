@@ -60,22 +60,22 @@ void main() {
 
   group('CurrencyFormatter Tests', () {
     test('Formats Indian Rupee values with commas', () {
-      expect(CurrencyFormatter.format(50000), '₹ 50,000');
-      expect(CurrencyFormatter.format(85000), '₹ 85,000');
-      expect(CurrencyFormatter.format(100000), '₹ 1,00,000');
-      expect(CurrencyFormatter.format(12480), '₹ 12,480');
+      expect(CurrencyFormatter.format(50000), '₹50,000.00');
+      expect(CurrencyFormatter.format(85000), '₹85,000.00');
+      expect(CurrencyFormatter.format(100000), '₹1,00,000.00');
+      expect(CurrencyFormatter.format(12480), '₹12,480.00');
     });
 
     test('Formats compact chips notation', () {
-      expect(CurrencyFormatter.formatCompact(10000), '₹ 10K');
-      expect(CurrencyFormatter.formatCompact(25000), '₹ 25K');
-      expect(CurrencyFormatter.formatCompact(50000), '₹ 50K');
-      expect(CurrencyFormatter.formatCompact(100000), '₹ 1L');
+      expect(CurrencyFormatter.formatCompact(10000), '₹10,000.00');
+      expect(CurrencyFormatter.formatCompact(25000), '₹25,000.00');
+      expect(CurrencyFormatter.formatCompact(50000), '₹50,000.00');
+      expect(CurrencyFormatter.formatCompact(100000), '₹1,00,000.00');
     });
 
     test('Parses strings to double correctly', () {
-      expect(CurrencyFormatter.parse('₹ 50,000'), 50000.0);
-      expect(CurrencyFormatter.parse('₹ 1,00,000'), 100000.0);
+      expect(CurrencyFormatter.parse('₹50,000.00'), 50000.0);
+      expect(CurrencyFormatter.parse('₹1,00,000.00'), 100000.0);
     });
   });
 

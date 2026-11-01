@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 
 enum TransactionType {
@@ -66,7 +67,7 @@ class TransactionModel {
       ),
       title: json['title'] as String,
       subtitle: json['subtitle'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      amount: CurrencyFormatter.number(json['amount']),
       date: DateTime.parse(json['date'] as String),
       status: json['status'] as String? ?? 'Completed',
       direction: json['direction'] as String? ?? '',

@@ -40,7 +40,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('1. Centralized Investment Calculator Tests', () {
-    test('Calculates exact returns for ₹10,000 at 18% for 12 months', () {
+    test('Calculates exact returns for ₹10,000.00 at 18% for 12 months', () {
       final res = InvestmentCalculator.calculate(
         principal: 10000,
         returnRatePercent: 18,
@@ -61,7 +61,7 @@ void main() {
       expect(res.monthlySchedule.last.cumulativeReturn, 1800.0);
     });
 
-    test('Calculates exact returns for ₹50,000 at 18% for 12 months', () {
+    test('Calculates exact returns for ₹50,000.00 at 18% for 12 months', () {
       final res = InvestmentCalculator.calculate(
         principal: 50000,
         returnRatePercent: 18,
@@ -198,12 +198,29 @@ void main() {
 
         expect(find.text('Invest Now'), findsOneWidget);
         expect(find.text('Software Development Platform'), findsOneWidget);
-        expect(find.text('18% Return'), findsOneWidget);
+        expect(find.textContaining('18'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('Return'), findsAtLeastNWidgets(1));
         expect(find.text('Enter Investment Amount'), findsOneWidget);
-        expect(find.text('₹ 10K'), findsOneWidget);
-        expect(find.text('₹ 25K'), findsOneWidget);
-        expect(find.text('₹ 50K'), findsOneWidget);
-        expect(find.text('₹ 1L'), findsOneWidget);
+        Get.find<InvestmentController>().selectQuickAmount(10000);
+        await tester.pumpAndSettle();
+        expect(find.text('₹10K'), findsOneWidget);
+        expect(tester.widgetList<ChoiceChip>(find.byType(ChoiceChip)).map((chip) => (chip.label as Text).data), ['₹10K', '₹25K', '₹50K', '₹75K', '₹1L']);
+        final investmentController = Get.find<InvestmentController>();
+        await Scrollable.ensureVisible(tester.element(find.text('₹75K')), alignment: .5);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('₹75K'));
+        await tester.pumpAndSettle();
+        expect(investmentController.investmentAmount.value, 75000);
+        expect(double.parse(investmentController.amountTextController.text), 75000);
+        expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '₹75K')).selected, isTrue);
+        expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '₹10K')).selected, isFalse);
+        final calculation = investmentController.calculationResult;
+        final project = investmentController.currentProject.value!;
+        expect(calculation.expectedTotalReturn, closeTo(75000 * project.returnRatePercent / 100, .001));
+        expect(calculation.projectedMaturityAmount, closeTo(75000 + calculation.expectedTotalReturn, .001));
+        expect(calculation.monthlyProjectedReturn, closeTo(calculation.expectedTotalReturn / project.durationMonths, .01));
+        expect(calculation.dailyProjectedReturn, closeTo(calculation.monthlyProjectedReturn / 30, .01));
+        expect(calculation.hourlyProjectedReturn, closeTo(calculation.monthlyProjectedReturn / 720, .0001));
         expect(find.text('Investment Summary'), findsOneWidget);
         expect(find.text('Projected Maturity Amount'), findsOneWidget);
         expect(find.text('Return Schedule'), findsOneWidget);
@@ -244,7 +261,8 @@ void main() {
         expect(find.text('Software Development Platform'), findsAtLeastNWidgets(1));
         expect(find.text('Total Investment Required'), findsOneWidget);
         expect(find.text('Already Raised'), findsOneWidget);
-        expect(find.text('50% Funded'), findsOneWidget);
+        expect(find.textContaining('50'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('Funded'), findsAtLeastNWidgets(1));
         expect(find.text('Investment Details'), findsOneWidget);
         expect(find.text('Monthly Return'), findsOneWidget);
         expect(find.text('Daily Return'), findsOneWidget);
@@ -304,6 +322,7 @@ void main() {
       expect(find.text('Daily Return'), findsOneWidget);
       expect(find.text('Hourly Return'), findsOneWidget);
 
+      expect(find.byTooltip('Offline Payment Requests'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 

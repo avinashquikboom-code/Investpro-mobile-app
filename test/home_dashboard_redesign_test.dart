@@ -253,11 +253,11 @@ void main() {
     expect(find.text('Fintech Cloud Platform'), findsOneWidget);
     expect(find.text('Clean Energy'), findsOneWidget);
     expect(find.text('Technology'), findsOneWidget);
-    expect(find.text('65% funded'), findsOneWidget);
-    expect(find.text('80% funded'), findsOneWidget);
-    expect(find.text('₹ 25,000'), findsOneWidget);
-    expect(find.text('16% p.a.'), findsOneWidget);
-    expect(find.text('20% p.a.'), findsOneWidget);
+    expect(find.text('65.00% funded'), findsOneWidget);
+    expect(find.text('80.00% funded'), findsOneWidget);
+    expect(find.text('₹25,000.00'), findsOneWidget);
+    expect(find.text('16.00% p.a.'), findsOneWidget);
+    expect(find.text('20.00% p.a.'), findsOneWidget);
   });
 
   testWidgets('Responsive across diverse phone and tablet viewports without overflow', (tester) async {

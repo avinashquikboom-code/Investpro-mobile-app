@@ -201,7 +201,7 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.text('Balances & withdrawals'));
           await tester.pumpAndSettle();
-          expect(find.text('₹ 100.01'), findsWidgets);
+          expect(find.text('₹100.01'), findsWidgets);
           for (var i = 0; i < 14; i++) {
             await tester.drag(
               find.byType(ListView).first,

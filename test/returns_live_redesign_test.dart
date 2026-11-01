@@ -138,7 +138,7 @@ void main() {
       );
       expect(
         t.widget<Text>(find.byKey(const ValueKey('total-earned-returns'))).data,
-        '₹ 100.01',
+        '₹100.01',
       );
       expect(find.text('+25.0%'), findsOneWidget);
       expect(controller.selectedPeriod.value, 'Hourly');
@@ -163,7 +163,7 @@ void main() {
             ),
           )
           .data,
-      'Oct 2026 · ₹ 100',
+      'Oct 2026 · ₹100.00',
     );
     controller.setDate(DateTime(2026, 10, 29));
     await t.pumpAndSettle();
@@ -213,7 +213,7 @@ void main() {
         'upcoming': [],
       };
       await mount(t);
-      expect(t.widget<Text>(find.byKey(const ValueKey('total-earned-returns'))).data, '₹ 0');
+      expect(t.widget<Text>(find.byKey(const ValueKey('total-earned-returns'))).data, '₹0.00');
       expect(find.text('No returns yet'), findsOneWidget);
       await t.ensureVisible(find.text('No upcoming returns scheduled'));
       expect(find.text('No upcoming returns scheduled'), findsOneWidget);

@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 class ReturnPayoutModel {
   final Map<String, String> recordIds;
@@ -47,7 +48,7 @@ class ReturnPayoutModel {
       projectName: json['projectName'] as String,
       monthYear: json['monthYear'] as String,
       payoutDate: DateTime.parse(json['payoutDate'] as String),
-      amount: (json['amount'] as num).toDouble(),
+      amount: CurrencyFormatter.number(json['amount']),
       status: json['status'] as String,
       periodType: json['periodType'] as String? ?? 'Monthly',
     );

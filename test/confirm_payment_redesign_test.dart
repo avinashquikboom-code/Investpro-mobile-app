@@ -111,6 +111,8 @@ void main() {
       expect(initialButton.onPressed, isNull);
 
       // 3. Switch to Offline Payment
+      await tester.ensureVisible(find.text('Offline Payment'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Offline Payment'));
       await tester.pumpAndSettle();
 

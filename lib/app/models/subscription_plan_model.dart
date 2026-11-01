@@ -71,12 +71,12 @@ class SubscriptionPlanModel {
       name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
       description: json['description']?.toString(),
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      originalPrice: (json['originalPrice'] as num?)?.toDouble(),
-      discount: (json['discount'] as num?)?.toDouble(),
+      price: CurrencyFormatter.number(json['price']),
+      originalPrice: json['originalPrice'] == null ? null : CurrencyFormatter.number(json['originalPrice']),
+      discount: json['discount'] == null ? null : CurrencyFormatter.number(json['discount']),
       currency: json['currency']?.toString() ?? 'INR',
-      minInvestment: (json['minInvestment'] as num?)?.toDouble() ?? 0.0,
-      maxInvestment: (json['maxInvestment'] as num?)?.toDouble() ?? 0.0,
+      minInvestment: CurrencyFormatter.number(json['minInvestment']),
+      maxInvestment: CurrencyFormatter.number(json['maxInvestment']),
       durationMonths: duration,
       durationUnit: json['durationUnit']?.toString() ?? 'months',
       displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 1,
@@ -153,12 +153,8 @@ class SubscriptionEligibilityModel {
     final name = json['planName']?.toString() ?? plan?['name']?.toString();
     final slug = json['planSlug']?.toString() ?? plan?['slug']?.toString();
 
-    final minInv = (json['minInvestment'] as num?)?.toDouble() ??
-        (plan?['minInvestment'] as num?)?.toDouble() ??
-        0.0;
-    final maxInv = (json['maxInvestment'] as num?)?.toDouble() ??
-        (plan?['maxInvestment'] as num?)?.toDouble() ??
-        0.0;
+    final minInv = CurrencyFormatter.number(json['minInvestment'] ?? plan?['minInvestment']);
+    final maxInv = CurrencyFormatter.number(json['maxInvestment'] ?? plan?['maxInvestment']);
 
     return SubscriptionEligibilityModel(
       hasActiveSubscription: json['hasActiveSubscription'] == true ||

@@ -211,7 +211,7 @@ void main() {
     // Verify prices and discounts appear
     expect(find.text('50% OFF'), findsOneWidget);
     expect(find.text('20% OFF'), findsOneWidget);
-    expect(find.text('₹999'), findsOneWidget); // strikethrough original price
+    expect(find.text('₹999.00'), findsOneWidget); // strikethrough original price
 
     // Verify "Subscribe Now" buttons are rendered
     expect(find.text('Subscribe Now'), findsNWidgets(2));

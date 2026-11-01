@@ -29,8 +29,12 @@ class _ProjectsViewState extends State<ProjectsView> {
     super.initState();
     _search.text = Get.find<ProjectController>().searchQuery.value;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && !Get.find<ProjectController>().isLoading.value && !Get.find<ProjectController>().hasAttempted) {
-        Get.find<ProjectController>().refreshProjects();
+      final ctrl = Get.find<ProjectController>();
+      if (mounted &&
+          !ctrl.isLoading.value &&
+          ctrl.remoteProjects.isEmpty &&
+          !ctrl.subscriptionRequired.value) {
+        ctrl.refreshProjects();
       }
     });
   }

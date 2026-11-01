@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'subscription_controller.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
@@ -11,7 +12,7 @@ import '../models/subscription_plan_model.dart';
 import '../services/demo_repository.dart';
 import '../services/api_service.dart';
 
-class ProjectController extends GetxController {
+class ProjectController extends GetxController with WidgetsBindingObserver {
   final DemoRepository _repo;
   final ApiService? _api;
   ProjectController(this._repo, [this._api]);
@@ -99,6 +100,7 @@ class ProjectController extends GetxController {
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchTimer?.cancel();
     _request++;
     _detailRequest++;
@@ -108,7 +110,13 @@ class ProjectController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     if (_api != null) refreshProjects();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) refreshProjects(background: true);
   }
 
   List<String> get availableCategories => [

@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import 'api_diagnostics.dart';
 import 'dart:convert';
 
@@ -127,7 +128,7 @@ class DemoRepository extends GetxService {
         amount <= 0 ||
         minor(amount) < minor(AppConstants.minInvestmentAmount) ||
         minor(amount) > minor(AppConstants.maxInvestmentAmount)) {
-      return 'Enter an amount between ₹5,000 and ₹1,00,000';
+      return 'Enter an amount between ₹5,000.00 and ₹1,00,000.00';
     }
     final p = liveProject(project);
     if (p.status != 'Active') return 'This project is closed for investment';
@@ -569,7 +570,7 @@ class DemoRepository extends GetxService {
       type: NotificationType.withdrawalApproved,
       title: 'Withdrawal Request Submitted',
       description:
-          'Your withdrawal of ₹${amount.toStringAsFixed(0)} is Processing.',
+          'Your withdrawal of ${CurrencyFormatter.format(amount)} is Processing.',
       relatedId: reference,
     );
     return true;

@@ -10,6 +10,7 @@ class ProjectModel {
   final bool hasReturnData;
   final double minInvestment;
   final double? maxInvestment;
+  final double? fundingProgress;
   final String? city;
   String get cityLabel => city?.trim().isNotEmpty == true ? city!.trim() : 'Location not specified';
   String get locationLabel {
@@ -30,10 +31,13 @@ class ProjectModel {
   final String status; // 'Active', 'Completed'
   final String description;
   final String riskLevel; // 'Low', 'Moderate', 'High'
+  final DateTime? startDate, endDate, updatedAt;
   final DateTime createdAt;
 
   const ProjectModel({
+    this.fundingProgress,
     this.city,
+    this.startDate, this.endDate, this.updatedAt,
     this.location,
     this.imageUrl,
     this.investorCount,
@@ -67,9 +71,8 @@ class ProjectModel {
   int get baseRaised => (raisedAmount * 100).round();
   bool get completed => status == 'Completed';
   double get progressPercentage {
-    if (targetAmount <= 0) return 0;
-    final pct = (raisedAmount / targetAmount) * 100;
-    return pct > 100 ? 100 : pct;
+    final progress = fundingProgress ?? (targetAmount > 0 ? raisedAmount / targetAmount * 100 : 0);
+    return progress.isFinite ? (progress.clamp(0, 100) * 100).round() / 100 : 0;
   }
 
   double calculateExpectedReturn(double amount) {
@@ -101,7 +104,9 @@ class ProjectModel {
     DateTime? createdAt,
   }) {
     return ProjectModel(
+      fundingProgress: fundingProgress,
       city: city,
+      startDate: startDate, endDate: endDate, updatedAt: updatedAt,
       location: location,
       imageUrl: imageUrl,
       investorCount: investorCount,
@@ -128,7 +133,9 @@ class ProjectModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'fundingProgress': fundingProgress,
       'city': city,
+      'startDate': startDate?.toIso8601String(), 'endDate': endDate?.toIso8601String(), 'updatedAt': updatedAt?.toIso8601String(),
       'location': location,
       'imageUrl': imageUrl,
       'investorCount': investorCount,
@@ -157,7 +164,13 @@ class ProjectModel {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
     return ProjectModel(
+      fundingProgress: json['fundingProgress'] == null
+          ? null
+          : num.tryParse('${json['fundingProgress']}')?.toDouble(),
       city: json['city'] as String?,
+      startDate: DateTime.tryParse('${json['startDate']}'),
+      endDate: DateTime.tryParse('${json['endDate']}'),
+      updatedAt: DateTime.tryParse('${json['updatedAt']}'),
       location: json['location'] as String?,
       imageUrl: json['bannerUrl'] as String?,
       investorCount: (json['investorsCount'] as num?)?.toInt(),
@@ -192,7 +205,13 @@ class ProjectModel {
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
+      fundingProgress: json['fundingProgress'] == null
+          ? null
+          : num.tryParse('${json['fundingProgress']}')?.toDouble(),
       city: json['city'] as String?,
+      startDate: DateTime.tryParse('${json['startDate']}'),
+      endDate: DateTime.tryParse('${json['endDate']}'),
+      updatedAt: DateTime.tryParse('${json['updatedAt']}'),
       location: json['location'] as String?,
       imageUrl: json['imageUrl'] as String?,
       investorCount: (json['investorCount'] as num?)?.toInt(),

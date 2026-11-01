@@ -1089,7 +1089,7 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView>
                 const SizedBox(height: 6),
                 _buildSummaryRow(
                   'Hourly Equivalent',
-                  '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4)} / hr',
+                  '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 2)} / hr',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 8),

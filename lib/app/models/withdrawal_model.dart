@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 
 class WithdrawalModel {
@@ -39,7 +40,7 @@ class WithdrawalModel {
     return WithdrawalModel(
       recordIds: DisplayValue.ids(json),
       id: json['id'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      amount: CurrencyFormatter.number(json['amount']),
       bankName: json['bankName'] as String,
       accountNumber: json['accountNumber'] as String,
       requestDate: DateTime.parse(json['requestDate'] as String),

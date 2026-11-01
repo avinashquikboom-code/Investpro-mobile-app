@@ -218,6 +218,8 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              Text(project.cityLabel, maxLines: 2, overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
                               if (project.location != null &&
                                   project.location!.isNotEmpty) ...[
                                 const SizedBox(height: 2),
@@ -251,7 +253,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      '${project.returnRatePercent.toInt()}% Return',
+                                      '${project.returnRatePercent.toStringAsFixed(2)}% p.a.',
                                       style: GoogleFonts.poppins(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w700,
@@ -383,7 +385,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
-                                '${project.progressPercentage.toStringAsFixed(0)}% Funded',
+                                '${project.progressPercentage.toStringAsFixed(2)}% Funded',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -433,7 +435,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                       children: [
                         _buildDetailRow(
                           label:
-                              '${'expectedReturnTotal'.tr} (${project.returnRatePercent.toInt()}%)',
+                              '${'expectedReturnTotal'.tr} (${project.returnRatePercent.toStringAsFixed(2)}%)',
                           value: CurrencyFormatter.format(
                             calc.expectedTotalReturn,
                             showDecimals: true,
@@ -465,7 +467,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                           label: 'Hourly Return',
                           value: CurrencyFormatter.formatPrecise(
                             calc.hourlyProjectedReturn,
-                            decimalDigits: 4,
+                            decimalDigits: 2,
                           ),
                           isDark: isDark,
                         ),

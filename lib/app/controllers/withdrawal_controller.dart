@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -340,7 +341,7 @@ class WithdrawalController extends GetxController {
           _requestId = null;
           Get.snackbar(
             'Withdrawal request submitted successfully',
-            'Your request of ₹ ${amount.toInt()} has been initiated.',
+            'Your request of ${CurrencyFormatter.format(amount)} has been initiated.',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: const Color(0xFFE8F8F0),
             colorText: const Color(0xFF006B3C),

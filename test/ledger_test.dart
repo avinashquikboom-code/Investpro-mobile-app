@@ -1,3 +1,5 @@
+import 'package:investpro/app/services/api_service.dart';
+import 'package:investpro/app/models/project_model.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -141,7 +143,7 @@ void main() {
     c.setProject(repo.projects.first);
     c.selectQuickAmount(25000);
     expect(c.investmentAmount.value, 25000);
-    expect(c.amountTextController.text, '25000');
+    expect(c.amountTextController.text, '25000.0');
     c.agreeToTerms.value = true;
     c.setProject(repo.projects.last);
     expect(c.agreeToTerms.value, isFalse);
@@ -220,6 +222,20 @@ void main() {
       expect(storage.themeMode, 'light');
     },
   );
+  test('75K preset respects live minimum, maximum and remaining funding', () {
+    final live = DemoRepository(storage, notifications, ApiService());
+    final controller = Get.put(InvestmentController(live));
+    final base = <String, dynamic>{'id': 'limits', 'title': 'Project', 'status': 'ACTIVE', 'targetAmount': 100000, 'fundedAmount': 0, 'minInvestment': 1000, 'maxInvestment': 100000, 'tenureMonths': 12, 'expectedRoi': 18};
+    for (final limits in [<String, dynamic>{'minInvestment': 80000}, <String, dynamic>{'maxInvestment': 70000}, <String, dynamic>{'fundedAmount': 30000}]) {
+      controller.setProject(ProjectModel.fromBackend({...base, ...limits}));
+      controller.selectQuickAmount(75000);
+      expect(controller.investmentAmount.value, 75000);
+      expect(controller.amountError, isNotNull);
+    }
+    controller.setProject(ProjectModel.fromBackend(base));
+    controller.selectQuickAmount(75000);
+    expect(controller.amountError, isNull);
+  });
   test('validators reject malformed phones, weak passwords and sub-paise', () {
     expect(Validators.validateMobile('abcdefghij'), isNotNull);
     expect(Validators.validatePassword('abcdefgh'), isNotNull);

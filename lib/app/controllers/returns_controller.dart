@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -35,7 +36,7 @@ class ReturnsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (isLive) selectedPeriod.value = 'Monthly';
+    if (isLive) selectedPeriod.value = 'Hourly';
     _workspaceUser = _repo.currentUser.value.id;
     _userWorker = ever(_repo.currentUser, (user) {
       if (user.id == _workspaceUser) return;
@@ -198,7 +199,7 @@ class ReturnsController extends GetxController {
         monthYear: label,
         payoutDate: date,
         amount:
-            e.value.fold<int>(0, (s, r) => s + (r.amount * 100).round()) / 100,
+            e.value.fold<double>(0, (sum, payout) => sum + payout.amount),
         status: first.status,
       );
     }).toList()..sort((a, b) => b.payoutDate.compareTo(a.payoutDate));
@@ -382,7 +383,7 @@ class ReturnsController extends GetxController {
                     subtitle: Text(
                       '${DateFormat('dd MMM yyyy').format(r.payoutDate)} • ${r.status}',
                     ),
-                    trailing: Text('₹${r.amount.toStringAsFixed(2)}'),
+                    trailing: Text(CurrencyFormatter.format(r.amount)),
                     onTap: () {
                       final txn = _repo.transactions
                           .where((t) => t.id == r.id)

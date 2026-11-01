@@ -154,7 +154,7 @@ class ProjectListingCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (project.locationLabel.isNotEmpty)
+                        if (project.cityLabel.isNotEmpty)
                           Text.rich(
                             TextSpan(
                               children: [
@@ -166,7 +166,7 @@ class ProjectListingCard extends StatelessWidget {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                TextSpan(text: ' ${project.locationLabel}'),
+                                TextSpan(text: ' ${project.cityLabel}'),
                               ],
                             ),
                             style: theme.textTheme.bodyMedium,
@@ -240,7 +240,7 @@ class ProjectListingCard extends StatelessWidget {
                             style: theme.textTheme.bodyMedium,
                           ),
                           Text(
-                            '${project.progressPercentage.toStringAsFixed(1)}% funded',
+                            '${project.progressPercentage.toStringAsFixed(2)}% funded',
                             style: theme.textTheme.titleSmall?.copyWith(
                               color: AppColors.primary,
                             ),
@@ -257,7 +257,7 @@ class ProjectListingCard extends StatelessWidget {
                           backgroundColor: AppColors.lightMint,
                           semanticsLabel: 'Funding progress',
                           semanticsValue:
-                              '${project.progressPercentage.toStringAsFixed(1)}%',
+                              '${project.progressPercentage.toStringAsFixed(2)}%',
                         ),
                       ),
                       const SizedBox(height: 8),

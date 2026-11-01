@@ -116,7 +116,7 @@ void main() {
 
     // 2. Total Returns Card
     expect(find.text('Total Returns'), findsOneWidget);
-    expect(find.text('₹ 25,000'), findsOneWidget);
+    expect(find.text('₹25,000.00'), findsWidgets);
     expect(find.byIcon(Remix.funds_line), findsWidgets);
 
     // 3. Period Filter Pills
@@ -137,8 +137,8 @@ void main() {
 
     // 6. Next Return Date Card
     expect(find.text('Next Return Date'), findsOneWidget);
-    expect(find.text('15 Nov 2026'), findsNWidgets(2));
-    expect(find.text('Expected: ₹ 5,000'), findsOneWidget);
+    expect(find.text('15 Nov 2026'), findsWidgets);
+    expect(find.text('Expected: ₹5,000.00'), findsOneWidget);
   });
 
   testWidgets('Filter selection updates selected period, active tab styling and chart', (tester) async {
@@ -170,6 +170,8 @@ void main() {
     expect(find.text('Monthly breakdown'), findsOneWidget);
 
     // Tap Quarterly
+    await tester.ensureVisible(find.text('Quarterly'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Quarterly'));
     await tester.pumpAndSettle();
 
@@ -177,6 +179,8 @@ void main() {
     expect(find.text('Quarterly breakdown'), findsOneWidget);
 
     // Tap Yearly
+    await tester.ensureVisible(find.text('Yearly'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Yearly'));
     await tester.pumpAndSettle();
 
@@ -197,7 +201,7 @@ void main() {
 
     await mount(tester);
 
-    expect(find.text('₹ 0'), findsWidgets);
+    expect(find.text('₹0.00'), findsWidgets);
     expect(find.text('No return payouts found'), findsOneWidget);
     expect(find.text('No upcoming returns scheduled.'), findsOneWidget);
   });

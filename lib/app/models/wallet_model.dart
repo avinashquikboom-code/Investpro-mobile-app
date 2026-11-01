@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 import '../utils/display_value.dart';
 
 /// Financial values arrive as decimal strings and are held in integer paise.
@@ -21,22 +22,7 @@ int? withdrawalPaise(String value) {
 
 String exactMoney(int paise) =>
     '${paise ~/ 100}.${(paise % 100).toString().padLeft(2, '0')}';
-String formatWalletMoney(int paise) {
-  final whole = '${paise ~/ 100}';
-  final groups = <String>[];
-  var end = whole.length;
-  if (end > 3) {
-    groups.insert(0, whole.substring(end - 3));
-    end -= 3;
-  }
-  while (end > 2) {
-    groups.insert(0, whole.substring(end - 2, end));
-    end -= 2;
-  }
-  if (end > 0) groups.insert(0, whole.substring(0, end));
-  final cents = paise % 100;
-  return '₹ ${groups.join(',')}${cents == 0 ? '' : '.${cents.toString().padLeft(2, '0')}'}';
-}
+String formatWalletMoney(int paise) => CurrencyFormatter.formatPaise(paise);
 
 String maskedBank(dynamic value) {
   final text = '${value ?? ''}'.trim();

@@ -924,8 +924,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
   // ----------------------------------------------------
   Widget _buildSummaryCards() {
     final currentPlan = controller.currentPlan;
-    final minInv = currentPlan?.formattedMinInvestment ?? '₹ 0';
-    final maxInv = currentPlan?.formattedMaxInvestment ?? '₹ 0';
+    final minInv = currentPlan?.formattedMinInvestment ?? CurrencyFormatter.format(null);
+    final maxInv = currentPlan?.formattedMaxInvestment ?? CurrencyFormatter.format(null);
     final cycle = controller.currentBillingCycle;
     final endDate = controller.currentEndDate;
     final nextRenewal = endDate != null ? DateFormatter.formatDate(endDate) : '—';
@@ -1606,7 +1606,7 @@ class SubscriptionPlanCard extends StatelessWidget {
               if (plan.originalPrice != null && plan.originalPrice! > plan.price) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '₹${plan.originalPrice!.toStringAsFixed(0)}',
+                  CurrencyFormatter.format(plan.originalPrice),
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

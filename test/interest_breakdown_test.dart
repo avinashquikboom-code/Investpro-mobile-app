@@ -16,19 +16,19 @@ void main() {
       // Expected calculation:
       // Monthly: ₹1,200
       expect(breakdown.monthlyInterest, equals(1200.0));
-      expect(InterestFormatter.formatMonthly(breakdown.monthlyInterest), equals('₹1,200'));
+      expect(InterestFormatter.formatMonthly(breakdown.monthlyInterest), equals('₹1,200.00'));
 
       // Daily: ₹40
       expect(breakdown.dailyInterest, equals(40.0));
-      expect(InterestFormatter.formatDaily(breakdown.dailyInterest), equals('₹40'));
+      expect(InterestFormatter.formatDaily(breakdown.dailyInterest), equals('₹40.00'));
 
       // Hourly: 40 / 24 = 1.666666...
       expect(breakdown.hourlyInterest, closeTo(1.6667, 0.0001));
-      expect(InterestFormatter.formatHourly(breakdown.hourlyInterest), equals('₹1.6667'));
+      expect(InterestFormatter.formatHourly(breakdown.hourlyInterest), equals('₹1.67'));
 
       // Minute: 1.666666... / 60 = 0.027777...
       expect(breakdown.minuteInterest, closeTo(0.02778, 0.00001));
-      expect(InterestFormatter.formatMinute(breakdown.minuteInterest), equals('₹0.02778'));
+      expect(InterestFormatter.formatMinute(breakdown.minuteInterest), equals('₹0.03'));
     });
 
     test('Does not round intermediate calculations before deriving smaller time intervals', () {
@@ -121,16 +121,16 @@ void main() {
 
       // Check table rows
       expect(find.text('1 Month (30 days)'), findsOneWidget);
-      expect(find.text('₹1,200'), findsOneWidget);
+      expect(find.text('₹1,200.00'), findsOneWidget);
 
       expect(find.text('1 Day'), findsOneWidget);
-      expect(find.text('₹40'), findsOneWidget);
+      expect(find.text('₹40.00'), findsOneWidget);
 
       expect(find.text('1 Hour'), findsOneWidget);
-      expect(find.text('₹1.6667'), findsOneWidget);
+      expect(find.text('₹1.67'), findsOneWidget);
 
       expect(find.text('1 Minute'), findsOneWidget);
-      expect(find.text('₹0.02778'), findsOneWidget);
+      expect(find.text('₹0.03'), findsOneWidget);
     });
   });
 }
