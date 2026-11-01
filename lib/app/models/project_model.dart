@@ -14,10 +14,11 @@ class ProjectModel {
   final String? city;
   String get cityLabel => city?.trim().isNotEmpty == true ? city!.trim() : 'Location not specified';
   String get locationLabel {
-    final parts = [city?.trim(), location?.trim()]
-        .whereType<String>()
-        .where((value) => value.isNotEmpty);
-    return parts.isEmpty ? 'Location not specified' : parts.join(' · ');
+    final c = city?.trim();
+    if (c != null && c.isNotEmpty) return c;
+    final l = location?.trim();
+    if (l != null && l.isNotEmpty) return l;
+    return 'Location not specified';
   }
   final String id;
   final String name;

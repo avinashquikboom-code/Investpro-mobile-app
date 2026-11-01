@@ -161,7 +161,7 @@ class _ProjectsViewState extends State<ProjectsView> {
                             onSubmitted: (_) =>
                                 projects.refreshProjects(),
                             decoration: InputDecoration(
-                              hintText: 'Search projects by name or location...',
+                              hintText: 'Search projects by name or city...',
                               prefixIcon: const Icon(
                                 Remix.search_line,
                                 color: AppColors.textSecondary,

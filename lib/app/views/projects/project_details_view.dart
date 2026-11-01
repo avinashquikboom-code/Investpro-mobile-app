@@ -220,21 +220,6 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                               ),
                               Text(project.cityLabel, maxLines: 2, overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
-                              if (project.location != null &&
-                                  project.location!.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  project.location!,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
                               const SizedBox(height: 6),
                               Wrap(
                                 spacing: 6,

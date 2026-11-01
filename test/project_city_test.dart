@@ -13,7 +13,8 @@ void main() {
   test('city survives API parsing, copies, and cached model round trips', () {
     final project = ProjectModel.fromBackend({'id': 'project', 'city': '  नवी मुंबई  ', 'location': 'Maharashtra'});
     expect(project.cityLabel, 'नवी मुंबई');
-    expect(project.locationLabel, 'नवी मुंबई · Maharashtra');
+    expect(project.locationLabel, 'नवी मुंबई');
+    expect(ProjectModel.fromBackend({'id': 'loc-only', 'location': 'Maharashtra'}).locationLabel, 'Maharashtra');
     expect(project.copyWith(name: 'Updated').city, project.city);
     expect(ProjectModel.fromJson(project.toJson()).city, project.city);
     expect(ProjectModel.fromBackend({'id': 'legacy'}).locationLabel, 'Location not specified');
