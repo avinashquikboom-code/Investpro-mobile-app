@@ -7,6 +7,8 @@ class InvestmentModel {
   final String reference;
   final String projectId;
   final String projectName;
+  final String? projectCity;
+  String get projectCityLabel => projectCity?.trim().isNotEmpty == true ? projectCity!.trim() : 'Location not specified';
   final String iconType;
   final double investedAmount;
   final double returnRatePercent;
@@ -27,6 +29,7 @@ class InvestmentModel {
     this.reference = '',
     required this.projectId,
     required this.projectName,
+    this.projectCity,
     required this.iconType,
     required this.investedAmount,
     required this.returnRatePercent,
@@ -65,6 +68,7 @@ class InvestmentModel {
       reference: reference ?? this.reference,
       projectId: projectId ?? this.projectId,
       projectName: projectName ?? this.projectName,
+      projectCity: projectCity,
       iconType: iconType ?? this.iconType,
       investedAmount: investedAmount ?? this.investedAmount,
       returnRatePercent: returnRatePercent ?? this.returnRatePercent,
@@ -86,6 +90,7 @@ class InvestmentModel {
       'reference': reference,
       'projectId': projectId,
       'projectName': projectName,
+      'projectCity': projectCity,
       'iconType': iconType,
       'investedAmount': investedAmount,
       'returnRatePercent': returnRatePercent,
@@ -113,6 +118,7 @@ class InvestmentModel {
       ),
       projectId: json['projectId'] as String,
       projectName: DisplayValue.text(json['projectName']),
+      projectCity: json['projectCity'] as String?,
       iconType: json['iconType'] as String? ?? 'code',
       investedAmount: (json['investedAmount'] as num).toDouble(),
       returnRatePercent: (json['returnRatePercent'] as num).toDouble(),

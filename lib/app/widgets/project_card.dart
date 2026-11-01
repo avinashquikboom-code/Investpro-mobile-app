@@ -219,7 +219,8 @@ class ProjectCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      Text(project.locationLabel, maxLines: 2, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 4),
                       if (isDashboardVariant) ...[
                         Text(
                           '${CurrencyFormatter.format(project.targetAmount)}  |  ${project.durationMonths} Months',

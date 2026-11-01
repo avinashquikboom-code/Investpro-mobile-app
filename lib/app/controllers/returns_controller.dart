@@ -35,7 +35,7 @@ class ReturnsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (isLive) selectedPeriod.value = 'Hourly';
+    if (isLive) selectedPeriod.value = 'Monthly';
     _workspaceUser = _repo.currentUser.value.id;
     _userWorker = ever(_repo.currentUser, (user) {
       if (user.id == _workspaceUser) return;

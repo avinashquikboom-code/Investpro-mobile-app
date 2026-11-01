@@ -1,6 +1,7 @@
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:remixicon/remixicon.dart';
 
@@ -102,7 +103,8 @@ class ReturnsOverview extends StatelessWidget {
                   ('Project ID', DisplayValue.id(payout['projectId'])),
                   ('Investment ID', DisplayValue.id(payout['investmentId'])),
                   ('Transaction ID', DisplayValue.id(payout['transactionId'])),
-                  ('Payout amount', money(payout['profitAmount'])),
+                  ('Interest', money(payout['profitAmount'])),
+                  ('Total payment', money(payout['totalAmount'] ?? payout['profitAmount'])),
                   ('Payout time', time(payout['date'])),
                   if (payout['dueDate'] != null) ('Scheduled date', date(payout['dueDate'])),
                   ('Payment date', date(payout['date'])),
@@ -218,7 +220,7 @@ class ReturnsOverview extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Total Returns',
+                          'Total Returns Credited',
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,
@@ -236,6 +238,17 @@ class ReturnsOverview extends StatelessWidget {
                             color: ink,
                           ),
                         ),
+                        if (number(summary['totalEarnedReturns']) == 0) ...[
+                          const SizedBox(height: 4),
+                          const Text(
+                            'No payouts credited yet',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 10),
                         Wrap(
                           spacing: 7,
@@ -297,15 +310,202 @@ class ReturnsOverview extends StatelessWidget {
             for (final entry in <(String, String)>[
               ("Today's Total Earnings", money(summary['todayEarnings'])),
               ('Hourly Return Rate', '${snapshot['hourly']?['hourlyEarningRate'] ?? 'Not available'} /hr'),
-              ('Total Returns Credited', money(snapshot['hourly']?['totalCreditedReturns'])),
+              ('Total Returns Credited', money(snapshot['hourly']?['totalCreditedReturns'] ?? summary['totalEarnedReturns'])),
               ('Last Payout Time', time(snapshot['hourly']?['lastPayoutTime'])),
               ('Next Expected Payout Time', time(snapshot['hourly']?['nextExpectedPayoutTime'])),
-              ('Accrued, not credited', money(snapshot['hourly']?['accruedNotCredited'])),
+              ('Accrued, not credited', money(snapshot['hourly']?['accruedNotCredited'] ?? snapshot['hourly']?['totalAccruedReturns'])),
             ]) Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text(entry.$1, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               Text(entry.$2, style: TextStyle(fontWeight: FontWeight.w600, color: ink)),
             ]),
           ])),
+          const SizedBox(height: 16),
+          // Today's Earnings and Return Summary Card (Distinguishing Credited, Accrued, Projected)
+          card(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Earnings and Return Summary",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: ink,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildSummaryRowWithTag(
+                  "Today's Earnings",
+                  money(summary['todayEarnings']),
+                  'Credited',
+                  const Color(0xFFE8F7EC),
+                  AppColors.primary,
+                  const Color(0xFF10B981),
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Estimated Hourly Equivalent',
+                  '${snapshot['hourly']?['hourlyEarningRate'] ?? '0.0000'} /hr',
+                  'Projected',
+                  const Color(0xFFE0F2FE),
+                  const Color(0xFF0369A1),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Projected Total Return',
+                  money(summary['totalProjectedReturns'] ?? summary['totalInvested']),
+                  'Projected',
+                  const Color(0xFFE0F2FE),
+                  const Color(0xFF0369A1),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Monthly Projected Return',
+                  money(number(snapshot['hourly']?['hourlyEarningRate']) * 24 * 30),
+                  'Projected',
+                  const Color(0xFFE0F2FE),
+                  const Color(0xFF0369A1),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Daily Equivalent',
+                  money(number(snapshot['hourly']?['hourlyEarningRate']) * 24),
+                  'Projected',
+                  const Color(0xFFE0F2FE),
+                  const Color(0xFF0369A1),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Hourly Equivalent',
+                  '${snapshot['hourly']?['hourlyEarningRate'] ?? '0.0000'} /hr',
+                  'Projected',
+                  const Color(0xFFE0F2FE),
+                  const Color(0xFF0369A1),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Total Returns Credited',
+                  money(snapshot['hourly']?['totalCreditedReturns'] ?? summary['totalEarnedReturns']),
+                  'Credited',
+                  const Color(0xFFE8F7EC),
+                  AppColors.primary,
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Accrued, Not Credited',
+                  money(snapshot['hourly']?['accruedNotCredited'] ?? snapshot['hourly']?['totalAccruedReturns']),
+                  'Accrued',
+                  const Color(0xFFFEF3C7),
+                  const Color(0xFF92400E),
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Last Payout',
+                  time(snapshot['hourly']?['lastPayoutTime']),
+                  'Credited',
+                  const Color(0xFFE8F7EC),
+                  AppColors.primary,
+                  ink,
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRowWithTag(
+                  'Next Expected Payout',
+                  time(snapshot['hourly']?['nextExpectedPayoutTime']),
+                  'Scheduled',
+                  const Color(0xFFF3E8FF),
+                  const Color(0xFF6B21A8),
+                  ink,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Return Schedule Card
+          card(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Return Schedule',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: ink,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildScheduleItem('Monthly Amount', money(number(snapshot['hourly']?['hourlyEarningRate']) * 24 * 30), ink),
+                    Container(width: 1, height: 32, color: AppColors.border),
+                    _buildScheduleItem('Daily Equivalent', money(number(snapshot['hourly']?['hourlyEarningRate']) * 24), ink),
+                    Container(width: 1, height: 32, color: AppColors.border),
+                    _buildScheduleItem('Hourly Equivalent', '${snapshot['hourly']?['hourlyEarningRate'] ?? '0.0000'} /hr', ink),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Hourly Earnings Analytics Card
+          card(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Hourly Earnings Analytics',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: ink,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1FAF4),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFD3EADB)),
+                      ),
+                      child: Text(
+                        'Indicative Projections',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _buildAnalyticsBar('Hourly Return', '${snapshot['hourly']?['hourlyEarningRate'] ?? '0.0000'} /hr', 0.25),
+                const SizedBox(height: 10),
+                _buildAnalyticsBar('Daily Return', money(number(snapshot['hourly']?['hourlyEarningRate']) * 24), 0.55),
+                const SizedBox(height: 10),
+                _buildAnalyticsBar('Monthly Return', money(number(snapshot['hourly']?['hourlyEarningRate']) * 24 * 30), 0.90),
+                const SizedBox(height: 12),
+                const Text(
+                  'Daily and hourly figures are estimates. Actual payouts follow the investment agreement and backend payout schedule.',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           TextButton.icon(
             key: const ValueKey('hourly-date-picker'),
@@ -519,6 +719,131 @@ class ReturnsOverview extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildSummaryRowWithTag(
+    String label,
+    String value,
+    String tag,
+    Color tagBg,
+    Color tagColor,
+    Color textColor,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: tagBg,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: tagColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildScheduleItem(String label, String value, Color textColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildAnalyticsBar(
+    String label,
+    String value,
+    double progress,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.05, 1.0),
+            minHeight: 6,
+            backgroundColor: const Color(0xFFE2EBE6),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
         ),
       ],

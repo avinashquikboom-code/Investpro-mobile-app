@@ -1,3 +1,4 @@
+import 'monthly_payout_schedule_card.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -177,7 +178,9 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
       ),
       const SizedBox(height: 20),
 
-      // 2. Balances, Projects, Hourly Accruals & Withdrawals
+      _buildMonthlyPayoutSchedule(w),
+      const SizedBox(height: 20),
+      // 2. Balances, Projects & Withdrawals
       Card(
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -204,6 +207,9 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
       ),
     ];
   }
+
+  Widget _buildMonthlyPayoutSchedule(Map<String, dynamic> w) =>
+      MonthlyPayoutScheduleCard(schedules: rows(w, 'payoutSchedule'));
 
   /// 6 Summary Cards for Overall Returns Dashboard
   Widget _buildSummaryCards(Map<String, dynamic> w, bool isDark) {
@@ -404,7 +410,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hourly Returns',
+                      'Interest estimates',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -414,7 +420,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                       ),
                     ),
                     Text(
-                      'Hourly wallet credits processed by the backend',
+                      'Estimates only. Wallet credits follow confirmed monthly payouts.',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1180,7 +1186,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           ),
           const SizedBox(height: 6),
           Text(
-            'Start investing in verified projects to receive confirmed hourly wallet credits.',
+            'Start investing in verified projects to receive confirmed monthly payouts.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

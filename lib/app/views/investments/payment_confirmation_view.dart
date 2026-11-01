@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:remixicon/remixicon.dart';
@@ -1050,6 +1051,57 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView>
             'investmentPeriod'.tr,
             '${calc.durationMonths} Months',
             isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+          // Projected Return Breakdown
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF1FAF4),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Projected Return Breakdown',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildSummaryRow(
+                  'Monthly Return',
+                  CurrencyFormatter.formatPrecise(calc.monthlyProjectedReturn, decimalDigits: 2),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 6),
+                _buildSummaryRow(
+                  'Daily Return',
+                  CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 6),
+                _buildSummaryRow(
+                  'Hourly Equivalent',
+                  '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4)} / hr',
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Projected returns are estimates and are not guaranteed.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
           Divider(
             height: 24,

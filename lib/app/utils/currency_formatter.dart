@@ -23,6 +23,16 @@ class CurrencyFormatter {
     return _indianFormat.format(amount.round());
   }
 
+  /// Formats currency with customizable decimal digits (e.g. 2 for daily/monthly, 4 for hourly, 5 for minute)
+  static String formatPrecise(num amount, {int decimalDigits = 2}) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: decimalDigits,
+    );
+    return formatter.format(amount);
+  }
+
   /// Compact Indian notation: ₹ 10K, ₹ 25K, ₹ 50K, ₹ 1L, ₹ 1.5Cr
   static String formatCompact(num amount) {
     if (amount >= 10000000) {

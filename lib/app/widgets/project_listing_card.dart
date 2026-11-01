@@ -154,7 +154,7 @@ class ProjectListingCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (project.location?.trim().isNotEmpty == true)
+                        if (project.locationLabel.isNotEmpty)
                           Text.rich(
                             TextSpan(
                               children: [
@@ -166,7 +166,7 @@ class ProjectListingCard extends StatelessWidget {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                TextSpan(text: ' ${project.location}'),
+                                TextSpan(text: ' ${project.locationLabel}'),
                               ],
                             ),
                             style: theme.textTheme.bodyMedium,

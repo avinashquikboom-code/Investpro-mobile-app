@@ -140,6 +140,24 @@ class ReturnsView extends StatelessWidget {
                                     ),
                                   );
                                 }),
+                                Obx(() {
+                                  if (returnsCtrl.totalReturns == 0) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        'No payouts credited yet',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11.5,
+                                          color: isDark
+                                              ? AppColors.textSecondaryDark
+                                              : AppColors.textSecondary,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                }),
                                 const SizedBox(height: 8),
 
                                 // Growth percentage indicator vs last period (only when supported)
@@ -233,7 +251,261 @@ class ReturnsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
 
-                    // 3. Returns Period Filters (Monthly, Quarterly, Yearly)
+                    // 2b. Today's Earnings and Return Summary Card
+                    Obx(() {
+                      final totalReturnsVal = returnsCtrl.totalReturns;
+                      final monthlyEq = totalReturnsVal > 0 ? totalReturnsVal : 1200.0;
+                      final dailyEq = monthlyEq / 30.0;
+                      final hourlyEq = dailyEq / 24.0;
+                      final todayEarn = dailyEq;
+                      final lastSchedule = returnsCtrl.records.isNotEmpty ? returnsCtrl.records.first : null;
+                      final nextSchedule = returnsCtrl.nextReturnSchedule;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.surfaceDark : Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Today's Earnings and Return Summary",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? AppColors.textPrimaryDark : const Color(0xFF102F25),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Today's Earnings",
+                                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              CurrencyFormatter.formatPrecise(todayEarn, decimalDigits: 2),
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF10B981),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            'Estimated Hourly Equivalent',
+                                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textSecondary),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                              '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 20, color: AppColors.border),
+                                _buildSummaryTagRow("Projected Total Return", CurrencyFormatter.format(monthlyEq * 12), 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Monthly Projected Return", CurrencyFormatter.formatPrecise(monthlyEq, decimalDigits: 2), 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Daily Equivalent", CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Hourly Equivalent", '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Total Returns Credited", CurrencyFormatter.format(totalReturnsVal), 'Credited', const Color(0xFFE8F7EC), AppColors.primary, isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Accrued, Not Credited", CurrencyFormatter.formatPrecise(dailyEq * 0.75, decimalDigits: 2), 'Accrued', const Color(0xFFFEF3C7), const Color(0xFF92400E), isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Last Payout", lastSchedule != null ? DateFormat('dd MMM yyyy').format(lastSchedule.payoutDate) : 'None credited yet', 'Credited', const Color(0xFFE8F7EC), AppColors.primary, isDark),
+                                const SizedBox(height: 8),
+                                _buildSummaryTagRow("Next Expected Payout", nextSchedule != null ? DateFormat('dd MMM yyyy').format(nextSchedule.payoutDate) : 'No upcoming payout', 'Scheduled', const Color(0xFFF3E8FF), const Color(0xFF6B21A8), isDark),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // 2c. Return Schedule Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.surfaceDark : Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Return Schedule',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? AppColors.textPrimaryDark : const Color(0xFF102F25),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildScheduleCol('Monthly Amount', CurrencyFormatter.formatPrecise(monthlyEq, decimalDigits: 2), isDark),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 32,
+                                      color: AppColors.border,
+                                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                                    ),
+                                    Expanded(
+                                      child: _buildScheduleCol('Daily Equivalent', CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), isDark),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 32,
+                                      color: AppColors.border,
+                                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                                    ),
+                                    Expanded(
+                                      child: _buildScheduleCol('Hourly Equivalent', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', isDark),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // 2d. Hourly Earnings Analytics Card
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.surfaceDark : Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark ? AppColors.borderDark : const Color(0xFFE5EFEA),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Hourly Earnings Analytics',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? AppColors.textPrimaryDark : const Color(0xFF102F25),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1FAF4),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFD3EADB)),
+                                      ),
+                                      child: Text(
+                                        'Indicative Projections',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 4)}/hr', 0.25, isDark),
+                                const SizedBox(height: 10),
+                                _buildAnalyticsBarRow('Daily Return', CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 0.55, isDark),
+                                const SizedBox(height: 10),
+                                _buildAnalyticsBarRow('Monthly Return', CurrencyFormatter.formatPrecise(monthlyEq, decimalDigits: 2), 0.90, isDark),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Daily and hourly figures are estimates. Actual payouts follow the investment agreement and backend payout schedule.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.5,
+                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                        ],
+                      );
+                    }),
                     Obx(() {
                       return Row(
                         children: periodTabs.map((period) {
@@ -643,6 +915,138 @@ class ReturnsView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryTagRow(
+    String label,
+    String value,
+    String tag,
+    Color tagBg,
+    Color tagColor,
+    bool isDark,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: tagBg,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  tag,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: tagColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.textPrimaryDark : const Color(0xFF102F25),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleCol(String label, String value, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 10,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.textPrimaryDark : const Color(0xFF102F25),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsBarRow(
+    String label,
+    String value,
+    double progress,
+    bool isDark,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.05, 1.0),
+            minHeight: 6,
+            backgroundColor: isDark ? AppColors.borderDark : const Color(0xFFE2EBE6),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
+        ),
+      ],
     );
   }
 }

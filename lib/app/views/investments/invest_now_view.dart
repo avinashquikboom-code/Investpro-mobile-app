@@ -1,8 +1,7 @@
-import 'package:remixicon/remixicon.dart';
-import '../../widgets/unsaved_changes_guard.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:remixicon/remixicon.dart';
 
 import '../../constants/app_constants.dart';
 import '../../controllers/investment_controller.dart';
@@ -11,9 +10,21 @@ import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/unsaved_changes_guard.dart';
 
-class InvestNowView extends StatelessWidget {
+/// Screen 1 – Invest Now
+/// Implements live investment calculation, presets, return breakdown,
+/// selectable schedule tabs, dynamic monthly amortization table, and secure CTA.
+class InvestNowView extends StatefulWidget {
   const InvestNowView({super.key});
+
+  @override
+  State<InvestNowView> createState() => _InvestNowViewState();
+}
+
+class _InvestNowViewState extends State<InvestNowView> {
+  // Return schedule tab: 'Daily', 'Hourly', 'Monthly', 'Total'
+  String _selectedScheduleTab = 'Monthly';
 
   IconData _getIcon(String iconType) {
     switch (iconType.toLowerCase()) {
@@ -24,6 +35,10 @@ class InvestNowView extends StatelessWidget {
       case 'gear':
       case 'ai':
         return Remix.settings_5_line;
+      case 'real estate':
+        return Remix.building_4_line;
+      case 'energy':
+        return Remix.sun_line;
       default:
         return Remix.briefcase_line;
     }
@@ -39,18 +54,44 @@ class InvestNowView extends StatelessWidget {
       changes: [invCtrl.investmentAmount.stream],
       snapshot: () => invCtrl.investmentAmount.value,
       child: Scaffold(
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
+        backgroundColor:
+            isDark ? AppColors.backgroundDark : AppColors.background,
         appBar: const CustomAppBar(title: 'Invest Now'),
         body: SafeArea(
           child: ResponsiveHelper.responsiveContainer(
             context: context,
-            maxWidth: 600,
+            maxWidth: 640,
             child: Obx(() {
               final project = invCtrl.currentProject.value;
               if (project == null) {
-                return const Center(child: Text('Please select a project'));
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Remix.folder_warning_line,
+                        size: 48,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Please select a project to invest',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => Get.back(),
+                        child: const Text('Back to Projects'),
+                      ),
+                    ],
+                  ),
+                );
               }
 
               final calc = invCtrl.calculationResult;
@@ -65,7 +106,7 @@ class InvestNowView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Selected Project Summary Card
+                    // 1. Project Information Card
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -77,21 +118,32 @@ class InvestNowView extends StatelessWidget {
                               : AppColors.border,
                           width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.2 : 0.03,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          Container(
-                            width: 46,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryDark,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              _getIcon(project.iconType),
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                          // Project Icon / Image
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: project.imageUrl != null &&
+                                    project.imageUrl!.isNotEmpty
+                                ? Image.network(
+                                    project.imageUrl!,
+                                    width: 48,
+                                    height: 48,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, stack) =>
+                                        _buildIconPlaceholder(project.iconType),
+                                  )
+                                : _buildIconPlaceholder(project.iconType),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -100,23 +152,52 @@ class InvestNowView extends StatelessWidget {
                               children: [
                                 Text(
                                   project.name,
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: isDark
                                         ? AppColors.textPrimaryDark
                                         : AppColors.textPrimary,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  '${project.returnRatePercent.toInt()}% Return  |  ${project.durationMonths} Months',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondary,
-                                  ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.surfaceDarkElevated
+                                            : const Color(0xFFE8F7EC),
+                                        borderRadius:
+                                            BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '${project.returnRatePercent.toInt()}% Return',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '|  ${project.durationMonths} Months',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -124,12 +205,12 @@ class InvestNowView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
-                    // Enter Investment Amount Label
+                    // 2. Investment Amount Section
                     Text(
                       'enterInvestmentAmount'.tr,
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: isDark
@@ -139,11 +220,13 @@ class InvestNowView extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
 
-                    // Amount Input Field with Rupee Icon
+                    // Amount Input with ₹ and Wallet Icon
                     TextField(
                       controller: invCtrl.amountTextController,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primary,
@@ -164,38 +247,66 @@ class InvestNowView extends StatelessWidget {
                           minWidth: 0,
                           minHeight: 0,
                         ),
-                        suffixIcon: const Icon(
-                          Remix.wallet_3_line,
-                          color: AppColors.primary,
+                        suffixIcon: const Padding(
+                          padding: EdgeInsets.only(right: 14),
+                          child: Icon(
+                            Remix.wallet_3_line,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
                         ),
+                        hintText: '5000',
                         filled: true,
-                        fillColor: isDark
-                            ? AppColors.surfaceDark
-                            : Colors.white,
+                        fillColor:
+                            isDark ? AppColors.surfaceDark : Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Quick Chips: ₹ 10K, ₹ 25K, ₹ 50K, ₹ 1L
+                    // Preset Quick Chips: ₹10K, ₹25K, ₹50K, ₹1L
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: AppConstants.quickInvestAmounts.map((amt) {
                           final isSelected =
-                              invCtrl.investmentAmount.value == amt;
+                              (invCtrl.investmentAmount.value - amt).abs() <
+                                  0.01;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
                               label: Text(
                                 CurrencyFormatter.formatCompact(amt),
-                                style: TextStyle(
-                                  fontSize: 13,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? Colors.white
                                       : (isDark
-                                            ? AppColors.textPrimaryDark
-                                            : AppColors.textPrimary),
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimary),
                                 ),
                               ),
                               selected: isSelected,
@@ -203,22 +314,26 @@ class InvestNowView extends StatelessWidget {
                               backgroundColor: isDark
                                   ? AppColors.surfaceDark
                                   : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                               side: BorderSide(
                                 color: isSelected
                                     ? AppColors.primaryDark
                                     : (isDark
-                                          ? AppColors.borderDark
-                                          : AppColors.border),
+                                        ? AppColors.borderDark
+                                        : AppColors.border),
                               ),
-                              onSelected: (_) => invCtrl.selectQuickAmount(amt),
+                              onSelected: (_) =>
+                                  invCtrl.selectQuickAmount(amt),
                             ),
                           );
                         }).toList(),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 22),
 
-                    // Summary Details Card
+                    // 3. Investment Summary Card
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -230,84 +345,563 @@ class InvestNowView extends StatelessWidget {
                               : AppColors.border,
                           width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.2 : 0.03,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            'Investment Summary',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Investment Amount
                           _buildSummaryRow(
-                            context: context,
+                            label: 'Investment Amount',
+                            value: CurrencyFormatter.format(calc.principal),
+                            isDark: isDark,
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.border,
+                          ),
+
+                          // Projected Return (Total)
+                          _buildSummaryRow(
                             label:
-                                'Expected Return (${project.returnRatePercent.toInt()}%)',
+                                'Projected Return (${project.returnRatePercent.toInt()}%)',
                             value: CurrencyFormatter.format(
                               calc.expectedTotalReturn,
+                              showDecimals: true,
                             ),
                             valueColor: AppColors.primary,
-                          ),
-                          const Divider(height: 22, color: AppColors.border),
-                          _buildSummaryRow(
-                            context: context,
-                            label: 'maturityAmount'.tr,
-                            value: CurrencyFormatter.format(
-                              calc.projectedMaturityAmount,
-                            ),
                             isBold: true,
+                            isDark: isDark,
                           ),
-                          const Divider(height: 22, color: AppColors.border),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.border,
+                          ),
+
+                          // Monthly Projected Return
                           _buildSummaryRow(
-                            context: context,
-                            label: 'investmentPeriod'.tr,
+                            label: 'Monthly Projected Return',
+                            value: CurrencyFormatter.formatPrecise(
+                              calc.monthlyProjectedReturn,
+                              decimalDigits: 2,
+                            ),
+                            valueColor: AppColors.primary,
+                            isDark: isDark,
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.border,
+                          ),
+
+                          // Daily Projected Return
+                          _buildSummaryRow(
+                            label: 'Daily Projected Return',
+                            value: CurrencyFormatter.formatPrecise(
+                              calc.dailyProjectedReturn,
+                              decimalDigits: 2,
+                            ),
+                            isDark: isDark,
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.border,
+                          ),
+
+                          // Hourly Projected Return
+                          _buildSummaryRow(
+                            label: 'Hourly Projected Return',
+                            value: CurrencyFormatter.formatPrecise(
+                              calc.hourlyProjectedReturn,
+                              decimalDigits: 4,
+                            ),
+                            isDark: isDark,
+                          ),
+                          const Divider(
+                            height: 20,
+                            color: AppColors.border,
+                          ),
+
+                          // Investment Period
+                          _buildSummaryRow(
+                            label: 'Investment Period',
                             value: '${project.durationMonths} Months',
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Dark Green Highlight Bar for Projected Maturity Amount
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF003B2D), Color(0xFF004B38)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Projected Maturity Amount',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFFB4E0CA),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    CurrencyFormatter.format(
+                                      calc.projectedMaturityAmount,
+                                      showDecimals: true,
+                                    ),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-                    // Primary Button: Proceed to Pay
+                    // 4. Return Schedule Section with Selectable Tabs
+                    Text(
+                      'Return Schedule',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Schedule Tabs: Daily, Hourly, Monthly, Total
+                    Row(
+                      children: ['Daily', 'Hourly', 'Monthly', 'Total']
+                          .map((tab) {
+                        final isTabSelected = _selectedScheduleTab == tab;
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedScheduleTab = tab),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 9),
+                                decoration: BoxDecoration(
+                                  color: isTabSelected
+                                      ? AppColors.primary
+                                      : (isDark
+                                          ? AppColors.surfaceDark
+                                          : const Color(0xFFF1FAF4)),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isTabSelected
+                                        ? AppColors.primary
+                                        : (isDark
+                                            ? AppColors.borderDark
+                                            : AppColors.border),
+                                  ),
+                                ),
+                                child: Text(
+                                  tab,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: isTabSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isTabSelected
+                                        ? Colors.white
+                                        : (isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textPrimary),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Selected Tab Value Display Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceDark
+                            : const Color(0xFFF1FAF4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.borderDark
+                              : const Color(0xFFD3EADB),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Remix.time_line,
+                                  size: 16,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    '$_selectedScheduleTab Return Rate:',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textPrimary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _getTabReturnValue(calc, _selectedScheduleTab),
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 5. Dynamic Monthly Return Schedule Table
+                    Text(
+                      'Monthly Return Schedule',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.borderDark
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // Table Header
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.surfaceDarkElevated
+                                  : const Color(0xFFF7FAF8),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(15),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    'Month',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    'Monthly Return',
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    'Cumulative Return',
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1, color: AppColors.border),
+
+                          // Table Rows (Dynamic for each month)
+                          ...calc.monthlySchedule.map((item) {
+                            final isEven = item.month % 2 == 0;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              color: isEven && !isDark
+                                  ? const Color(0xFFFAFCFA)
+                                  : Colors.transparent,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Month ${item.month}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      CurrencyFormatter.format(
+                                        item.monthlyReturn,
+                                        showDecimals: true,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      CurrencyFormatter.format(
+                                        item.cumulativeReturn,
+                                        showDecimals: true,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+
+                          const Divider(height: 1, color: AppColors.border),
+
+                          // Final Total Return Footer Row
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.surfaceDarkElevated
+                                  : const Color(0xFFF1FAF4),
+                              borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(15),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Text(
+                                    'Total Return (${project.durationMonths} Mos)',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      CurrencyFormatter.format(
+                                        calc.expectedTotalReturn,
+                                        showDecimals: true,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // 6. Primary Action: Proceed to Pay Button
                     CustomButton(
                       text: 'proceedToPay'.tr,
                       onPressed: invCtrl.amountError == null
                           ? invCtrl.proceedToPaymentConfirmation
                           : null,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
+                    // Amount Error Notice
                     if (invCtrl.amountError != null)
-                      Text(
-                        invCtrl.amountError!,
-                        style: const TextStyle(color: AppColors.error),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          invCtrl.amountError!,
+                          style: GoogleFonts.poppins(
+                            color: AppColors.error,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    if (!invCtrl.isLive)
-                      const Text(
-                        'Full-term projections only. Returns are not guaranteed. Demo payment only.',
-                      ),
-                    if (invCtrl.isLive)
-                      const Text(
+
+                    // Full-term projections disclaimer
+                    Center(
+                      child: Text(
                         'Full-term projections only. Returns are not guaranteed.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
+                        ),
                       ),
-                    // Security Footer
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Secure & Encrypted Payment Footer
                     Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(
                             Remix.lock_2_line,
-                            size: 16,
+                            size: 15,
                             color: AppColors.primary,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'secureEncryptedPayment'.tr,
-                            style: const TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                   ],
                 ),
               );
@@ -318,23 +912,56 @@ class InvestNowView extends StatelessWidget {
     );
   }
 
+  Widget _buildIconPlaceholder(String iconType) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.primaryDark,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        _getIcon(iconType),
+        color: Colors.white,
+        size: 24,
+      ),
+    );
+  }
+
+  String _getTabReturnValue(
+    dynamic calc,
+    String tab,
+  ) {
+    switch (tab) {
+      case 'Daily':
+        return '${CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2)} / day';
+      case 'Hourly':
+        return '${CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4)} / hr';
+      case 'Monthly':
+        return '${CurrencyFormatter.formatPrecise(calc.monthlyProjectedReturn, decimalDigits: 2)} / mo';
+      case 'Total':
+      default:
+        return CurrencyFormatter.format(calc.expectedTotalReturn,
+            showDecimals: true);
+    }
+  }
+
   Widget _buildSummaryRow({
-    required BuildContext context,
     required String label,
     required String value,
     Color? valueColor,
     bool isBold = false,
+    required bool isDark,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(
           child: Text(
             label,
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 13,
+              fontWeight: FontWeight.w400,
               color: isDark
                   ? AppColors.textSecondaryDark
                   : AppColors.textSecondary,
@@ -346,11 +973,10 @@ class InvestNowView extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.end,
-            style: TextStyle(
-              fontSize: 14,
+            style: GoogleFonts.poppins(
+              fontSize: 13.5,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-              color:
-                  valueColor ??
+              color: valueColor ??
                   (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
             ),
           ),

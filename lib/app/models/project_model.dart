@@ -10,6 +10,14 @@ class ProjectModel {
   final bool hasReturnData;
   final double minInvestment;
   final double? maxInvestment;
+  final String? city;
+  String get cityLabel => city?.trim().isNotEmpty == true ? city!.trim() : 'Location not specified';
+  String get locationLabel {
+    final parts = [city?.trim(), location?.trim()]
+        .whereType<String>()
+        .where((value) => value.isNotEmpty);
+    return parts.isEmpty ? 'Location not specified' : parts.join(' · ');
+  }
   final String id;
   final String name;
   final String category;
@@ -25,6 +33,7 @@ class ProjectModel {
   final DateTime createdAt;
 
   const ProjectModel({
+    this.city,
     this.location,
     this.imageUrl,
     this.investorCount,
@@ -92,6 +101,7 @@ class ProjectModel {
     DateTime? createdAt,
   }) {
     return ProjectModel(
+      city: city,
       location: location,
       imageUrl: imageUrl,
       investorCount: investorCount,
@@ -118,6 +128,7 @@ class ProjectModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'city': city,
       'location': location,
       'imageUrl': imageUrl,
       'investorCount': investorCount,
@@ -146,6 +157,7 @@ class ProjectModel {
     final type = json['projectType'] as Map?;
     double number(String key) => num.tryParse('${json[key]}')?.toDouble() ?? 0;
     return ProjectModel(
+      city: json['city'] as String?,
       location: json['location'] as String?,
       imageUrl: json['bannerUrl'] as String?,
       investorCount: (json['investorsCount'] as num?)?.toInt(),
@@ -180,6 +192,7 @@ class ProjectModel {
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     return ProjectModel(
+      city: json['city'] as String?,
       location: json['location'] as String?,
       imageUrl: json['imageUrl'] as String?,
       investorCount: (json['investorCount'] as num?)?.toInt(),

@@ -8,6 +8,7 @@ import '../../controllers/investment_controller.dart';
 import '../../models/investment_model.dart';
 import '../../routes/app_routes.dart';
 import '../../services/demo_repository.dart';
+import '../../services/investment_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/date_formatter.dart';
@@ -471,6 +472,13 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
         ? (DateTime.now().difference(inv.startDate).inDays / (inv.durationMonths * 30)).clamp(0.0, 1.0)
         : 1.0;
 
+    final calc = InvestmentCalculator.calculate(
+      principal: inv.investedAmount,
+      returnRatePercent: inv.returnRatePercent,
+      durationMonths: inv.durationMonths,
+    );
+    final maturityAmount = inv.investedAmount + inv.expectedReturn;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -552,21 +560,21 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                         isBold: true,
                       ),
                       _buildInvestmentDetail(
-                        label: 'Return Rate',
-                        value: '${inv.returnRatePercent.toStringAsFixed(1)}% p.a.',
+                        label: 'Return',
+                        value: '${inv.returnRatePercent.toStringAsFixed(1)}%',
                         isDark: isDark,
                         valueColor: AppColors.success,
+                      ),
+                      _buildInvestmentDetail(
+                        label: 'Maturity',
+                        value: CurrencyFormatter.format(maturityAmount),
+                        isDark: isDark,
+                        isBold: true,
                       ),
                       _buildInvestmentDetail(
                         label: 'Tenure',
                         value: '${inv.durationMonths} Mos',
                         isDark: isDark,
-                      ),
-                      _buildInvestmentDetail(
-                        label: 'Est. Return',
-                        value: CurrencyFormatter.format(inv.expectedReturn),
-                        isDark: isDark,
-                        valueColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -608,11 +616,58 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+
+                // Return Schedule Row (Monthly, Daily, Hourly)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF1FAF4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildScheduleMiniMetric('Monthly Return', CurrencyFormatter.formatPrecise(calc.monthlyProjectedReturn, decimalDigits: 2), isDark),
+                      Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
+                      _buildScheduleMiniMetric('Daily Return', CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2), isDark),
+                      Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
+                      _buildScheduleMiniMetric('Hourly Return', CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 4), isDark),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildScheduleMiniMetric(String label, String value, bool isDark) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w500,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+          ),
+        ),
+      ],
     );
   }
 

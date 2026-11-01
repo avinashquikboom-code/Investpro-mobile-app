@@ -137,7 +137,7 @@ class ProjectController extends GetxController {
             _api != null ||
             searchQuery.value.isEmpty ||
             p.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-            (p.location ?? '').toLowerCase().contains(
+            p.locationLabel.toLowerCase().contains(
               searchQuery.value.toLowerCase(),
             ) ||
             p.category.toLowerCase().contains(searchQuery.value.toLowerCase());

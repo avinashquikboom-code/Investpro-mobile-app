@@ -68,6 +68,7 @@ class BackendSnapshot {
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
       projectName: DisplayValue.text(projectName),
+      projectCity: project['city'] as String?,
       iconType: 'folder',
       investedAmount: number(row['amount']),
       returnRatePercent: number(row['agreedRoi']),
