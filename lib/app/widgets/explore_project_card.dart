@@ -188,26 +188,31 @@ class ExploreProjectCard extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     // Funding Progress Bar with Percentage
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Funding Progress',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    SizedBox(
+                      width: double.infinity,
+                      child: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            'Funding Progress',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${project.progressPercentage.toStringAsFixed(2)}% funded',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                          Text(
+                            '${project.progressPercentage.toStringAsFixed(2)}% funded',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 6),
                     ClipRRect(

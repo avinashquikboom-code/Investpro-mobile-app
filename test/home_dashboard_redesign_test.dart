@@ -260,6 +260,37 @@ void main() {
     expect(find.text('20.00% / month'), findsOneWidget);
   });
 
+  for (final size in [const Size(320, 568), const Size(390, 844), const Size(800, 1280), const Size(1200, 900)]) {
+    for (final scale in [1.0, 1.5]) {
+      testWidgets('Explore Projects stays in one responsive row at $size scale $scale', (tester) async {
+        repo.projects.assignAll(List.generate(3, (index) => ProjectModel(
+          id: 'slider-$index', name: 'Investment project $index', category: 'Energy',
+          iconType: 'solar', targetAmount: 100000, raisedAmount: 50000,
+          returnRatePercent: 1.5, durationMonths: 12, status: 'Active',
+          description: 'An investment opportunity with a longer description for responsive sizing.',
+          minInvestment: 5000, createdAt: DateTime(2026, 1, index + 1),
+        )));
+        await mount(tester, size: size, scale: scale);
+        final slider = find.byKey(const ValueKey('explore-projects-slider'));
+        await tester.ensureVisible(slider);await tester.pumpAndSettle();
+        final cards = find.byType(ExploreProjectCard);
+        final first = tester.getRect(cards.first), second = tester.getRect(cards.at(1));
+        expect(second.top, closeTo(first.top, .1));
+        expect(second.left, greaterThanOrEqualTo(first.right));
+        expect(first.width, lessThanOrEqualTo(tester.getSize(slider).width));
+        final needsScroll = tester.getRect(cards.last).right > tester.getRect(slider).right + 1;
+        final before = tester.getTopLeft(cards.last).dx;
+        await tester.drag(slider, const Offset(-500, 0));await tester.pumpAndSettle();
+        if (needsScroll) {
+          expect(tester.getTopLeft(cards.last).dx, lessThan(before));
+        } else {
+          expect(tester.getRect(cards.last).right, lessThanOrEqualTo(tester.getRect(slider).right + 1));
+        }
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   testWidgets('Responsive across diverse phone and tablet viewports without overflow', (tester) async {
     repo.serverTotalInvested.value = 75000.0;
     repo.availableBalance.value = 12000.0;

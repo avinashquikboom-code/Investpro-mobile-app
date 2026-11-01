@@ -435,93 +435,45 @@ class HomeView extends StatelessWidget {
                           final displayProjects = projects.take(3).toList();
                           return LayoutBuilder(
                             builder: (context, constraints) {
-                              final isTablet = constraints.maxWidth >= 600;
-                              if (isTablet) {
-                                return Column(
+                              final availableWidth = constraints.maxWidth;
+                              final double cardWidth;
+                              if (displayProjects.length == 1 || availableWidth < 360) {
+                                cardWidth = availableWidth.clamp(0.0, 400.0);
+                              } else if (availableWidth >= 1000) {
+                                cardWidth = ((availableWidth - 32) / 3).clamp(0.0, 400.0);
+                              } else if (availableWidth >= 600) {
+                                cardWidth = (availableWidth - 16) / 2.15;
+                              } else {
+                                cardWidth = availableWidth * 0.9;
+                              }
+                              return SingleChildScrollView(
+                                key: const ValueKey('explore-projects-slider'),
+                                scrollDirection: Axis.horizontal,
+                                primary: false,
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    for (
-                                      int i = 0;
-                                      i < displayProjects.length;
-                                      i += 2
-                                    ) ...[
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: ExploreProjectCard(
-                                              project: displayProjects[i],
-                                              onTap: () {
-                                                if (projCtrl != null) {
-                                                  projCtrl.loadDetails(
-                                                    displayProjects[i].id,
-                                                  );
-                                                }
-                                                Get.toNamed(
-                                                  AppRoutes.projectDetails,
-                                                  arguments:
-                                                      displayProjects[i].id,
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          if (i + 1 < displayProjects.length)
-                                            Expanded(
-                                              child: ExploreProjectCard(
-                                                project: displayProjects[i + 1],
-                                                onTap: () {
-                                                  if (projCtrl != null) {
-                                                    projCtrl.loadDetails(
-                                                      displayProjects[i + 1].id,
-                                                    );
-                                                  }
-                                                  Get.toNamed(
-                                                    AppRoutes.projectDetails,
-                                                    arguments:
-                                                        displayProjects[i + 1]
-                                                            .id,
-                                                  );
-                                                },
-                                              ),
-                                            )
-                                          else
-                                            const Expanded(
-                                              child: SizedBox.shrink(),
-                                            ),
-                                        ],
+                                    for (var i = 0; i < displayProjects.length; i++) ...[
+                                      if (i > 0) const SizedBox(width: 16),
+                                      SizedBox(
+                                        width: cardWidth,
+                                        child: ExploreProjectCard(
+                                          project: displayProjects[i],
+                                          onTap: () {
+                                            final project = displayProjects[i];
+                                            projCtrl?.loadDetails(project.id);
+                                            Get.toNamed(
+                                              AppRoutes.projectDetails,
+                                              arguments: project.id,
+                                            );
+                                          },
+                                        ),
                                       ),
-                                      if (i + 2 < displayProjects.length)
-                                        const SizedBox(height: 16),
                                     ],
                                   ],
-                                );
-                              } else {
-                                return ListView.separated(
-                                  padding: EdgeInsets.zero,
-                                  primary: false,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: displayProjects.length,
-                                  separatorBuilder: (context, index) =>
-                                      const SizedBox(height: 14),
-                                  itemBuilder: (context, index) {
-                                    final p = displayProjects[index];
-                                    return ExploreProjectCard(
-                                      project: p,
-                                      onTap: () {
-                                        if (projCtrl != null) {
-                                          projCtrl.loadDetails(p.id);
-                                        }
-                                        Get.toNamed(
-                                          AppRoutes.projectDetails,
-                                          arguments: p.id,
-                                        );
-                                      },
-                                    );
-                                  },
-                                );
-                              }
+                                ),
+                              );
                             },
                           );
                         }),
