@@ -3,6 +3,7 @@ import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/banner_ad_placement.dart';
 import 'package:intl/intl.dart';
 import 'package:remixicon/remixicon.dart';
 
@@ -85,7 +86,10 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
         top: widget.isTab,
         child: RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: controller.refreshData,
+          onRefresh: () async {
+            await controller.refreshData();
+            await BannerAdPlacement.refreshAll();
+          },
           child: Obx(() {
             final w = controller.workspace.value;
             return Center(
@@ -129,6 +133,10 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                       const _ReturnsSkeleton(),
 
                     if (w != null) ..._buildContent(w, isDark),
+                    const BannerAdPlacement(
+                      placement: 'RETURNS_BOTTOM',
+                      margin: EdgeInsets.only(top: 12),
+                    ),
                   ],
                 ),
               ),

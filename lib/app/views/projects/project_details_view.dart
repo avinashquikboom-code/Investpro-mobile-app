@@ -16,6 +16,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/progress_indicator.dart';
 import '../../widgets/record_id.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/banner_ad_placement.dart';
 
 /// Screen 2 – Project Details
 /// Renders project image/icon, status badge, live funding progress card with percentage,
@@ -500,6 +501,11 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  const BannerAdPlacement(
+                    placement: 'PROJECT_DETAILS_AFTER_INVESTMENT',
+                    margin: EdgeInsets.symmetric(vertical: 20),
+                  ),
 
                   // 4. Risk Information Card & Description
                   Container(

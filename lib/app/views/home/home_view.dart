@@ -19,6 +19,7 @@ import '../../widgets/explore_project_card.dart';
 import '../../widgets/kyc_verified_badge.dart';
 import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
+import '../../widgets/banner_ad_placement.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -51,7 +52,10 @@ class HomeView extends StatelessWidget {
           top: false,
           child: RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: homeCtrl.refreshDashboard,
+            onRefresh: () async {
+              await homeCtrl.refreshDashboard();
+              await BannerAdPlacement.refreshAll();
+            },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
@@ -226,6 +230,11 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
 
+                  const BannerAdPlacement(
+                    placement: 'HOME_TOP', carousel: true,
+                    margin: EdgeInsets.only(top: 12, bottom: 4),
+                  ),
+
                   // 3. Main Dashboard Body
                   Padding(
                     padding: ResponsiveHelper.pagePadding(context)
@@ -329,6 +338,11 @@ class HomeView extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 16),
+
+                        const BannerAdPlacement(
+                          placement: 'HOME_BETWEEN_SECTIONS',
+                          margin: EdgeInsets.symmetric(vertical: 12),
+                        ),
 
                         // Subscription Membership Status Banner
                         if (Get.isRegistered<SubscriptionController>())
@@ -534,6 +548,10 @@ class HomeView extends StatelessWidget {
                             },
                           );
                         }),
+                        const BannerAdPlacement(
+                          placement: 'HOME_DASHBOARD_BOTTOM',
+                          margin: EdgeInsets.only(top: 12),
+                        ),
                         const SizedBox(height: 32),
                       ],
                     ),

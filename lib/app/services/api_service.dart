@@ -226,6 +226,8 @@ class ApiService extends getx.GetxService {
       if (page >= ((response.data['meta']?['totalPages'] as num?)?.toInt() ?? 1)) return records;
     }
   }
+  Future<List<dynamic>> bannerAds({String? placement}) =>
+      collection('/mobile/banner-ads', query: placement == null ? null : {'placement': placement});
   Future<Map<String, dynamic>> object(String path) async {
     final response = await dio.get(path);
     if (response.data['success'] != true || response.data['data'] is! Map) throw Exception('Unable to load account data');

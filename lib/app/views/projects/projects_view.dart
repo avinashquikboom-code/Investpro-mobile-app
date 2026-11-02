@@ -12,6 +12,7 @@ import '../../widgets/app_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/project_listing_card.dart';
 import '../subscriptions/subscription_plans_sheet.dart';
+import '../../widgets/banner_ad_placement.dart';
 
 class ProjectsView extends StatefulWidget {
   final bool isTab;
@@ -136,7 +137,10 @@ class _ProjectsViewState extends State<ProjectsView> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: RefreshIndicator(
-              onRefresh: projects.refreshProjects,
+              onRefresh: () async {
+                await projects.refreshProjects();
+                await BannerAdPlacement.refreshAll();
+              },
               child: CustomScrollView(
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
@@ -402,9 +406,16 @@ class _ProjectsViewState extends State<ProjectsView> {
                     return SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverList.builder(
-                        itemCount: list.length,
+                        itemCount: list.length + (list.length > 1 ? 1 : 0),
                         itemBuilder: (context, index) {
-                          final project = list[index];
+                          if (list.length > 1 && index == 2) {
+                            return const BannerAdPlacement(
+                              placement: 'PROJECTS_BETWEEN_LIST',
+                              margin: EdgeInsets.only(bottom: 16),
+                            );
+                          }
+                          final projectIndex = list.length > 1 && index > 2 ? index - 1 : index;
+                          final project = list[projectIndex];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Obx(() {
