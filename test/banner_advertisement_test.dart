@@ -36,4 +36,61 @@ void main() {
     const signed = 'https://example-bucket.s3.ap-south-1.amazonaws.com/banner-ads/a.webp?X-Amz-Signature=secret&X-Amz-Expires=3600';
     expect(resolveBannerImageUrl(signed, 'https://api.example.com/api/v1'), signed);
   });
+
+  test('parses multi-placement banner payload and matches all selected placements', () {
+    final banner = BannerAdvertisement.fromJson({
+      'id': 'banner-multi-1',
+      'imageUrl': 'https://example-bucket.s3.ap-south-1.amazonaws.com/banner-ads/promo.webp',
+      'title': 'Grow Your Wealth',
+      'placements': [
+        'HOME_TOP',
+        'PROJECTS_BETWEEN_LIST',
+        'RETURNS_BOTTOM',
+      ],
+      'isActive': true,
+    });
+
+    expect(banner.id, 'banner-multi-1');
+    expect(banner.placements, ['HOME_TOP', 'PROJECTS_BETWEEN_LIST', 'RETURNS_BOTTOM']);
+    expect(banner.placement, 'HOME_TOP');
+    expect(banner.matchesPlacement('HOME_TOP'), isTrue);
+    expect(banner.matchesPlacement('PROJECTS_BETWEEN_LIST'), isTrue);
+    expect(banner.matchesPlacement('RETURNS_BOTTOM'), isTrue);
+    expect(banner.matchesPlacement('HOME_DASHBOARD_BOTTOM'), isFalse);
+    expect(banner.matchesPlacement('HOME_BETWEEN_SECTIONS'), isFalse);
+  });
+
+  test('supports project details alias between BELOW_INVESTMENT and AFTER_INVESTMENT', () {
+    final banner1 = BannerAdvertisement.fromJson({
+      'id': 'banner-pd-1',
+      'imageUrl': '/ad.png',
+      'placements': ['PROJECT_DETAILS_BELOW_INVESTMENT'],
+      'isActive': true,
+    });
+    expect(banner1.matchesPlacement('PROJECT_DETAILS_BELOW_INVESTMENT'), isTrue);
+    expect(banner1.matchesPlacement('PROJECT_DETAILS_AFTER_INVESTMENT'), isTrue);
+
+    final banner2 = BannerAdvertisement.fromJson({
+      'id': 'banner-pd-2',
+      'imageUrl': '/ad.png',
+      'placement': 'PROJECT_DETAILS_AFTER_INVESTMENT',
+      'isActive': true,
+    });
+    expect(banner2.matchesPlacement('PROJECT_DETAILS_BELOW_INVESTMENT'), isTrue);
+    expect(banner2.matchesPlacement('PROJECT_DETAILS_AFTER_INVESTMENT'), isTrue);
+  });
+
+  test('maintains backward compatibility when only single placement string is provided', () {
+    final banner = BannerAdvertisement.fromJson({
+      'id': 'legacy-banner',
+      'imageUrl': '/uploads/legacy.webp',
+      'placement': 'HOME_DASHBOARD_BOTTOM',
+      'isActive': true,
+    });
+
+    expect(banner.placement, 'HOME_DASHBOARD_BOTTOM');
+    expect(banner.placements, ['HOME_DASHBOARD_BOTTOM']);
+    expect(banner.matchesPlacement('HOME_DASHBOARD_BOTTOM'), isTrue);
+    expect(banner.matchesPlacement('HOME_TOP'), isFalse);
+  });
 }

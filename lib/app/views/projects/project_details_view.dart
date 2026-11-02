@@ -503,7 +503,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                   const SizedBox(height: 20),
 
                   const BannerAdPlacement(
-                    placement: 'PROJECT_DETAILS_AFTER_INVESTMENT',
+                    placement: 'PROJECT_DETAILS_BELOW_INVESTMENT',
                     margin: EdgeInsets.symmetric(vertical: 20),
                   ),
 

@@ -57,7 +57,9 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
       for (final row in rows) {
         if (row is Map) {
           final ad = BannerAdvertisement.fromJson(Map<String, dynamic>.from(row));
-          if (ad.id.isNotEmpty && ad.imageUrl.isNotEmpty && ad.placement == widget.placement) unique[ad.id] = ad;
+          if (ad.id.isNotEmpty && ad.imageUrl.isNotEmpty && ad.matchesPlacement(widget.placement)) {
+            unique[ad.id] = ad;
+          }
         }
       }
       if (!mounted) return;

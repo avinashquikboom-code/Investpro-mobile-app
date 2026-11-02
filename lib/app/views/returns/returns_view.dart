@@ -13,6 +13,7 @@ import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/app_app_bar.dart';
 import '../../widgets/app_system_ui.dart';
+import '../../widgets/banner_ad_placement.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/returns_bar_chart.dart';
 import '../../widgets/status_badge.dart';
@@ -815,6 +816,10 @@ class ReturnsView extends StatelessWidget {
                       isDark: isDark,
                     ),
                     const SizedBox(height: 20),
+                    const BannerAdPlacement(
+                      placement: 'RETURNS_BOTTOM',
+                      margin: EdgeInsets.only(bottom: 20),
+                    ),
                   ],
                 ),
               ),
