@@ -14,6 +14,7 @@ class BannerAdvertisement {
     this.startDate,
     this.endDate,
     this.isActive = false,
+    this.isSponsored = false,
   });
 
   final String id;
@@ -30,11 +31,14 @@ class BannerAdvertisement {
   final DateTime? startDate;
   final DateTime? endDate;
   final bool isActive;
+  final bool isSponsored;
 
   bool matchesPlacement(String target) {
     final cleanTarget = target.trim();
-    if (placements.contains(cleanTarget) || placement == cleanTarget) return true;
-    if (cleanTarget == 'PROJECT_DETAILS_BELOW_INVESTMENT' || cleanTarget == 'PROJECT_DETAILS_AFTER_INVESTMENT') {
+    if (placements.contains(cleanTarget) || placement == cleanTarget)
+      return true;
+    if (cleanTarget == 'PROJECT_DETAILS_BELOW_INVESTMENT' ||
+        cleanTarget == 'PROJECT_DETAILS_AFTER_INVESTMENT') {
       return placements.contains('PROJECT_DETAILS_BELOW_INVESTMENT') ||
           placements.contains('PROJECT_DETAILS_AFTER_INVESTMENT') ||
           placement == 'PROJECT_DETAILS_BELOW_INVESTMENT' ||
@@ -59,7 +63,9 @@ class BannerAdvertisement {
         }
       }
     }
-    final singlePlacement = optional('placement') ?? (placementsList.isNotEmpty ? placementsList.first : '');
+    final singlePlacement =
+        optional('placement') ??
+        (placementsList.isNotEmpty ? placementsList.first : '');
     if (placementsList.isEmpty && singlePlacement.isNotEmpty) {
       placementsList.add(singlePlacement);
     }
@@ -79,6 +85,7 @@ class BannerAdvertisement {
       startDate: DateTime.tryParse(optional('startDate') ?? ''),
       endDate: DateTime.tryParse(optional('endDate') ?? ''),
       isActive: json['isActive'] == true,
+      isSponsored: json['isSponsored'] == true,
     );
   }
 
@@ -97,6 +104,7 @@ class BannerAdvertisement {
     'startDate': startDate?.toIso8601String(),
     'endDate': endDate?.toIso8601String(),
     'isActive': isActive,
+    'isSponsored': isSponsored,
   };
 }
 
@@ -105,7 +113,9 @@ class BannerAdvertisement {
 String resolveBannerImageUrl(String imageUrl, String mediaApiBaseUrl) {
   final uri = Uri.tryParse(imageUrl);
   if (uri?.hasScheme == true) return imageUrl;
-  final origin = mediaApiBaseUrl.replaceFirst(RegExp(r'/api/v\d+/?$'), '').replaceFirst(RegExp(r'/$'), '');
+  final origin = mediaApiBaseUrl
+      .replaceFirst(RegExp(r'/api/v\d+/?$'), '')
+      .replaceFirst(RegExp(r'/$'), '');
   final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
   return '$origin$path';
 }
