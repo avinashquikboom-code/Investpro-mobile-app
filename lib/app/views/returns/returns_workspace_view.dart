@@ -182,28 +182,101 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
       _buildMonthlyPayoutSchedule(w),
       const SizedBox(height: 20),
       // 2. Balances, Projects & Withdrawals
-      Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ExpansionTile(
-          initiallyExpanded: false,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.all(16),
-          title: const Text('Balances & withdrawals'),
-          subtitle: const Text('Project returns, withdrawal requests and history'),
-          children: [
-            _buildSummaryCards(w, isDark),
-            const SizedBox(height: 20),
-            _buildHourlyReturnCard(w, isDark),
-            const SizedBox(height: 24),
-            _buildProjectReturnsSection(rows(w, 'projects'), isDark),
-            const SizedBox(height: 24),
-            InterestBreakdownSection(snapshot: w, isDark: isDark),
-            const SizedBox(height: 24),
-            _buildEarningsHistorySection(w, isDark),
-            const SizedBox(height: 20),
-            ...ledgerContent(w),
+      Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : const Color(0xFFE8F0EB),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.035),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
           ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Material(
+          color: Colors.transparent,
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: false,
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              leading: Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Remix.wallet_3_line,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                'Balances & withdrawals',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14.5,
+                  color: isDark ? AppColors.textPrimaryDark : const Color(0xFF14271F),
+                ),
+              ),
+              subtitle: Text(
+                'Project returns, withdrawal requests and history',
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      'Overview',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Remix.arrow_down_s_line,
+                    size: 20,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ],
+              ),
+              children: [
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                _buildSummaryCards(w, isDark),
+                const SizedBox(height: 20),
+                _buildHourlyReturnCard(w, isDark),
+                const SizedBox(height: 24),
+                _buildProjectReturnsSection(rows(w, 'projects'), isDark),
+                const SizedBox(height: 24),
+                InterestBreakdownSection(snapshot: w, isDark: isDark),
+                const SizedBox(height: 24),
+                _buildEarningsHistorySection(w, isDark),
+                const SizedBox(height: 20),
+                ...ledgerContent(w),
+              ],
+            ),
+          ),
         ),
       ),
     ];

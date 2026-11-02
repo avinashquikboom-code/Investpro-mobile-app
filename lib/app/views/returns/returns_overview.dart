@@ -1,6 +1,7 @@
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:remixicon/remixicon.dart';
 
@@ -80,6 +81,184 @@ class ReturnsOverview extends StatelessWidget {
                   .compareTo(DateTime.parse('${b['dueDate']}')),
         );
     return upcoming.firstOrNull;
+  }
+
+  void _showAllHourlyQueueModal(
+    BuildContext context,
+    List<Map<String, dynamic>> upcoming,
+  ) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final surface = dark ? AppColors.surfaceDark : Colors.white;
+    final ink = dark ? AppColors.textPrimaryDark : const Color(0xFF14271F);
+
+    Get.bottomSheet(
+      Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Upcoming Hourly Payouts',
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${upcoming.length} payouts scheduled in queue',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Remix.close_line),
+                  onPressed: () => Get.back(),
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Flexible(
+              child: upcoming.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'No upcoming hourly payouts',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: upcoming.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final item = upcoming[index];
+                        final isFirst = index == 0;
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isFirst
+                                ? (dark
+                                    ? AppColors.primary.withValues(alpha: 0.12)
+                                    : const Color(0xFFF0FDF4))
+                                : (dark
+                                    ? AppColors.surfaceDarkElevated
+                                    : const Color(0xFFF8FAF9)),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isFirst
+                                  ? AppColors.primary.withValues(alpha: 0.3)
+                                  : (dark
+                                      ? AppColors.borderDark
+                                      : const Color(0xFFE2EBE5)),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isFirst
+                                      ? AppColors.primary
+                                      : AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  time(item['dueDate']),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isFirst ? Colors.white : AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${item['projectName'] ?? 'Investment'}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: ink,
+                                      ),
+                                    ),
+                                    if (isFirst)
+                                      Text(
+                                        'Next in queue',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                money(
+                                  item['expectedAmount'] ?? item['profitAmount'],
+                                ),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
   }
 
   void details(Map<String, dynamic> payout) {
@@ -475,51 +654,459 @@ class ReturnsOverview extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         card(
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              circle(Remix.calendar_2_line),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      period == 'Hourly' ? 'Next Hourly Payout' : 'Next Return Date',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      next == null
-                          ? 'No upcoming returns scheduled'
-                          : period == 'Hourly' ? time(next['dueDate']) : date(next['dueDate']),
-                      style: TextStyle(
-                        color: ink,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (next != null) ...[
-                      Text('${next['projectName'] ?? ''} ${next['status'] == 'OVERDUE' ? '· Awaiting backend credit' : ''}'),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Expected Amount: ${money(next['profitAmount'])}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isHourly = period == 'Hourly';
+              final isCompact = constraints.maxWidth < 310;
+              final textScale = MediaQuery.textScalerOf(context).scale(1);
+              final isLargeText = textScale > 1.3;
+              final isOverdue = next != null && next['status'] == 'OVERDUE';
+              final upcomingQueue = isHourly ? rows(snapshot, 'upcoming').skip(1).toList() : const <Map<String, dynamic>>[];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- Header Row ---
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          isHourly ? Remix.timer_flash_line : Remix.calendar_2_line,
+                          color: AppColors.primary,
+                          size: 20,
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isHourly ? 'Next Hourly Payout' : 'Next Return Date',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              isHourly ? 'Auto-credited to wallet' : 'Scheduled investment return',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: isHourly ? AppColors.primary : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Status Badge on Header Right
+                      if (next == null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: dark ? AppColors.surfaceDarkElevated : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'No Schedule',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        )
+                      else if (isOverdue)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFFDE68A)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Remix.time_line, size: 11, color: Color(0xFFD97706)),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Awaiting credit',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isHourly ? 'Live Queue' : 'Scheduled',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
-                    if (period == 'Hourly') for (final item in rows(snapshot, 'upcoming').skip(1))
-                      Padding(padding: const EdgeInsets.only(top: 8), child: Text('${item['projectName']} · ${time(item['dueDate'])} · ${money(item['expectedAmount'])}', style: const TextStyle(fontSize: 12))),
+                  ),
+
+                  // --- Main Content Box ---
+                  if (next == null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: dark ? AppColors.surfaceDarkElevated : const Color(0xFFF8FAF9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: dark ? AppColors.borderDark : const Color(0xFFE5EDE8),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Remix.information_line,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'No upcoming returns scheduled',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: ink,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: dark ? AppColors.surfaceDarkElevated : const Color(0xFFF6FAF8),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: dark ? AppColors.borderDark : const Color(0xFFE2EBE5),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (isCompact || isLargeText) ...[
+                            // Stacked for compact view
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isHourly ? 'Payout Time' : 'Due Date',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isHourly ? time(next['dueDate']) : date(next['dueDate']),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: ink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Expected Amount',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  money(next['profitAmount']),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            // Side-by-side for regular view
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isHourly ? 'Payout Time' : 'Due Date',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        isHourly ? time(next['dueDate']) : date(next['dueDate']),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: ink,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Expected Amount',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      money(next['profitAmount']),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Container(
+                            height: 1,
+                            color: dark ? AppColors.borderDark : const Color(0xFFE5EDE8),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Icon(
+                                Remix.building_2_line,
+                                size: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '${next['projectName'] ?? 'Investment'}${isOverdue ? ' · Awaiting backend credit' : ''}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: isOverdue ? const Color(0xFFD97706) : ink,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                ),
-              ),
-            ],
+
+                  // --- Upcoming Hourly Queue List (when in Hourly mode) ---
+                  if (isHourly && upcomingQueue.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Remix.time_line, size: 14, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Upcoming Hourly Queue (${upcomingQueue.length})',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: () => _showAllHourlyQueueModal(context, rows(snapshot, 'upcoming')),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'View all',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                const Icon(Remix.arrow_right_s_line, size: 14, color: AppColors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: dark ? AppColors.surfaceDarkElevated.withValues(alpha: 0.5) : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: dark ? AppColors.borderDark : const Color(0xFFEAEFEA),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          for (var i = 0; i < upcomingQueue.length && i < 4; i++) ...[
+                            if (i > 0)
+                              Divider(
+                                height: 1,
+                                indent: 12,
+                                endIndent: 12,
+                                color: dark ? AppColors.borderDark : const Color(0xFFF0F4F1),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      time(upcomingQueue[i]['dueDate']),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${upcomingQueue[i]['projectName'] ?? ''}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: ink,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    money(upcomingQueue[i]['expectedAmount'] ?? upcomingQueue[i]['profitAmount']),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (upcomingQueue.length > 4)
+                            InkWell(
+                              onTap: () => _showAllHourlyQueueModal(context, rows(snapshot, 'upcoming')),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 10, top: 6),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'View all (+${upcomingQueue.length - 4} more)',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    const Icon(Remix.arrow_right_s_line, size: 14, color: AppColors.primary),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
+          mint: period == 'Hourly',
         ),
       ],
     );
