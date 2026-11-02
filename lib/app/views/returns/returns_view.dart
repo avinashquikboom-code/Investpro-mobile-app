@@ -486,6 +486,10 @@ class ReturnsView extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 14),
+                                HourlyEarningsChartWidget(
+                                  hourlyRate: hourlyEq,
+                                  isDark: isDark,
+                                ),
                                 _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', 0.25, isDark),
                                 const SizedBox(height: 10),
                                 _buildAnalyticsBarRow('Daily Return', CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 0.55, isDark),
@@ -1048,5 +1052,180 @@ class ReturnsView extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class HourlyEarningsChartWidget extends StatefulWidget {
+  final double hourlyRate;
+  final bool isDark;
+
+  const HourlyEarningsChartWidget({
+    super.key,
+    required this.hourlyRate,
+    required this.isDark,
+  });
+
+  @override
+  State<HourlyEarningsChartWidget> createState() => _HourlyEarningsChartWidgetState();
+}
+
+class _HourlyEarningsChartWidgetState extends State<HourlyEarningsChartWidget> {
+  int? selectedHour;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final currentHour = now.hour;
+    final rate = widget.hourlyRate > 0 ? widget.hourlyRate : 1.25;
+    final isDark = widget.isDark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Sub-bar showing selected hour or current status
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF1FAF4),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : const Color(0xFFD4EADB),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    selectedHour == null
+                        ? 'Live Rate: ${CurrencyFormatter.formatPrecise(rate, decimalDigits: 2)}/hr'
+                        : '${_formatHour(selectedHour!)}: ${CurrencyFormatter.formatPrecise(rate, decimalDigits: 2)}/hr',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.primaryDark,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                selectedHour == null
+                    ? '${now.hour}:00 Active'
+                    : (selectedHour! <= currentHour ? 'Accrued' : 'Projected'),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 24-Hour Bar Graph
+        SizedBox(
+          height: 85,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const totalBars = 24;
+              const barSpacing = 2.5;
+              final availableWidth = constraints.maxWidth - ((totalBars - 1) * barSpacing);
+              final barWidth = (availableWidth / totalBars).clamp(3.5, 18.0);
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(24, (h) {
+                  final isCurrent = h == currentHour;
+                  final isSelected = selectedHour == h;
+                  final isPastOrNow = h <= currentHour;
+
+                  // Visual bar height curve
+                  final factor = isCurrent ? 1.0 : (isPastOrNow ? 0.72 + (0.18 * ((h % 5) / 5.0)) : 0.55);
+                  final barHeight = (factor * 62.0).clamp(10.0, 68.0);
+
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedHour = isSelected ? null : h),
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: barWidth,
+                      height: isSelected ? barHeight + 8 : barHeight,
+                      decoration: BoxDecoration(
+                        gradient: isCurrent || isSelected
+                            ? const LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Color(0xFF005A32), Color(0xFF00A859)],
+                              )
+                            : LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: isPastOrNow
+                                    ? [
+                                        const Color(0xFF00854B).withValues(alpha: 0.85),
+                                        const Color(0xFF4ADE80),
+                                      ]
+                                    : [
+                                        (isDark ? const Color(0xFF244436) : const Color(0xFFC7EBD6)),
+                                        (isDark ? const Color(0xFF2E5745) : const Color(0xFFDDF4E7)),
+                                      ],
+                              ),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        boxShadow: isCurrent
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                    ),
+                  );
+                }),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // Time Axis Markers
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('12 AM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('4 AM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('8 AM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('12 PM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('4 PM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('8 PM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+              Text('11 PM', style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  String _formatHour(int h) {
+    final hour = h % 12 == 0 ? 12 : h % 12;
+    final ampm = h < 12 ? 'AM' : 'PM';
+    return '$hour:00 $ampm';
   }
 }

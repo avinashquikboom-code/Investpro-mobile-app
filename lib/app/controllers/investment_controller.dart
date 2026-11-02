@@ -22,6 +22,8 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
 
   // Form & Calculations State
   final RxDouble investmentAmount = 5000.0.obs;
+  final hasSelectedInvestmentAmount = false.obs;
+  String _lastAmountText = '';
   final TextEditingController amountTextController = TextEditingController(
     text: '5000',
   );
@@ -97,9 +99,15 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       if (isProcessingPayment.value) return;
       _projectionRequest++; _projectionTimer?.cancel();
       backendProjection.value = null; currentProject.value = null; selectedInvestment.value = null;
+      hasSelectedInvestmentAmount.value = false;
     });
     if(isLive)WidgetsBinding.instance.addObserver(this);
+    _lastAmountText = amountTextController.text;
     amountTextController.addListener(() {
+      if (amountTextController.text != _lastAmountText) {
+        _lastAmountText = amountTextController.text;
+        hasSelectedInvestmentAmount.value = true;
+      }
       final parsed =
           double.tryParse(
             amountTextController.text
@@ -140,6 +148,8 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     _projectionRequest++;
     backendProjection.value = null;
     selectQuickAmount(project.minInvestment);
+    // Prefilling Invest Now is not an investor-selected principal for Project Details.
+    hasSelectedInvestmentAmount.value = false;
   }
 
   double get remainingFunding {
@@ -149,6 +159,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
   }
 
   void selectQuickAmount(double amount) {
+    hasSelectedInvestmentAmount.value = true;
     investmentAmount.value = amount;
     amountTextController.text = amount.toString();
     _scheduleProjection();

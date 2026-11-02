@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -18,15 +20,16 @@ class Store implements LocalStore {
  @override dynamic read(String key)=>data[key];
  @override Future<void> write(String key,dynamic value) async {data[key]=value;}
 }
-ProjectModel project({String id='project',double minimum=1000,double rate=5,int months=1}) => ProjectModel.fromBackend({
- 'id':id,'title':'Website Development','minInvestment':minimum,'targetAmount':1000000,'fundedAmount':0,'expectedRoi':rate,'tenureMonths':months,'status':'ACTIVE','createdAt':'2026-11-02T00:00:00Z',
+ProjectModel project({String id='project',double minimum=1000,double target=1000000,double rate=5,int months=1}) => ProjectModel.fromBackend({
+ 'id':id,'title':'Website Development','minInvestment':minimum,'targetAmount':target,'fundedAmount':0,'expectedRoi':rate,'tenureMonths':months,'status':'ACTIVE','createdAt':'2026-11-02T00:00:00Z',
 });
-Future<(ProjectController,InvestmentController)> setup(WidgetTester tester,ProjectModel p,{double? amount,String? selectedId}) async {
+Future<(ProjectController,InvestmentController)> setup(WidgetTester tester,ProjectModel p,{double? amount,String? selectedId,bool initializeDefault=false}) async {
  Get.testMode=true;GoogleFonts.config.allowRuntimeFetching=false;
  final storage=LocalStorageService(backend:Store());
  final repo=DemoRepository(storage,NotificationService(storage));
  final projects=Get.put(ProjectController(repo));projects.selectProject(p);
  final investments=Get.put(InvestmentController(repo));
+ if(initializeDefault) investments.setProject(p);
  if(amount!=null){investments.setProject(selectedId==null?p:project(id:selectedId));investments.selectQuickAmount(amount);}
  await tester.binding.setSurfaceSize(const Size(600,1600));
  addTearDown(()=>tester.binding.setSurfaceSize(null));
@@ -47,14 +50,67 @@ void main(){
    expect(tester.takeException(),isNull);
   });
  }
- testWidgets('no selected amount shows no monetary projections even with a configured minimum',(tester) async {
-  await setup(tester,project());expect(find.textContaining('Select an investment amount'),findsOneWidget);expect(find.text('—'),findsNWidgets(4));expect(find.text('₹50.00'),findsNothing);expect(find.text('5.00% / month'),findsOneWidget);
+ testWidgets('project target supplies the preview principal until an amount is selected',(tester) async {
+  await setup(tester,project(target:50000));
+  expect(find.textContaining('Project target: ₹50,000.00'),findsOneWidget);
+  expect(find.text('5.00% / month'),findsOneWidget);
+  expect(find.text('1 Months'),findsOneWidget);
+  expect(find.text('₹2,500.00'),findsNWidgets(2));
+  expect(find.text('₹83.33'),findsOneWidget);
+  expect(find.text('₹3.47'),findsOneWidget);
  });
- testWidgets('missing minimum never uses funding target or a hardcoded principal',(tester) async {
-  await setup(tester,project(minimum:0));expect(find.textContaining('Select an investment amount'),findsOneWidget);expect(find.text('—'),findsNWidgets(4));expect(find.text('₹50,000.00'),findsNothing);
+ for (final target in [50000.0,1000000.0]) {
+  testWidgets('dynamic target $target supplies only the unselected preview principal', (tester) async {
+   final (_,controller)=await setup(tester,project(minimum:1000,target:target),initializeDefault:true);
+   expect(controller.investmentAmount.value,1000);
+   expect(controller.hasSelectedInvestmentAmount.value,false);
+   expect(find.textContaining('Project target: ${CurrencyFormatter.format(target)}'),findsOneWidget);
+   expect(find.text(CurrencyFormatter.format(target*0.05)),findsNWidgets(2));
+   expect(find.text('₹50.00'),findsNothing);
+  });
+ }
+ testWidgets('typing a principal after default initialization updates Project Details', (tester) async {
+  final (_,controller)=await setup(tester,project(),initializeDefault:true);
+  controller.amountTextController.text='10000';await tester.pumpAndSettle();
+  expect(controller.hasSelectedInvestmentAmount.value,true);expect(find.textContaining('Selected amount: ₹10,000.00'),findsOneWidget);expect(find.text('₹500.00'),findsNWidgets(2));
+ });
+ testWidgets('explicitly choosing the minimum is distinct from its automatic prefill', (tester) async {
+  final (_,controller)=await setup(tester,project(),initializeDefault:true);
+  controller.selectQuickAmount(1000);await tester.pumpAndSettle();
+  expect(find.textContaining('Selected amount: ₹1,000.00'),findsOneWidget);expect(find.text('₹50.00'),findsNWidgets(2));
+ });
+ testWidgets('changing project resets explicit principal selection', (tester) async {
+  final (projects,controller)=await setup(tester,project(),amount:10000);
+  final next=project(id:'next',minimum:25000,target:30000);projects.selectProject(next);controller.setProject(next);await tester.pumpAndSettle();
+  expect(controller.hasSelectedInvestmentAmount.value,false);expect(find.textContaining('Project target: ₹30,000.00'),findsOneWidget);expect(find.text('₹1,500.00'),findsNWidgets(2));expect(find.text('₹50,000.00'),findsNothing);
+ });
+ test('actual project API response maps its minimum, rate, duration and target independently', () {
+  final response=jsonDecode(File('test/fixtures/project_details_api_13.json').readAsStringSync()) as Map<String,dynamic>;
+  final p=ProjectModel.fromBackend(response);
+  expect(p.minInvestment,1000);expect(p.returnRatePercent,5);expect(p.durationMonths,1);expect(p.targetAmount,50000);expect(p.raisedAmount,20000);
+  final calc=InvestmentCalculator.calculate(principal:10000,returnRatePercent:p.returnRatePercent,durationMonths:p.durationMonths);
+  expect(calc.expectedTotalReturn,500);expect(calc.projectedMaturityAmount,10500);expect(calc.dailyProjectedReturn,16.67);expect(calc.hourlyProjectedReturn,closeTo(0.6944,1e-4));
+ });
+ testWidgets('captured API target maps to the Project Details preview',(tester) async {
+  final response=jsonDecode(File('test/fixtures/project_details_api_13.json').readAsStringSync()) as Map<String,dynamic>;
+  final p=ProjectModel.fromBackend(response);
+  await setup(tester,p);
+  expect(find.textContaining('Project target: ₹50,000.00'),findsOneWidget);
+  expect(find.text('₹2,500.00'),findsNWidgets(2));
+  expect(find.text('₹83.33'),findsOneWidget);
+  expect(find.text('₹3.47'),findsOneWidget);
+ });
+ for (final target in [50000,1000000]) {
+  testWidgets('funding target $target does not become the selected principal', (tester) async {
+   final p=ProjectModel.fromBackend({'id':'project','title':'Dynamic project','minInvestment':1000,'expectedRoi':5,'tenureMonths':1,'targetAmount':target,'fundedAmount':target/2,'status':'ACTIVE'});
+   await setup(tester,p,amount:10000);expect(find.text('₹500.00'),findsNWidgets(2));expect(find.textContaining('Selected amount: ₹10,000.00'),findsOneWidget);
+  });
+ }
+ testWidgets('missing target does not fall back to minimum or a hardcoded principal',(tester) async {
+  await setup(tester,project(minimum:1000,target:0));expect(find.textContaining('Select an investment amount'),findsOneWidget);expect(find.text('—'),findsNWidgets(4));expect(find.text('₹50.00'),findsNothing);
  });
  testWidgets('an amount selected for another project cannot leak into this preview',(tester) async {
-  await setup(tester,project(minimum:2000),amount:25000,selectedId:'other');expect(find.textContaining('Select an investment amount'),findsOneWidget);expect(find.text('—'),findsNWidgets(4));expect(find.text('₹100.00'),findsNothing);
+  await setup(tester,project(minimum:2000,target:2000),amount:25000,selectedId:'other');expect(find.textContaining('Project target: ₹2,000.00'),findsOneWidget);expect(find.text('₹100.00'),findsNWidgets(2));expect(find.text('₹1,250.00'),findsNothing);
  });
  testWidgets('amount updates rebuild all return figures and Invest Now keeps the amount',(tester) async {
   final (_,controller)=await setup(tester,project(),amount:10000);

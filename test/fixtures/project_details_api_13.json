@@ -1,0 +1,16 @@
+{
+  "displayId": 13,
+  "id": "5fbd1642-cd14-4f59-ae68-8badd3d606c8",
+  "title": "Website development",
+  "targetAmount": 50000,
+  "fundedAmount": 20000,
+  "minInvestment": 1000,
+  "maxInvestment": 50000,
+  "expectedRoi": 5,
+  "tenureMonths": 1,
+  "investmentDuration": 1,
+  "investmentDurationUnit": "MONTHS",
+  "status": "ACTIVE",
+  "monthlyReturnRate": 5,
+  "minimumInvestmentAmount": 1000
+}

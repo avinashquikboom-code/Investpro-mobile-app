@@ -10,6 +10,7 @@ import 'package:investpro/app/services/investment_calculator.dart';
 import 'package:investpro/app/services/local_storage_service.dart';
 import 'package:investpro/app/services/notification_service.dart';
 import 'package:investpro/app/theme/app_theme.dart';
+import 'package:investpro/app/utils/currency_formatter.dart';
 import 'package:investpro/app/views/investments/invest_now_view.dart';
 
 class MemoryStore implements LocalStore {
@@ -295,10 +296,16 @@ void main() {
       Get.reset();
     });
 
-    Widget createTestApp(Widget child) {
+    Widget createTestApp(Widget child, {double textScale = 1}) {
       return GetMaterialApp(
         locale: const Locale('en', 'US'),
         theme: AppTheme.lightTheme,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        ),
         home: child,
       );
     }
@@ -316,6 +323,67 @@ void main() {
       expect(invCtrl.calculationResult.previousMonthlyInterestPayouts,3600);
     });
 
+    for (final months in [1, 3, 6, 12]) {
+      testWidgets('Monthly payout table separates interest and principal for $months months', (tester) async {
+        invCtrl.setProject(ProjectModel(
+          id: 'monthly-$months',
+          name: 'Monthly Schedule Test',
+          category: 'Test',
+          iconType: 'folder',
+          targetAmount: 100000,
+          raisedAmount: 0,
+          minInvestment: 1000,
+          returnRatePercent: 5,
+          durationMonths: months,
+          description: '',
+          createdAt: DateTime(2026, 1, 1),
+        ));
+        invCtrl.selectQuickAmount(10000);
+        final width = months == 1 ? 320.0 : 400.0;
+        final textScale = months == 1 ? 1.0 : 1.3;
+        await tester.binding.setSurfaceSize(Size(width, 720));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(createTestApp(const InvestNowView(), textScale: textScale));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Monthly Return Schedule'), findsOneWidget);
+        expect(find.text('Month'), findsOneWidget);
+        expect(find.text('Interest'), findsOneWidget);
+        expect(find.text('Principal'), findsOneWidget);
+        expect(find.text('Total payout'), findsOneWidget);
+        expect(find.text('Status'), findsNothing);
+        expect(find.text('Final Month'), findsOneWidget);
+        expect(find.text(CurrencyFormatter.format(10000, showDecimals: true)), findsWidgets);
+        expect(find.text(CurrencyFormatter.format(10500, showDecimals: true)), findsWidgets);
+        expect(find.text(CurrencyFormatter.format(500 * months, showDecimals: true)), findsWidgets);
+        expect(find.text(CurrencyFormatter.format(10000 + 500 * months, showDecimals: true)), findsWidgets);
+        expect(find.text('Total interest ='), findsOneWidget);
+        expect(find.text('Total received ='), findsOneWidget);
+        if (months > 1) {
+          expect(find.text('₹0.00'), findsAtLeastNWidgets(months - 1));
+        }
+        for (var month = 1; month < months; month++) {
+          expect(find.text('Month $month'), findsOneWidget);
+        }
+
+        await tester.ensureVisible(find.text('Month'));
+        await tester.pumpAndSettle();
+        final monthHeaderX = tester.getTopLeft(find.text('Month')).dx;
+        final interestHeader = find.text('Interest');
+        final horizontalViewport = find.ancestor(
+          of: interestHeader,
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SingleChildScrollView &&
+                widget.scrollDirection == Axis.horizontal,
+          ),
+        ).first;
+        await tester.drag(horizontalViewport, const Offset(-180, 0));
+        await tester.pumpAndSettle();
+        expect(tester.getTopLeft(find.text('Month')).dx, monthHeaderX);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
     testWidgets('Tapping all 4 tabs updates banner and dynamic schedule rows without error', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 1200));
       await tester.pumpWidget(createTestApp(const InvestNowView()));
@@ -325,7 +393,7 @@ void main() {
       expect(find.text('Return Schedule'), findsOneWidget);
       expect(find.text('Monthly Return Schedule'), findsOneWidget);
       expect(find.text('Monthly Return Rate:'), findsOneWidget);
-      expect(find.textContaining('Month 1\n'), findsOneWidget);
+      expect(find.text('Month 1'), findsOneWidget);
 
       // 2. Switch to Daily
       await tester.tap(find.text('Daily'));
@@ -351,7 +419,7 @@ void main() {
       await tester.tap(find.text('Monthly'));
       await tester.pumpAndSettle();
       expect(find.text('Monthly Return Rate:'), findsOneWidget);
-      expect(find.textContaining('Month 1\n'), findsOneWidget);
+      expect(find.text('Month 1'), findsOneWidget);
 
       expect(tester.takeException(), isNull);
     });

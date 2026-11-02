@@ -767,20 +767,8 @@ class _InvestNowViewState extends State<InvestNowView> {
     ProjectModel project,
     bool isDark,
   ) {
-    if (_selectedScheduleTab == 'Monthly' && calc.payoutSchedule.isNotEmpty) {
-      String amount(dynamic value) => CurrencyFormatter.format((value as num).toDouble(), showDecimals: true);
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(columns: const [
-          DataColumn(label: Text('Month / Date')), DataColumn(label: Text('Interest')),
-          DataColumn(label: Text('Principal')), DataColumn(label: Text('Total Payout')),
-          DataColumn(label: Text('Status')),
-        ], rows: calc.payoutSchedule.map((p) => DataRow(cells: [
-          DataCell(Text('${p['payoutType'] == 'MATURITY' ? 'Final maturity' : 'Month ${p['payoutNumber']}'}\n${p['payoutDate'].toString().split('T').first}')),
-          DataCell(Text(amount(p['interestAmount']))), DataCell(Text(amount(p['principalAmount']))),
-          DataCell(Text(amount(p['totalPayoutAmount']))), DataCell(Text(p['payoutStatus'] == 'UPCOMING' ? 'Upcoming' : p['payoutStatus'].toString())),
-        ])).toList()),
-      );
+    if (_selectedScheduleTab == 'Monthly') {
+      return _buildMonthlyPayoutSchedule(calc, isDark);
     }
     final String col1Header;
     final String col2Header;
@@ -1043,6 +1031,219 @@ class _InvestNowViewState extends State<InvestNowView> {
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyPayoutSchedule(
+    InvestmentCalculationResult calc,
+    bool isDark,
+  ) {
+    final sourceRows = calc.payoutSchedule.isNotEmpty
+        ? calc.payoutSchedule
+        : calc.monthlySchedule.map((item) {
+            final isMaturity = item.month == calc.durationMonths;
+            return <String, dynamic>{
+              'payoutNumber': item.month,
+              'payoutDate': item.date?.toIso8601String(),
+              'interestAmount': item.monthlyReturn,
+              'principalAmount': isMaturity ? calc.principal : 0.0,
+              'payoutType': isMaturity ? 'MATURITY' : 'MONTHLY_INTEREST',
+            };
+          }).toList();
+
+    double amountValue(dynamic value) => value is num
+        ? value.toDouble()
+        : double.tryParse(value?.toString() ?? '') ?? 0.0;
+    String amountLabel(double value) => CurrencyFormatter.format(
+          value,
+          showDecimals: true,
+        );
+    final rows = <({int month, bool isMaturity, double interest, double principal, double payout})>[];
+    for (final source in sourceRows) {
+      final row = Map<String, dynamic>.from(source);
+      final month = int.tryParse('${row['payoutNumber']}') ?? rows.length + 1;
+      final isMaturity = row['payoutType'] == 'MATURITY' ||
+          month == calc.durationMonths;
+      final interest = amountValue(row['interestAmount']);
+      final principal = isMaturity ? calc.principal : 0.0;
+      rows.add((
+        month: month,
+        isMaturity: isMaturity,
+        interest: interest,
+        principal: principal,
+        payout: interest + principal,
+      ));
+    }
+
+    final totalInterest = rows.fold<double>(0, (sum, row) => sum + row.interest);
+    final totalReceived = rows.fold<double>(0, (sum, row) => sum + row.payout);
+    final isDarkSurface = isDark ? AppColors.surfaceDark : Colors.white;
+    final headerColor = isDark
+        ? AppColors.surfaceDarkElevated
+        : const Color(0xFFF7FAF8);
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
+
+    Widget heading(String label, {required double width, TextAlign align = TextAlign.left}) =>
+        SizedBox(
+          width: width,
+          child: Text(
+            label,
+            textAlign: align,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: secondaryColor,
+            ),
+          ),
+        );
+
+    Widget cell(String label, {required double width, TextAlign align = TextAlign.left}) =>
+        SizedBox(
+          width: width,
+          child: Text(
+            label,
+            textAlign: align,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+        );
+
+    Widget summaryLine(String label, String value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                value,
+                textAlign: TextAlign.right,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        );
+
+    const monthColumnWidth = 128.0;
+    const interestColumnWidth = 128.0;
+    const principalColumnWidth = 128.0;
+    const payoutColumnWidth = 148.0;
+    final scrollableColumnsWidth =
+        interestColumnWidth + principalColumnWidth + payoutColumnWidth;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDarkSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            color: headerColor,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                heading('Month', width: monthColumnWidth),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: scrollableColumnsWidth,
+                      child: Row(
+                        children: [
+                          heading('Interest', width: interestColumnWidth, align: TextAlign.right),
+                          heading('Principal', width: principalColumnWidth, align: TextAlign.right),
+                          heading('Total payout', width: payoutColumnWidth, align: TextAlign.right),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          ...rows.asMap().entries.map((entry) {
+            final index = entry.key;
+            final row = entry.value;
+            return Column(
+              children: [
+                Container(
+                  color: index.isOdd && !isDark
+                      ? const Color(0xFFFAFCFA)
+                      : Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: monthColumnWidth,
+                        child: Text(
+                          row.isMaturity ? 'Final Month' : 'Month ${row.month}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: row.isMaturity
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: scrollableColumnsWidth,
+                            child: Row(
+                              children: [
+                                cell(amountLabel(row.interest), width: interestColumnWidth, align: TextAlign.right),
+                                cell(amountLabel(row.principal), width: principalColumnWidth, align: TextAlign.right),
+                                cell(amountLabel(row.payout), width: payoutColumnWidth, align: TextAlign.right),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.border),
+              ],
+            );
+          }),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              children: [
+                summaryLine('Total interest =', amountLabel(totalInterest)),
+                summaryLine('Total received =', amountLabel(totalReceived)),
               ],
             ),
           ),

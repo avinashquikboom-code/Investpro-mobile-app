@@ -135,11 +135,16 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
             }
 
             final selectedAmount = invCtrl.investmentAmount.value;
-            final selectedPrincipal = invCtrl.currentProject.value?.id == project.id &&
+            final selectedPrincipal = invCtrl.hasSelectedInvestmentAmount.value &&
+                    invCtrl.currentProject.value?.id == project.id &&
                     selectedAmount.isFinite && selectedAmount > 0
                 ? selectedAmount
                 : null;
-            final calcBasis = selectedPrincipal;
+            final configuredTarget = project.targetAmount;
+            final calcBasis = selectedPrincipal ??
+                (configuredTarget.isFinite && configuredTarget > 0
+                    ? configuredTarget
+                    : null);
             final backend = invCtrl.backendProjection.value;
             final calc = calcBasis == null
                 ? null
@@ -155,7 +160,9 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                       );
             final basisLabel = calcBasis == null
                 ? 'Select an investment amount'
-                : 'Selected amount: ${CurrencyFormatter.format(calcBasis)}';
+                : selectedPrincipal != null
+                    ? 'Selected amount: ${CurrencyFormatter.format(calcBasis)}'
+                    : 'Project target: ${CurrencyFormatter.format(calcBasis)}';
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

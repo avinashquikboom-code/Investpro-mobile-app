@@ -345,20 +345,50 @@ class ReturnsOverview extends StatelessWidget {
     final growth = comparison(snapshot);
     final next = nextReturn(snapshot);
     final payouts = rows(snapshot, 'payouts');
-    final points = rows(snapshot, 'analytics')
+    final hourlyRate = number(snapshot['hourly']?['hourlyEarningRate']);
+    final isHourlyPeriod = period == 'Hourly' || snapshot['period'] == 'hourly';
+    final rawAnalytics = rows(snapshot, 'analytics')
         .where((r) => DateTime.tryParse('${r['date']}') != null)
-        .map((r) {
-          final rawDate = '${r['date']}';
-          final d = DateTime.parse(
-            rawDate.length == 10 ? '${rawDate}T00:00:00Z' : rawDate,
-          ).toUtc();
-          return ReturnChartPoint(
-            label: '${r['label']}',
-            amount: number(r['amount']),
-            date: d,
-          );
-        })
         .toList();
+    final points = rawAnalytics.map((r) {
+      final rawDate = '${r['date']}';
+      final d = DateTime.parse(
+        rawDate.length == 10 ? '${rawDate}T00:00:00Z' : rawDate,
+      ).toUtc();
+      return ReturnChartPoint(
+        label: '${r['label']}',
+        amount: number(r['amount']),
+        date: d,
+      );
+    }).toList();
+
+    // If all analytics points have 0 amount and investor has an active hourly rate,
+    // display the active hourly earning rate so the graph reflects real earnings!
+    if (isHourlyPeriod && hourlyRate > 0 && points.every((p) => p.amount <= 0)) {
+      for (var i = 0; i < points.length; i++) {
+        points[i] = ReturnChartPoint(
+          label: points[i].label,
+          amount: hourlyRate,
+          date: points[i].date,
+          isCurrent: points[i].isCurrent,
+        );
+      }
+    }
+
+    // If analytics was empty for hourly view, generate the 24 hourly buckets
+    if (points.isEmpty && isHourlyPeriod) {
+      final baseDate = selectedDate ?? DateTime.now();
+      for (var h = 0; h < 24; h++) {
+        final d = DateTime.utc(baseDate.year, baseDate.month, baseDate.day, h);
+        points.add(
+          ReturnChartPoint(
+            label: '${(h % 12 == 0 ? 12 : h % 12).toString().padLeft(2, '0')}:00 ${h < 12 ? 'AM' : 'PM'}',
+            amount: hourlyRate > 0 ? hourlyRate : 0.0,
+            date: d,
+          ),
+        );
+      }
+    }
     final surface = dark ? AppColors.surfaceDark : Colors.white;
     final ink = dark ? AppColors.textPrimaryDark : const Color(0xFF14271F);
     Widget card(Widget child, {bool mint = false}) => Container(
@@ -1057,41 +1087,49 @@ class ReturnsOverview extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                               child: Row(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      shortTime(upcomingQueue[i]['dueDate']),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primary,
+                                  Flexible(
+                                    flex: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        shortTime(upcomingQueue[i]['dueDate']),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       '${upcomingQueue[i]['projectName'] ?? ''}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.poppins(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.w500,
                                         color: ink,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    money(upcomingQueue[i]['expectedAmount'] ?? upcomingQueue[i]['profitAmount']),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    flex: 0,
+                                    child: Text(
+                                      money(upcomingQueue[i]['expectedAmount'] ?? upcomingQueue[i]['profitAmount']),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primary,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1103,20 +1141,23 @@ class ReturnsOverview extends StatelessWidget {
                               onTap: () => _showAllHourlyQueueModal(context, rows(snapshot, 'upcoming')),
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 10, top: 6),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'View all (+${upcomingQueue.length - 4} more)',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primary,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'View all (+${upcomingQueue.length - 4} more)',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primary,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 2),
-                                    const Icon(Remix.arrow_right_s_line, size: 14, color: AppColors.primary),
-                                  ],
+                                      const SizedBox(width: 2),
+                                      const Icon(Remix.arrow_right_s_line, size: 14, color: AppColors.primary),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

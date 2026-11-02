@@ -44,7 +44,20 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
     final muted = widget.isDark
         ? AppColors.textSecondaryDark
         : AppColors.textSecondary;
-    final points = widget.points;
+    final isHourly = widget.period.toLowerCase() == 'hourly';
+    final points = widget.points.isNotEmpty
+        ? widget.points
+        : (isHourly
+            ? List.generate(24, (h) {
+                final hourStr = (h % 12 == 0 ? 12 : h % 12).toString().padLeft(2, '0');
+                final ampm = h < 12 ? 'AM' : 'PM';
+                return ReturnChartPoint(
+                  label: '$hourStr:00 $ampm',
+                  amount: 0.0,
+                  date: DateTime.now(),
+                );
+              })
+            : widget.points);
     final maximum = points.fold<double>(
       0,
       (a, p) => math.max(a, p.amount.isFinite ? p.amount : 0),
@@ -86,7 +99,7 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
           const SizedBox(height: 12),
           if (points.isEmpty || maximum == 0)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
                 'No returns for this period',
                 style: TextStyle(color: muted),
@@ -148,26 +161,35 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
                                         width: math.min(30, slot * .48),
                                         height: points[i].amount > 0
                                             ? math.max(
-                                                3,
+                                                6.0,
                                                 points[i].amount /
                                                     scale *
                                                     plotHeight,
                                               )
-                                            : 0,
+                                            : (isHourly ? 8.0 : (maximum == 0 ? 5.0 : 0.0)),
                                         decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.bottomCenter,
-                                            end: Alignment.topCenter,
-                                            colors: selected == i
-                                                ? [
-                                                    AppColors.primaryDark,
-                                                    AppColors.accent,
-                                                  ]
-                                                : [
-                                                    AppColors.primary,
-                                                    const Color(0xFF8CE3AD),
-                                                  ],
-                                          ),
+                                          gradient: points[i].amount > 0
+                                              ? LinearGradient(
+                                                  begin: Alignment.bottomCenter,
+                                                  end: Alignment.topCenter,
+                                                  colors: selected == i
+                                                      ? [
+                                                          AppColors.primaryDark,
+                                                          AppColors.accent,
+                                                        ]
+                                                      : [
+                                                          AppColors.primary,
+                                                          const Color(0xFF8CE3AD),
+                                                        ],
+                                                )
+                                              : null,
+                                          color: points[i].amount > 0
+                                              ? null
+                                              : (selected == i
+                                                  ? AppColors.primary.withValues(alpha: 0.45)
+                                                  : (widget.isDark
+                                                      ? const Color(0xFF1F3B2F)
+                                                      : const Color(0xFFD4EFE0))),
                                           borderRadius:
                                               const BorderRadius.vertical(
                                                 top: Radius.circular(7),
