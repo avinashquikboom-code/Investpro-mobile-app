@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,6 +26,7 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
     with WidgetsBindingObserver {
   List<BannerAdvertisement> _ads = const [];
   Timer? _timer;
+  Timer? _refreshTimer;
   final PageController _pageController = PageController();
   int _page = 0;
   bool _loading = true;
@@ -35,6 +37,9 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
     BannerAdPlacement._mountedPlacements.add(this);
     WidgetsBinding.instance.addObserver(this);
     _load();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 50), (_) {
+      if (mounted && WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) _load();
+    });
   }
 
   @override
@@ -101,8 +106,7 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
 
   Widget _banner(BannerAdvertisement ad) {
     final hasText = ad.title != null || ad.description != null || (ad.buttonText != null && ad.targetUrl != null);
-    final uri = Uri.tryParse(ad.imageUrl);
-    final imageUrl = uri?.hasScheme == true ? ad.imageUrl : '${Get.find<ApiService>().mediaApiBaseUrl.replaceFirst(RegExp(r'/api/v\d+$'), '')}/${ad.imageUrl.replaceFirst(RegExp(r'^/'), '')}';
+    final imageUrl = resolveBannerImageUrl(ad.imageUrl, Get.find<ApiService>().mediaApiBaseUrl);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -113,7 +117,13 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
             borderRadius: BorderRadius.circular(14),
             child: AspectRatio(
               aspectRatio: widget.carousel ? 16 / 7 : 16 / 6,
-              child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const SizedBox.shrink()),
+              child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
+                if (kDebugMode) {
+                  final status = error is NetworkImageLoadException ? ' HTTP ${error.statusCode}' : '';
+                  debugPrint('Banner image ${ad.id} failed to load$status');
+                }
+                return const SizedBox.shrink();
+              }),
             ),
           ),
           if (hasText) ...[
@@ -143,6 +153,6 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
   void dispose() {
     BannerAdPlacement._mountedPlacements.remove(this);
     WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel(); _pageController.dispose(); super.dispose();
+    _timer?.cancel(); _refreshTimer?.cancel(); _pageController.dispose(); super.dispose();
   }
 }

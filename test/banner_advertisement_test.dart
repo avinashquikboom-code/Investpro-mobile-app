@@ -31,4 +31,9 @@ void main() {
     expect(banner.endDate, isNull);
     expect(banner.isActive, isTrue);
   });
+
+  test('keeps presigned S3 URL and signature unchanged', () {
+    const signed = 'https://example-bucket.s3.ap-south-1.amazonaws.com/banner-ads/a.webp?X-Amz-Signature=secret&X-Amz-Expires=3600';
+    expect(resolveBannerImageUrl(signed, 'https://api.example.com/api/v1'), signed);
+  });
 }

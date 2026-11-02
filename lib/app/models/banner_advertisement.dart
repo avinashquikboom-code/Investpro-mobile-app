@@ -53,3 +53,13 @@ class BannerAdvertisement {
     );
   }
 }
+
+/// Keeps presigned S3/CloudFront URLs intact, including their signature query.
+/// Relative local URLs are resolved against the backend origin for sandbox data.
+String resolveBannerImageUrl(String imageUrl, String mediaApiBaseUrl) {
+  final uri = Uri.tryParse(imageUrl);
+  if (uri?.hasScheme == true) return imageUrl;
+  final origin = mediaApiBaseUrl.replaceFirst(RegExp(r'/api/v\d+/?$'), '').replaceFirst(RegExp(r'/$'), '');
+  final path = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
+  return '$origin$path';
+}
