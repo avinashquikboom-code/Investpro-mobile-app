@@ -76,11 +76,11 @@ class BackendSnapshot {
       investedAmount: number(row['amount']),
       returnRatePercent: number(row['agreedRoi']),
       durationMonths: (row['tenureMonths'] as num?)?.toInt() ?? 0,
-      expectedReturn: number(row['totalExpectedReturns']),
+      expectedReturn: number(row['projectedTotalInterest'] ?? row['totalExpectedReturns']),
       maturityAmount:
           row['projectedMaturityAmount'] != null
               ? number(row['projectedMaturityAmount'])
-              : number(row['amount']) + number(row['totalExpectedReturns']),
+              : number(row['amount']) + number(row['projectedTotalInterest'] ?? row['totalExpectedReturns']),
       startDate: date(row['startDate']),
       maturityDate: date(row['maturityDate']),
       progressPercent: 0,
