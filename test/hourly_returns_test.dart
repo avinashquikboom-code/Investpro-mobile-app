@@ -72,9 +72,11 @@ void main() {
     final chart = tester.widget<ReturnsBarChart>(find.byType(ReturnsBarChart));
     expect(chart.points.length, 24); expect(chart.points[1].label, '01:00 AM'); expect(chart.points.last.label, '11:00 PM');
     expect(find.text('Monthly'), findsNothing);
-    expect(find.text('Hourly payout history'), findsOneWidget);
+    expect(find.text('Hourly Payout History'), findsOneWidget);
     expect(find.text('Next Hourly Payout'), findsOneWidget);
-    expect(find.text('Transaction ID: 105'), findsOneWidget);
+    expect(find.textContaining('Transaction ID:'), findsNothing);
+    expect(find.textContaining('Project ID:'), findsNothing);
+    expect(find.textContaining('Investment ID:'), findsNothing);
     expect(tester.takeException(), isNull);
   });
   for (final width in [320.0, 360.0]) {
