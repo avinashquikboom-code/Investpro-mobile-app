@@ -134,15 +134,28 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
               );
             }
 
-            // Calculation benchmark: use project target or minInvestment or standard benchmark
-            final calcBasis = project.minInvestment > 0
-                ? project.minInvestment
-                : (project.targetAmount > 0 ? project.targetAmount : 10000.0);
-            final calc = InvestmentCalculator.calculate(
-              principal: calcBasis,
-              returnRatePercent: project.returnRatePercent,
-              durationMonths: project.durationMonths,
-            );
+            final selectedAmount = invCtrl.investmentAmount.value;
+            final selectedPrincipal = invCtrl.currentProject.value?.id == project.id &&
+                    selectedAmount.isFinite && selectedAmount > 0
+                ? selectedAmount
+                : null;
+            final calcBasis = selectedPrincipal;
+            final backend = invCtrl.backendProjection.value;
+            final calc = calcBasis == null
+                ? null
+                : selectedPrincipal != null && backend != null &&
+                        backend.principal == calcBasis &&
+                        backend.returnRatePercent == project.returnRatePercent &&
+                        backend.durationMonths == project.durationMonths
+                    ? backend
+                    : InvestmentCalculator.calculate(
+                        principal: calcBasis,
+                        returnRatePercent: project.returnRatePercent,
+                        durationMonths: project.durationMonths,
+                      );
+            final basisLabel = calcBasis == null
+                ? 'Select an investment amount'
+                : 'Selected amount: ${CurrencyFormatter.format(calcBasis)}';
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -401,7 +414,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
 
                   // 3. Investment Details Card (Projected Return Total, Monthly, Daily, Hourly)
                   Text(
-                    'investmentDetails'.tr,
+                    '${'investmentDetails'.tr} · $basisLabel',
                     style: GoogleFonts.poppins(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
@@ -435,7 +448,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                         _buildDetailRow(
                           label:
                               '${'expectedReturnTotal'.tr} (${project.returnRatePercent.toStringAsFixed(2)}% / mo)',
-                          value: CurrencyFormatter.format(
+                          value: calc == null ? '—' : CurrencyFormatter.format(
                             calc.expectedTotalReturn,
                             showDecimals: true,
                           ),
@@ -446,7 +459,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                         const Divider(height: 22, color: AppColors.border),
                         _buildDetailRow(
                           label: 'monthlyReturn'.tr,
-                          value: CurrencyFormatter.formatPrecise(
+                          value: calc == null ? '—' : CurrencyFormatter.formatPrecise(
                             calc.monthlyProjectedReturn,
                             decimalDigits: 2,
                           ),
@@ -455,7 +468,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                         const Divider(height: 22, color: AppColors.border),
                         _buildDetailRow(
                           label: 'Daily Return',
-                          value: CurrencyFormatter.formatPrecise(
+                          value: calc == null ? '—' : CurrencyFormatter.formatPrecise(
                             calc.dailyProjectedReturn,
                             decimalDigits: 2,
                           ),
@@ -464,7 +477,7 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                         const Divider(height: 22, color: AppColors.border),
                         _buildDetailRow(
                           label: 'Hourly Return',
-                          value: CurrencyFormatter.formatPrecise(
+                          value: calc == null ? '—' : CurrencyFormatter.formatPrecise(
                             calc.hourlyProjectedReturn,
                             decimalDigits: 2,
                           ),
@@ -585,6 +598,9 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                     onPressed: project.status.toLowerCase() == 'active'
                         ? () {
                             invCtrl.setProject(project);
+                            if (selectedPrincipal != null && !invCtrl.isProcessingPayment.value) {
+                              invCtrl.selectQuickAmount(selectedPrincipal);
+                            }
                             Get.toNamed(AppRoutes.investNow);
                           }
                         : null,

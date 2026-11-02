@@ -106,8 +106,7 @@ class DemoRepository extends GetxService {
           .fold<int>(0, (s, r) => s + minor(r.amount)) /
       100;
 
-  double get totalPortfolioValue =>
-      (minor(totalInvested) + minor(availableBalance.value)) / 100;
+  double get totalPortfolioValue => totalInvested;
 
   int get totalActiveProjects => investments
       .where((i) => i.status == 'Active')
