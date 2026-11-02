@@ -57,7 +57,7 @@ Map<String, dynamic> investment({bool captured = false}) => {
 
 class PaymentApi extends ApiService {
   int orders = 0, verifications = 0;
-  bool captured = false, failOrder = false;
+  bool captured = false, failOrder = false, recoverOrder = false;
   int amount = 2500000;
   Completer<void>? orderGate;
   @override
@@ -69,6 +69,10 @@ class PaymentApi extends ApiService {
     if(orderGate!=null) await orderGate!.future;
     if (failOrder) {
       throw const PaymentFailure('Amount exceeds remaining project funding');
+    }
+    if (recoverOrder) {
+      captured = true;
+      return {'investmentId': id, 'alreadyPaid': true, 'paymentStatus': 'CAPTURED', 'investment': investment(captured: true)};
     }
     return {
       'investmentId': id,
@@ -290,6 +294,15 @@ void main() {
       expect(sdk.clears, greaterThan(0));
     },
   );
+  testWidgets('recovered captured order activates without opening another checkout', (tester) async {
+    final (c, api, repo, sdk) = await setup(tester);
+    api.recoverOrder = true;
+    expect(await c.confirmAndPay(), true);
+    expect(sdk.options, isNull);
+    expect(api.verifications, 0);
+    expect(c.lastSuccessfulInvestment.value, isNotNull);
+    await tester.pumpAndSettle();
+  });
   testWidgets(
     'maturity amount returned as payable is rejected before checkout',
     (tester) async {

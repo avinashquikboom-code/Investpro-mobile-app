@@ -64,6 +64,7 @@ class BackendSnapshot {
         '${project['title'] ?? row['projectName'] ?? ''}';
     return InvestmentModel(
       recordIds: DisplayValue.ids(row),
+      financials: {for (final key in ['totalInterestCredited', 'actualHourlyInterestCredited', 'accruedNotCredited', 'remainingProjectedInterest', 'outstandingPrincipal', 'finalSettlementAmount', 'principalRepaymentCompleted']) key: row[key]},
       id: row['id'] as String? ?? '',
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',

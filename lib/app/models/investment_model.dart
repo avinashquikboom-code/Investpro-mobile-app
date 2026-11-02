@@ -4,6 +4,14 @@ import '../services/investment_calculator.dart';
 
 class InvestmentModel {
   final Map<String, String> recordIds;
+  final Map<String, dynamic> financials;
+  double get totalInterestCredited => CurrencyFormatter.number(financials['totalInterestCredited']);
+  double get actualHourlyInterestCredited => CurrencyFormatter.number(financials['actualHourlyInterestCredited']);
+  double get accruedNotCredited => CurrencyFormatter.number(financials['accruedNotCredited']);
+  double get remainingProjectedInterest => CurrencyFormatter.number(financials['remainingProjectedInterest']);
+  double get outstandingPrincipal => CurrencyFormatter.number(financials['outstandingPrincipal']);
+  double get finalSettlementAmount => CurrencyFormatter.number(financials['finalSettlementAmount']);
+  bool get principalRepaymentCompleted => financials['principalRepaymentCompleted'] == true;
   final String id;
   final String reference;
   final String projectId;
@@ -29,6 +37,7 @@ class InvestmentModel {
   const InvestmentModel({
     required this.id,
     this.recordIds = const {},
+    this.financials = const {},
     this.reference = '',
     required this.projectId,
     required this.projectName,
@@ -69,6 +78,7 @@ class InvestmentModel {
   }) {
     return InvestmentModel(
       recordIds: recordIds,
+      financials: financials,
       id: id ?? this.id,
       reference: reference ?? this.reference,
       projectId: projectId ?? this.projectId,
@@ -94,6 +104,7 @@ class InvestmentModel {
     return {
       'id': id,
       'recordIds': recordIds,
+      'financials': financials,
       'reference': reference,
       'projectId': projectId,
       'projectName': projectName,
@@ -118,6 +129,7 @@ class InvestmentModel {
     DisplayValue.ids(json);
     return InvestmentModel(
       recordIds: DisplayValue.ids(json),
+      financials: Map<String, dynamic>.from(json['financials'] as Map? ?? {}),
       id: json['id'] as String,
       reference: DisplayValue.reference(
         json['invoiceNumber'] ??

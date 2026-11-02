@@ -315,6 +315,13 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     if(current['status']!='PENDING_PAYMENT')throw const PaymentFailure('This investment is not awaiting payment. Refresh your investment history.');
     final order=await api.paymentOrder(investmentId);
     if(isClosed)return false;
+    if (order['alreadyPaid'] == true) {
+      final verified = order['investment'];
+      if (order['investmentId'] != investmentId || verified is! Map || verified['id'] != investmentId || !await _acceptVerified(Map<String, dynamic>.from(verified))) {
+        throw const PaymentFailure('Payment was received but investment activation is pending. Do not pay again; contact support.');
+      }
+      return true;
+    }
     final amount=order['amount'];
     if(order['investmentId']!=investmentId||order['orderId'] is! String||!(order['orderId'] as String).startsWith('order_')||order['keyId'] is! String||!RegExp(r'^rzp_(test|live)_').hasMatch(order['keyId'] as String)||amount is! int||amount<=0||amount!=DemoRepository.minor((current['amount'] as num).toDouble())||order['currency']!='INR')throw const PaymentFailure('The payment order is invalid. Please retry or contact support.');
     final completion=Completer<bool>();_payment=completion;

@@ -77,4 +77,52 @@ void main() {
     expect(find.text('Transaction ID: 105'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+  for (final width in [320.0, 360.0]) {
+    testWidgets('hourly queue heading fits at $width with larger text', (tester) async {
+      GoogleFonts.config.allowRuntimeFetching = false;
+      tester.view.physicalSize = Size(width, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final snapshot = <String, dynamic>{
+        'period': 'hourly',
+        'asOf': '2026-11-02T00:00:00Z',
+        'summary': <String, dynamic>{},
+        'upcoming': [
+          for (var i = 0; i < 120; i++)
+            {
+              'id': 'queue-$i',
+              'projectName': 'Hourly project',
+              'dueDate': DateTime.utc(2026, 11, 3, i).toIso8601String(),
+              'expectedAmount': '0.10',
+              'profitAmount': '0.10',
+              'status': 'SCHEDULED',
+            },
+        ],
+      };
+      await tester.pumpWidget(GetMaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.3)),
+          child: child!,
+        ),
+        home: Scaffold(body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ReturnsOverview(snapshot: snapshot, period: 'Hourly', onPeriod: (_) {}),
+          ),
+        )),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Upcoming Hourly Queue (119)'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      final action = find.text('View all');
+      await tester.ensureVisible(action);
+      await tester.pumpAndSettle();
+      expect(tester.getRect(action).right, lessThanOrEqualTo(width));
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      expect(find.text('Upcoming Hourly Payouts'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
 }

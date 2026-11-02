@@ -67,6 +67,18 @@ class ReturnsOverview extends StatelessWidget {
     return parsed == null ? 'Not available' : DateFormat('dd MMM yyyy, hh:mm a').format(parsed.toLocal());
   }
 
+  static String shortTime(dynamic value) {
+    final parsed = DateTime.tryParse('$value');
+    if (parsed == null) return '—';
+    final local = parsed.toLocal();
+    final now = DateTime.now();
+    final isToday = local.year == now.year && local.month == now.month && local.day == now.day;
+    if (isToday) {
+      return DateFormat('hh:mm a').format(local);
+    }
+    return DateFormat('dd MMM, hh:mm a').format(local);
+  }
+
   static Map<String, dynamic>? nextReturn(Map<String, dynamic> data) {
     final now = DateTime.tryParse('${data['asOf']}') ?? DateTime.now();
     final upcoming =
@@ -119,26 +131,28 @@ class ReturnsOverview extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Upcoming Hourly Payouts',
-                      style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: ink,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Upcoming Hourly Payouts',
+                        style: GoogleFonts.poppins(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: ink,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${upcoming.length} payouts scheduled in queue',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 2),
+                      Text(
+                        '${upcoming.length} payouts scheduled in queue',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Remix.close_line),
@@ -974,20 +988,28 @@ class ReturnsOverview extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Remix.time_line, size: 14, color: AppColors.primary),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Upcoming Hourly Queue (${upcomingQueue.length})',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Remix.time_line, size: 14, color: AppColors.primary),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Upcoming Hourly Queue (${upcomingQueue.length})',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         InkWell(
                           onTap: () => _showAllHourlyQueueModal(context, rows(snapshot, 'upcoming')),
                           borderRadius: BorderRadius.circular(8),
@@ -1042,7 +1064,7 @@ class ReturnsOverview extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      time(upcomingQueue[i]['dueDate']),
+                                      shortTime(upcomingQueue[i]['dueDate']),
                                       style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,

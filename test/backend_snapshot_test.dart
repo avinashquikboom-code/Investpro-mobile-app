@@ -53,6 +53,16 @@ void main() {
     expect(scheduled.status, 'Scheduled');
     expect(scheduled.amount, 20);
   });
+  test('keeps backend credited interest separate from projected interest', () {
+    final row = BackendSnapshot.investment({'id':'i','amount':'10000','totalExpectedReturns':'12000','totalInterestCredited':'1.39','actualHourlyInterestCredited':'1.39','accruedNotCredited':'0.0001','outstandingPrincipal':'10000','finalSettlementAmount':'10000','principalRepaymentCompleted':false});
+    expect(row.expectedReturn, 12000);
+    expect(row.totalInterestCredited, 1.39);
+    expect(row.actualHourlyInterestCredited, 1.39);
+    expect(row.accruedNotCredited, 0.0001);
+    expect(row.outstandingPrincipal, 10000);
+    expect(row.copyWith().finalSettlementAmount, 10000);
+    expect(row.principalRepaymentCompleted, false);
+  });
   test('does not invent bank details or verification', () {
     final user = BackendSnapshot.user({'id':'i','fullName':'Investor','user':{'status':'ACTIVE'}});
     expect(user.bankAccountId, isNull);
