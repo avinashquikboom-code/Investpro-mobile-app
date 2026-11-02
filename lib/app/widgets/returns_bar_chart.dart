@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../controllers/returns_controller.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
+import 'hourly_market_chart.dart';
 
 /// Scrolls dense periods instead of squeezing labels or losing reporting buckets.
 class ReturnsBarChart extends StatefulWidget {
@@ -30,8 +31,9 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
     if (oldWidget.period != widget.period ||
         oldWidget.points.length != widget.points.length ||
         (selected != null &&
-            oldWidget.points[selected!].date !=
-                widget.points[selected!].date)) {
+            (selected! >= oldWidget.points.length ||
+                selected! >= widget.points.length ||
+                oldWidget.points[selected!].date != widget.points[selected!].date))) {
       selected = null;
     }
   }
@@ -45,19 +47,7 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
         ? AppColors.textSecondaryDark
         : AppColors.textSecondary;
     final isHourly = widget.period.toLowerCase() == 'hourly';
-    final points = widget.points.isNotEmpty
-        ? widget.points
-        : (isHourly
-            ? List.generate(24, (h) {
-                final hourStr = (h % 12 == 0 ? 12 : h % 12).toString().padLeft(2, '0');
-                final ampm = h < 12 ? 'AM' : 'PM';
-                return ReturnChartPoint(
-                  label: '$hourStr:00 $ampm',
-                  amount: 0.0,
-                  date: DateTime.now(),
-                );
-              })
-            : widget.points);
+    final points = widget.points;
     final maximum = points.fold<double>(
       0,
       (a, p) => math.max(a, p.amount.isFinite ? p.amount : 0),
@@ -93,11 +83,13 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
           ),
           const SizedBox(height: 3),
           Text(
-            widget.period.toLowerCase() == 'hourly' ? 'Hourly payout breakdown' : '${widget.period} breakdown',
+            isHourly ? 'Actual hourly wallet credits' : '${widget.period} breakdown',
             style: TextStyle(fontSize: 12, color: muted),
           ),
           const SizedBox(height: 12),
-          if (points.isEmpty || maximum == 0)
+          if (isHourly)
+            HourlyMarketChart(points: points, isDark: widget.isDark)
+          else if (points.isEmpty || maximum == 0)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Text(
@@ -105,7 +97,7 @@ class _ReturnsBarChartState extends State<ReturnsBarChart> {
                 style: TextStyle(color: muted),
               ),
             ),
-          LayoutBuilder(
+          if (!isHourly) LayoutBuilder(
             builder: (context, constraints) {
               final width = math.max(
                 constraints.maxWidth,

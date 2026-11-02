@@ -21,6 +21,7 @@ import 'package:investpro/app/views/home/home_view.dart';
 import 'package:investpro/app/widgets/explore_project_card.dart';
 import 'package:investpro/app/widgets/recent_activity_item.dart';
 import 'package:investpro/app/widgets/summary_card.dart';
+import 'package:investpro/app/widgets/banner_ad_placement.dart';
 
 class MemoryStore implements LocalStore {
   final values = <String, dynamic>{};
@@ -132,6 +133,11 @@ void main() {
     ]);
 
     await mount(tester);
+
+    final topBanner = tester.widgetList<BannerAdPlacement>(
+      find.byType(BannerAdPlacement),
+    ).firstWhere((banner) => banner.placement == 'HOME_TOP');
+    expect(topBanner.margin, const EdgeInsets.only(bottom: 4));
 
     // 1. Header checks
     expect(find.text('Hello, Rohit Sharma'), findsOneWidget);

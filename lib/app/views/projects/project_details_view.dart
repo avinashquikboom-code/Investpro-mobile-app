@@ -14,7 +14,6 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/project_image.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/progress_indicator.dart';
-import '../../widgets/record_id.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/banner_ad_placement.dart';
 
@@ -183,8 +182,6 @@ class _ProjectDetailsViewState extends State<ProjectDetailsView> {
                         ),
                       ),
                     ),
-
-                  RecordId(label: 'Project ID', value: project.recordIds['id']),
 
                   // 0. Hero Project Image Banner
                   if (project.imageUrl != null && project.imageUrl!.trim().isNotEmpty) ...[

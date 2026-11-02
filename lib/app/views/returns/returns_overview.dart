@@ -292,9 +292,6 @@ class ReturnsOverview extends StatelessWidget {
                     'Investment reference',
                     DisplayValue.reference(payout['invoiceNumber'] ?? payout['investmentReference']),
                   ),
-                  ('Project ID', DisplayValue.id(payout['projectId'])),
-                  ('Investment ID', DisplayValue.id(payout['investmentId'])),
-                  ('Transaction ID', DisplayValue.id(payout['transactionId'])),
                   ('Payout amount', money(payout['profitAmount'])),
                   ('Payout time', time(payout['date'])),
                   if (payout['dueDate'] != null) ('Scheduled date', date(payout['dueDate'])),
@@ -345,8 +342,6 @@ class ReturnsOverview extends StatelessWidget {
     final growth = comparison(snapshot);
     final next = nextReturn(snapshot);
     final payouts = rows(snapshot, 'payouts');
-    final hourlyRate = number(snapshot['hourly']?['hourlyEarningRate']);
-    final isHourlyPeriod = period == 'Hourly' || snapshot['period'] == 'hourly';
     final rawAnalytics = rows(snapshot, 'analytics')
         .where((r) => DateTime.tryParse('${r['date']}') != null)
         .toList();
@@ -360,35 +355,7 @@ class ReturnsOverview extends StatelessWidget {
         amount: number(r['amount']),
         date: d,
       );
-    }).toList();
-
-    // If all analytics points have 0 amount and investor has an active hourly rate,
-    // display the active hourly earning rate so the graph reflects real earnings!
-    if (isHourlyPeriod && hourlyRate > 0 && points.every((p) => p.amount <= 0)) {
-      for (var i = 0; i < points.length; i++) {
-        points[i] = ReturnChartPoint(
-          label: points[i].label,
-          amount: hourlyRate,
-          date: points[i].date,
-          isCurrent: points[i].isCurrent,
-        );
-      }
-    }
-
-    // If analytics was empty for hourly view, generate the 24 hourly buckets
-    if (points.isEmpty && isHourlyPeriod) {
-      final baseDate = selectedDate ?? DateTime.now();
-      for (var h = 0; h < 24; h++) {
-        final d = DateTime.utc(baseDate.year, baseDate.month, baseDate.day, h);
-        points.add(
-          ReturnChartPoint(
-            label: '${(h % 12 == 0 ? 12 : h % 12).toString().padLeft(2, '0')}:00 ${h < 12 ? 'AM' : 'PM'}',
-            amount: hourlyRate > 0 ? hourlyRate : 0.0,
-            date: d,
-          ),
-        );
-      }
-    }
+    }).toList()..sort((a, b) => a.date.compareTo(b.date));
     final surface = dark ? AppColors.surfaceDark : Colors.white;
     final ink = dark ? AppColors.textPrimaryDark : const Color(0xFF14271F);
     Widget card(Widget child, {bool mint = false}) => Container(
@@ -416,14 +383,6 @@ class ReturnsOverview extends StatelessWidget {
         ],
       ),
       child: child,
-    );
-    Widget circle(IconData icon) => Container(
-      padding: const EdgeInsets.all(11),
-      decoration: const BoxDecoration(
-        color: AppColors.lightMint,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: AppColors.primary, size: 22),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,95 +565,16 @@ class ReturnsOverview extends StatelessWidget {
           isDark: dark,
         ),
         const SizedBox(height: 20),
-        card(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                period == 'Hourly' ? 'Hourly payout history' : 'Payout History',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ink,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (payouts.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: Text('No returns yet')),
-                ),
-              for (var i = 0; i < payouts.length; i++) ...[
-                if (i > 0) const Divider(height: 24, color: AppColors.divider),
-                InkWell(
-                  key: ValueKey('payout-${payouts[i]['id'] ?? i}'),
-                  onTap: () => details(payouts[i]),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: LayoutBuilder(
-                      builder: (context, c) {
-                        final compact =
-                            c.maxWidth < 310 ||
-                            MediaQuery.textScalerOf(context).scale(1) > 1.4;
-                        final p = payouts[i];
-                        final amount = Text(
-                          '${payoutStatus(p) == 'Completed' ? '+ ' : ''}${money(p['profitAmount'])}',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        );
-                        return Row(
-                          children: [
-                            circle(Remix.money_rupee_circle_line),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    period == 'Hourly' ? '${p['projectName']} · ${time(p['date'])}' : date(p['date']),
-                                    style: TextStyle(
-                                      color: ink,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  if (period == 'Hourly') ...[
-                                    Text('Project ID: ${DisplayValue.id(p['projectId'])}', style: const TextStyle(fontSize: 10)),
-                                    Text('Investment ID: ${DisplayValue.id(p['investmentId'])}', style: const TextStyle(fontSize: 10)),
-                                    Text('Transaction ID: ${DisplayValue.id(p['transactionId'])}', style: const TextStyle(fontSize: 10)),
-                                  ],
-                                  const SizedBox(height: 5),
-                                  StatusBadge(status: payoutStatus(p)),
-                                  if (compact)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8),
-                                      child: amount,
-                                    ),
-                                ],
-                              ),
-                            ),
-                            if (!compact) ...[
-                              const SizedBox(width: 8),
-                              Flexible(child: amount),
-                            ],
-                            const Icon(
-                              Remix.arrow_right_s_line,
-                              size: 19,
-                              color: AppColors.textSecondary,
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+        _PayoutHistoryCard(
+          payouts: payouts,
+          period: period,
+          dark: dark,
+          ink: ink,
+          onDetails: details,
+          money: money,
+          time: time,
+          date: date,
+          payoutStatus: payoutStatus,
         ),
         const SizedBox(height: 20),
         card(
@@ -1225,4 +1105,306 @@ class _GrowthGraphic extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _PayoutHistoryCard extends StatefulWidget {
+  final List<Map<String, dynamic>> payouts;
+  final String period;
+  final bool dark;
+  final Color ink;
+  final void Function(Map<String, dynamic> payout) onDetails;
+  final String Function(dynamic value) money;
+  final String Function(dynamic value) time;
+  final String Function(dynamic value) date;
+  final String Function(Map<String, dynamic> row) payoutStatus;
+
+  const _PayoutHistoryCard({
+    required this.payouts,
+    required this.period,
+    required this.dark,
+    required this.ink,
+    required this.onDetails,
+    required this.money,
+    required this.time,
+    required this.date,
+    required this.payoutStatus,
+  });
+
+  @override
+  State<_PayoutHistoryCard> createState() => _PayoutHistoryCardState();
+}
+
+class _PayoutHistoryCardState extends State<_PayoutHistoryCard> {
+  bool _expanded = false;
+  static const int _initialLimit = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final isHourly = widget.period == 'Hourly';
+    final total = widget.payouts.length;
+    final displayItems = (_expanded || total <= _initialLimit)
+        ? widget.payouts
+        : widget.payouts.take(_initialLimit).toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: widget.dark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: widget.dark ? AppColors.borderDark : const Color(0xFFE8F0EB),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isHourly ? Remix.timer_flash_line : Remix.history_line,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isHourly ? 'Hourly Payout History' : 'Payout History',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: widget.ink,
+                            ),
+                          ),
+                          Text(
+                            isHourly ? 'Credited directly to wallet' : 'Recent return credits',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (total > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: widget.dark ? AppColors.surfaceDarkElevated : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$total ${total == 1 ? 'entry' : 'entries'}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Empty state
+          if (total == 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Remix.inbox_line,
+                      size: 28,
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'No returns yet',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Payout Items list (Medium Height & No IDs!)
+          for (var i = 0; i < displayItems.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 16,
+                thickness: 0.8,
+                color: widget.dark ? AppColors.borderDark : const Color(0xFFF1F5F2),
+              ),
+            InkWell(
+              key: ValueKey('payout-${displayItems[i]['id'] ?? i}'),
+              onTap: () => widget.onDetails(displayItems[i]),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final compact =
+                        c.maxWidth < 310 ||
+                        MediaQuery.textScalerOf(context).scale(1) > 1.4;
+                    final p = displayItems[i];
+                    final amount = Text(
+                      '${widget.payoutStatus(p) == 'Completed' ? '+ ' : ''}${widget.money(p['profitAmount'])}',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
+                      ),
+                    );
+                    return Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: isHourly
+                                ? AppColors.primary.withValues(alpha: 0.1)
+                                : AppColors.lightMint,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isHourly ? Remix.timer_line : Remix.money_rupee_circle_line,
+                            color: AppColors.primary,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${p['projectName'] ?? (isHourly ? 'Hourly Profit Payout' : 'Return Payout')}',
+                                style: GoogleFonts.poppins(
+                                  color: widget.ink,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    isHourly
+                                        ? '${widget.time(p['date'])} · ${widget.date(p['date'])}'
+                                        : widget.date(p['date']),
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  StatusBadge(status: widget.payoutStatus(p)),
+                                ],
+                              ),
+                              if (compact)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: amount,
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (!compact) ...[
+                          const SizedBox(width: 8),
+                          Flexible(child: amount),
+                        ],
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Remix.arrow_right_s_line,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+
+          // Expand / Collapse button for medium height control
+          if (total > _initialLimit) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _expanded = !_expanded;
+                  });
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _expanded ? 'Show less' : 'View all $total payouts',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        _expanded ? Remix.arrow_up_s_line : Remix.arrow_down_s_line,
+                        size: 15,
+                        color: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }

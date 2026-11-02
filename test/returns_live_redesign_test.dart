@@ -143,15 +143,19 @@ void main() {
       expect(find.text('+25.0%'), findsOneWidget);
       expect(controller.selectedPeriod.value, 'Hourly');
       expect(find.text('Monthly'), findsNothing);
-      expect(find.text('Hourly payout breakdown'), findsOneWidget);
+      expect(find.text('Actual hourly wallet credits'), findsOneWidget);
     },
   );
   testWidgets('bar tooltip shows exact amount and resets across filters', (
     t,
   ) async {
     await mount(t);
-    await t.ensureVisible(find.byKey(const ValueKey('return-bar-1')));
-    await t.tap(find.byKey(const ValueKey('return-bar-1')));
+    final chart = find.byKey(
+      const ValueKey('hourly-market-chart-interaction'),
+    );
+    await t.ensureVisible(chart);
+    final chartRect = t.getRect(chart);
+    await t.tapAt(Offset(chartRect.right - 5, chartRect.center.dy));
     await t.pumpAndSettle();
     expect(find.byKey(const ValueKey('return-chart-tooltip')), findsOneWidget);
     expect(
@@ -168,6 +172,25 @@ void main() {
     controller.setDate(DateTime(2026, 10, 29));
     await t.pumpAndSettle();
     expect(find.byKey(const ValueKey('return-chart-tooltip')), findsNothing);
+  });
+  testWidgets('hourly chart keeps zero wallet credits instead of substituting the projected rate', (
+    t,
+  ) async {
+    api.data['hourly'] = {'hourlyEarningRate': '12.00'};
+    api.data['analytics'] = [
+      for (var hour = 0; hour < 24; hour++)
+        {
+          'date': '2026-11-02T${hour.toString().padLeft(2, '0')}:00:00Z',
+          'label': '${hour.toString().padLeft(2, '0')}:00',
+          'amount': '0.00',
+        },
+    ];
+    await mount(t);
+    final chart = t.widget<ReturnsBarChart>(find.byType(ReturnsBarChart));
+    expect(chart.points, hasLength(24));
+    expect(chart.points.every((point) => point.amount == 0), isTrue);
+    expect(find.text('₹12.00'), findsNothing);
+    expect(find.text('₹0.00'), findsWidgets);
   });
   testWidgets(
     'history opens real payout details and preserves separate principal',
@@ -276,12 +299,16 @@ void main() {
           },
       ];
       await mount(t, size: const Size(320, 568), scale: 2);
-      final chart = t.widget<ReturnsBarChart>(find.byType(ReturnsBarChart));
-      expect(chart.points.length, 12);
-      expect(chart.points.first.amount, 0);
-      await t.ensureVisible(find.byKey(const ValueKey('return-bar-11')));
+      final chartWidget = t.widget<ReturnsBarChart>(find.byType(ReturnsBarChart));
+      expect(chartWidget.points.length, 12);
+      expect(chartWidget.points.first.amount, 0);
+      final chartFinder = find.byKey(
+        const ValueKey('hourly-market-chart-interaction'),
+      );
+      await t.ensureVisible(chartFinder);
       await t.pumpAndSettle();
-      await t.tap(find.byKey(const ValueKey('return-bar-11')));
+      final chartRect = t.getRect(chartFinder);
+      await t.tapAt(Offset(chartRect.right - 5, chartRect.center.dy));
       await t.pumpAndSettle();
       expect(
         find.byKey(const ValueKey('return-chart-tooltip')),

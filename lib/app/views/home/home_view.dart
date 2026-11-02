@@ -232,7 +232,7 @@ class HomeView extends StatelessWidget {
 
                   const BannerAdPlacement(
                     placement: 'HOME_TOP', carousel: true,
-                    margin: EdgeInsets.only(top: 12, bottom: 4),
+                    margin: EdgeInsets.only(bottom: 4),
                   ),
 
                   // 3. Main Dashboard Body
@@ -265,6 +265,10 @@ class HomeView extends StatelessWidget {
                             ),
                           );
                         }),
+                        // Subscription Membership Status / Plan Card
+                        if (Get.isRegistered<SubscriptionController>())
+                          _HomeSubscriptionBanner(isDark: isDark),
+
                         // 4 Responsive Metric Cards (2x2 on phone, 4x1 on tablet)
                         LayoutBuilder(
                           builder: (context, constraints) {
@@ -343,10 +347,6 @@ class HomeView extends StatelessWidget {
                           placement: 'HOME_BETWEEN_SECTIONS',
                           margin: EdgeInsets.symmetric(vertical: 12),
                         ),
-
-                        // Subscription Membership Status Banner
-                        if (Get.isRegistered<SubscriptionController>())
-                          _HomeSubscriptionBanner(isDark: isDark),
 
                         const SizedBox(height: 6),
 

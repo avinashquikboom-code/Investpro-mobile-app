@@ -11,6 +11,7 @@ import 'package:investpro/app/controllers/auth_controller.dart';
 import 'package:investpro/app/controllers/investment_controller.dart';
 import 'package:investpro/app/controllers/project_controller.dart';
 import 'package:investpro/app/models/project_model.dart';
+import 'package:investpro/app/models/subscription_plan_model.dart';
 import 'package:investpro/app/routes/app_routes.dart';
 import 'package:investpro/app/services/api_service.dart';
 import 'package:investpro/app/services/demo_repository.dart';
@@ -389,6 +390,27 @@ void main() {
       );
     });
   }
+
+  testWidgets('active subscription does not add an Active Plan banner or gap', (
+    tester,
+  ) async {
+    api.pages[1] = [record('p1')];
+    await controller.refreshProjects();
+    controller.eligibility.value = const SubscriptionEligibilityModel(
+      hasActiveSubscription: true,
+      isExpired: false,
+      minInvestment: 5000,
+      maxInvestment: 100000,
+      planName: 'Backend configured plan',
+      status: 'ACTIVE',
+    );
+
+    await mount(tester, const Size(390, 844));
+
+    expect(find.textContaining('Active Plan:'), findsNothing);
+    expect(find.byType(ProjectListingCard), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'details and investment actions use the actual ID and selected server record',

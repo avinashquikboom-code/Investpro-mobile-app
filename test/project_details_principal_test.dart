@@ -42,6 +42,8 @@ void main(){
   testWidgets('selected principal, rate and duration stay dynamic $values',(tester) async {
    final (_,controller)=await setup(tester,project(rate:values[1].toDouble(),months:values[2]),amount:values[0].toDouble());
    expect(find.textContaining('Selected amount: ${CurrencyFormatter.format(values[0])}'),findsOneWidget);
+   expect(find.textContaining('Project ID:'),findsNothing);
+   expect(find.byIcon(Icons.copy),findsNothing);
    expect(find.text(CurrencyFormatter.format(values[3])),findsWidgets);
    expect(find.text('₹50.00'),findsNothing);
    expect(find.text(CurrencyFormatter.format(values[0]*values[1]/3000)),findsWidgets);
