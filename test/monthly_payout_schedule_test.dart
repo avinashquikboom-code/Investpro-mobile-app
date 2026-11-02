@@ -21,4 +21,16 @@ void main() {
     expect(find.textContaining('Final maturity payout'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('handles extremely long project names on narrow screens without overflow', (tester) async {
+    tester.view.physicalSize = const Size(280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: MonthlyPayoutScheduleCard(schedules: [
+      {'projectName': 'Ultra Mega Long Green Energy Solar Farm Project Phase 3 Extended Edition', 'installmentNumber': 12, 'dueDate': '2027-12-31', 'profitAmount': '1000.00', 'principalAmount': '10000.00', 'totalAmount': '11000.00', 'status': 'SCHEDULED'},
+    ])))));
+    await tester.tap(find.text('Monthly payout schedule'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

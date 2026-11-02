@@ -246,34 +246,49 @@ class MonthlyPayoutScheduleCard extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Installment / Maturity Tag
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isFinalMaturity
-                      ? const Color(0xFFFEF3C7)
-                      : AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              // Installment / Maturity Tag (flexibly bounded to avoid overflow)
+              Expanded(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isFinalMaturity) ...[
-                      const Icon(Remix.vip_crown_line, size: 12, color: Color(0xFFD97706)),
-                      const SizedBox(width: 4),
-                    ],
-                    Text(
-                      '${item['projectName']} • ${isFinalMaturity ? 'Final maturity payout' : 'Month ${item['installmentNumber']}'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: isFinalMaturity ? const Color(0xFFD97706) : AppColors.primary,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isFinalMaturity
+                              ? const Color(0xFFFEF3C7)
+                              : AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isFinalMaturity) ...[
+                              const Icon(Remix.vip_crown_line, size: 12, color: Color(0xFFD97706)),
+                              const SizedBox(width: 4),
+                            ],
+                            Flexible(
+                              child: Text(
+                                '${item['projectName']} • ${isFinalMaturity ? 'Final maturity payout' : 'Month ${item['installmentNumber']}'}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isFinalMaturity ? const Color(0xFFD97706) : AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               // Status Badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -297,12 +312,16 @@ class MonthlyPayoutScheduleCard extends StatelessWidget {
             children: [
               const Icon(Remix.calendar_line, size: 13, color: AppColors.textSecondary),
               const SizedBox(width: 5),
-              Text(
-                date(item['dueDate']),
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  date(item['dueDate']),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
