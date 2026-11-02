@@ -184,11 +184,13 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
     }
     if (isLive) {
       return backendProjection.value ??
-          InvestmentCalculator.calculate(
+          InvestmentCalculationResult(
             principal: investmentAmount.value,
             returnRatePercent: proj.returnRatePercent,
             durationMonths: proj.durationMonths,
-            startDate: proj.startDate,
+            expectedTotalReturn: 0,
+            projectedMaturityAmount: investmentAmount.value,
+            monthlyProjectedReturn: 0,
           );
     }
     return InvestmentCalculator.calculate(

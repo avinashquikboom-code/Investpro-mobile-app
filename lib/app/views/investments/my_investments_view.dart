@@ -8,7 +8,6 @@ import '../../controllers/investment_controller.dart';
 import '../../models/investment_model.dart';
 import '../../routes/app_routes.dart';
 import '../../services/demo_repository.dart';
-import '../../services/investment_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/date_formatter.dart';
@@ -472,12 +471,7 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
         ? (DateTime.now().difference(inv.startDate).inDays / (inv.durationMonths * 30)).clamp(0.0, 1.0)
         : 1.0;
 
-    final calc = InvestmentCalculator.calculate(
-      principal: inv.investedAmount,
-      returnRatePercent: inv.returnRatePercent,
-      durationMonths: inv.durationMonths,
-    );
-    final maturityAmount = inv.investedAmount + inv.expectedReturn;
+    final maturityAmount = inv.maturityAmount;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -632,11 +626,11 @@ class _MyInvestmentsViewState extends State<MyInvestmentsView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildScheduleMiniMetric('Monthly Return', CurrencyFormatter.formatPrecise(calc.monthlyProjectedReturn, decimalDigits: 2), isDark),
+                      _buildScheduleMiniMetric('Monthly Return', CurrencyFormatter.formatPrecise(inv.monthlyProjectedReturn, decimalDigits: 2), isDark),
                       Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
-                      _buildScheduleMiniMetric('Daily Return', CurrencyFormatter.formatPrecise(calc.dailyProjectedReturn, decimalDigits: 2), isDark),
+                      _buildScheduleMiniMetric('Daily Return', CurrencyFormatter.formatPrecise(inv.dailyProjectedReturn, decimalDigits: 2), isDark),
                       Container(width: 1, height: 20, color: isDark ? AppColors.borderDark : const Color(0xFFD3EADB)),
-                      _buildScheduleMiniMetric('Hourly Return', CurrencyFormatter.formatPrecise(calc.hourlyProjectedReturn, decimalDigits: 2), isDark),
+                      _buildScheduleMiniMetric('Hourly Return', CurrencyFormatter.formatPrecise(inv.hourlyProjectedReturn, decimalDigits: 2), isDark),
                     ],
                   ),
                 ),

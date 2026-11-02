@@ -303,6 +303,19 @@ void main() {
       );
     }
 
+    testWidgets('maturity card shows lifetime total rather than final month payment', (tester) async {
+      invCtrl.setProject(ProjectModel(id:'three-month',name:'Three Month Project',category:'Energy',iconType:'folder',targetAmount:100000,raisedAmount:0,minInvestment:10000,returnRatePercent:18,durationMonths:3,description:'',createdAt:DateTime(2026)));
+      invCtrl.selectQuickAmount(10000);
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      await tester.pumpWidget(createTestApp(const InvestNowView()));
+      await tester.pumpAndSettle();
+      final cardRow=find.ancestor(of:find.text('Projected Maturity Amount'),matching:find.byType(Row)).first;
+      expect(find.descendant(of:cardRow,matching:find.text('₹15,400.00')),findsOneWidget);
+      expect(find.descendant(of:cardRow,matching:find.text('₹11,800.00')),findsNothing);
+      expect(invCtrl.calculationResult.finalMonthPayment,11800);
+      expect(invCtrl.calculationResult.previousMonthlyInterestPayouts,3600);
+    });
+
     testWidgets('Tapping all 4 tabs updates banner and dynamic schedule rows without error', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 1200));
       await tester.pumpWidget(createTestApp(const InvestNowView()));

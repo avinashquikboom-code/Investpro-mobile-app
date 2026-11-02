@@ -15,6 +15,15 @@ import 'razorpay_payment_test.dart' as fixture;
 
 class MockOfflineSettingsApi extends fixture.PaymentApi {
   @override
+  Future<Map<String, dynamic>?> getInvestmentProjection({required String projectId, required double amount}) async => {
+    'principal':amount,'monthlyReturnRate':18,'durationMonths':12,'durationDays':360,
+    'totalProjectedReturn':amount*2.16,'projectedMaturityAmount':amount*3.16,
+    'totalReceivedOverInvestmentPeriod':amount*3.16,'monthlyProjectedReturn':amount*0.18,
+    'dailyProjectedReturn':amount*0.18/30,'hourlyProjectedReturn':amount*0.18/720,
+    'isAmountValid':true,
+  };
+
+  @override
   Future<Map<String, dynamic>> object(String path) async {
     if (path.contains('offline-payment/settings')) {
       return {
@@ -78,6 +87,7 @@ void main() {
       controller.investmentAmount.value = 10000;
       controller.amountTextController.text = '10000';
       controller.selectedPaymentMethod.value = 'Razorpay Checkout';
+      await controller.fetchBackendProjection();
 
       await tester.pumpWidget(
         GetMaterialApp(
@@ -94,6 +104,7 @@ void main() {
       expect(find.text('Confirm Payment'), findsOneWidget);
       expect(find.text('Solar Green Energy Alpha'), findsOneWidget);
       expect(find.text(formattedAmount), findsNWidgets(2)); // Amount Invested and Total Payable
+      expect(find.text(CurrencyFormatter.format(31600)), findsOneWidget);
       expect(find.text('12 Months'), findsOneWidget);
       expect(find.text('Total Payable'), findsOneWidget);
 

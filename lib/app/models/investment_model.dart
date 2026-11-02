@@ -26,6 +26,15 @@ class InvestmentModel {
   final int durationMonths;
   final double expectedReturn;
   final double maturityAmount;
+  double get monthlyProjectedReturn => financials['monthlyProjectedReturn'] != null
+      ? CurrencyFormatter.number(financials['monthlyProjectedReturn'])
+      : durationMonths > 0 ? expectedReturn / durationMonths : 0;
+  double get dailyProjectedReturn => financials['dailyProjectedReturn'] != null
+      ? CurrencyFormatter.number(financials['dailyProjectedReturn'])
+      : monthlyProjectedReturn / 30;
+  double get hourlyProjectedReturn => financials['hourlyProjectedReturn'] != null
+      ? CurrencyFormatter.number(financials['hourlyProjectedReturn'])
+      : dailyProjectedReturn / 24;
   final DateTime startDate;
   final DateTime maturityDate;
   double get progressPercent =>

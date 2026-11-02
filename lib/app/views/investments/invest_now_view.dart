@@ -489,7 +489,7 @@ class _InvestNowViewState extends State<InvestNowView> {
                                 Flexible(
                                   child: Text(
                                     CurrencyFormatter.format(
-                                      calc.finalMonthPayment,
+                                      calc.projectedMaturityAmount,
                                       showDecimals: true,
                                     ),
                                     style: GoogleFonts.poppins(

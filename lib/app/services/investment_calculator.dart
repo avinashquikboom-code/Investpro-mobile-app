@@ -80,17 +80,26 @@ class InvestmentCalculationResult {
     this.dayCountConvention = DayCountConvention.thirty360,
   });
   factory InvestmentCalculationResult.fromJson(Map<String, dynamic> json) {
-    double number(String key) => (json[key] as num?)?.toDouble() ?? 0;
+    double number(String key) => double.tryParse('${json[key]}') ?? 0;
+    double first(List<String> keys, double fallback) {
+      for (final key in keys) {
+        final value = double.tryParse('${json[key]}');
+        if (value != null) return value;
+      }
+      return fallback;
+    }
+    final interest = first(['totalProjectedReturn', 'expectedTotalReturn', 'totalInterest'], 0);
+    final maturity = first(['projectedMaturityAmount', 'totalReceivedOverInvestmentPeriod', 'maturityAmount'], number('principal') + interest);
     final schedules = json['schedules'] as Map? ?? {};
     List<ReturnScheduleItem> rows(String key) => (schedules[key] as List? ?? []).map((e) => ReturnScheduleItem(
       index: (e['index'] as num).toInt(), label: e['label'].toString(), date: DateTime.tryParse('${e['date']}'),
       dateLabel: e['dateLabel']?.toString(), returnAmount: (e['returnAmount'] as num).toDouble(), cumulativeReturn: (e['cumulativeReturn'] as num).toDouble(),
     )).toList();
     return InvestmentCalculationResult(
-      principal: number('principal'), returnRatePercent: number('monthlyReturnRate'), durationMonths: (json['durationMonths'] as num).toInt(), durationDays: (json['durationDays'] as num).toInt(),
-      expectedTotalReturn: number('totalProjectedReturn'), projectedMaturityAmount: number('totalReceivedOverInvestmentPeriod'), monthlyProjectedReturn: number('monthlyProjectedReturn'), dailyProjectedReturn: number('dailyProjectedReturn'), hourlyProjectedReturn: number('hourlyProjectedReturn'), minuteProjectedReturn: number('minuteProjectedReturn'),
+      principal: number('principal'), returnRatePercent: number('monthlyReturnRate'), durationMonths: number('durationMonths').toInt(), durationDays: number('durationDays').toInt(),
+      expectedTotalReturn: interest, projectedMaturityAmount: maturity, monthlyProjectedReturn: number('monthlyProjectedReturn'), dailyProjectedReturn: number('dailyProjectedReturn'), hourlyProjectedReturn: number('hourlyProjectedReturn'), minuteProjectedReturn: number('minuteProjectedReturn'),
       projectEndDate: json['projectEndDate']?.toString(), finalEligibleDate: json['interestAccrualEndDate']?.toString(), durationUnit: json['durationUnit']?.toString() ?? 'MONTHS', investmentDuration: (json['investmentDuration'] as num?)?.toInt(),
-      previousMonthlyInterestPayouts: number('previousMonthlyInterestPayouts'), finalMonthInterest: number('finalMonthInterest'), principalRepaymentAtMaturity: number('principalRepaymentAtMaturity'), finalMonthPayment: number('finalMonthPayment'), totalReceivedOverInvestmentPeriod: number('totalReceivedOverInvestmentPeriod'),
+      previousMonthlyInterestPayouts: number('previousMonthlyInterestPayouts'), finalMonthInterest: number('finalMonthInterest'), principalRepaymentAtMaturity: number('principalRepaymentAtMaturity'), finalMonthPayment: number('finalMonthPayment'), totalReceivedOverInvestmentPeriod: maturity,
       payoutSchedule: (json['payoutSchedule'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList(),
       dailySchedule: rows('daily'), hourlySchedule: rows('hourly'), totalSchedule: rows('total'),
       monthlySchedule: (schedules['monthly'] as List? ?? []).map((e) => MonthlyScheduleItem(month: (e['month'] as num).toInt(), monthlyReturn: (e['monthlyReturn'] as num).toDouble(), cumulativeReturn: (e['cumulativeReturn'] as num).toDouble(),date: DateTime.tryParse('${e['date']}'),dateLabel: e['dateLabel']?.toString())).toList(),
@@ -114,7 +123,7 @@ class InvestmentCalculator {
   static int monthly(int principal, int rate) =>
       (principal * rate + 50) ~/ 100;
   static int totalReturn(int principal, int rate, [int months = 1]) =>
-      monthly(principal, rate) * months;
+      (principal * rate * months + 50) ~/ 100;
   static int maturity(int principal, int rate, [int months = 1]) =>
       principal + totalReturn(principal, rate, months);
 
@@ -181,23 +190,30 @@ class InvestmentCalculator {
     // monthlyInterest = principal * monthlyReturnRate / 100
     // totalInterest = monthlyInterest * durationMonths
     // maturityAmount = principal + totalInterest
-    final monthlyReturn = ((principal * (returnRatePercent / 100.0)) * 100).round() / 100.0;
-    final totalReturn = ((monthlyReturn * durationMonths) * 100).round() / 100.0;
-    final maturityAmount = ((principal + totalReturn) * 100).round() / 100.0;
+    // Principal is paise and the configured percentage has two decimal places.
+    // Keep the monthly fraction exact; round cumulative currency at display boundaries.
+    final principalPaise = BigInt.from((principal * 100).round());
+    final rateHundredths = BigInt.from((returnRatePercent * 100).round());
+    final numerator = principalPaise * rateHundredths;
+    final denominator = BigInt.from(10000);
+    double interestAt(int months) =>
+        ((numerator * BigInt.from(months) + denominator ~/ BigInt.two) ~/ denominator).toDouble() / 100;
+    final monthlyReturn = interestAt(1);
+    final monthlyExact = numerator.toDouble() / 1000000;
+    final totalReturn = interestAt(durationMonths);
+    final maturityAmount = principalPaise.toDouble() / 100 + totalReturn;
 
     // Daily & hourly return:
     // In 30/360: exactly 30 days per month. In calendar: days in current calendar month.
     final now = start;
     final daysInCurrentMonth = DateTime(now.year, now.month + 1, 0).day;
     final daysInMonth = convention == DayCountConvention.thirty360 ? 30 : daysInCurrentMonth;
-    final dailyReturn = monthlyReturn / daysInMonth;
+    final dailyReturn = monthlyExact / daysInMonth;
     final hourlyReturn = dailyReturn / 24.0;
     final minuteReturn = hourlyReturn / 60.0;
 
-    final finalMonthInterest = monthlyReturn;
-    final previousMonthlyInterestPayouts = durationMonths > 1
-        ? ((monthlyReturn * (durationMonths - 1)) * 100).round() / 100.0
-        : 0.0;
+    final previousMonthlyInterestPayouts = interestAt(durationMonths - 1);
+    final finalMonthInterest = ((totalReturn - previousMonthlyInterestPayouts) * 100).round() / 100;
     final principalRepaymentAtMaturity = principal;
     final finalMonthPayment = ((principal + finalMonthInterest) * 100).round() / 100.0;
     final totalReceivedOverInvestmentPeriod = maturityAmount;
@@ -207,12 +223,13 @@ class InvestmentCalculator {
     for (int m = 1; m <= durationMonths; m++) {
       final isLast = m == durationMonths;
       final payoutDate = addMonths(start, m);
+      final periodInterest = ((interestAt(m) - interestAt(m - 1)) * 100).round() / 100;
       payoutSchedule.add({
         'payoutNumber': m,
         'payoutDate': payoutDate.toIso8601String(),
-        'interestAmount': monthlyReturn,
+        'interestAmount': periodInterest,
         'principalAmount': isLast ? principal : 0.0,
-        'totalPayoutAmount': isLast ? (principal + monthlyReturn) : monthlyReturn,
+        'totalPayoutAmount': isLast ? (principal + periodInterest) : periodInterest,
         'payoutType': isLast ? 'MATURITY' : 'MONTHLY_INTEREST',
         'payoutStatus': 'UPCOMING',
       });
@@ -224,12 +241,12 @@ class InvestmentCalculator {
       final isLast = m == durationMonths;
       final cumulative = isLast
           ? totalReturn
-          : ((monthlyReturn * m * 100).round() / 100.0);
+          : interestAt(m);
       final itemDate = addMonths(start, m);
       monthlySchedule.add(
         MonthlyScheduleItem(
           month: m,
-          monthlyReturn: (monthlyReturn * 100).round() / 100.0,
+          monthlyReturn: ((interestAt(m) - interestAt(m - 1)) * 100).round() / 100,
           cumulativeReturn: cumulative,
           date: itemDate,
           dateLabel: formatDate(itemDate),
@@ -279,7 +296,7 @@ class InvestmentCalculator {
     if (durationMonths <= 4) {
       for (int m = 1; m <= durationMonths; m++) {
         final isLast = m == durationMonths;
-        final cumulative = isLast ? totalReturn : ((monthlyReturn * m * 100).round() / 100.0);
+        final cumulative = isLast ? totalReturn : interestAt(m);
         final itemDate = addMonths(start, m);
         totalSchedule.add(
           ReturnScheduleItem(
@@ -287,7 +304,7 @@ class InvestmentCalculator {
             label: 'Month $m',
             date: itemDate,
             dateLabel: formatDate(itemDate),
-            returnAmount: (monthlyReturn * 100).round() / 100.0,
+            returnAmount: ((interestAt(m) - interestAt(m - 1)) * 100).round() / 100,
             cumulativeReturn: cumulative,
           ),
         );
@@ -306,9 +323,9 @@ class InvestmentCalculator {
         final isLast = m == durationMonths;
         final cumulative = isLast
             ? totalReturn
-            : ((monthlyReturn * m * 100).round() / 100.0);
+            : interestAt(m);
         final prevM = i == 0 ? 0 : milestones[i - 1];
-        final periodReturn = ((monthlyReturn * (m - prevM) * 100).round() / 100.0);
+        final periodReturn = (((interestAt(m) - interestAt(prevM)) * 100).round() / 100.0);
         final itemDate = addMonths(start, m);
         final label = isLast
             ? 'Maturity (Month $m)'

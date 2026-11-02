@@ -6,7 +6,6 @@ import 'package:remixicon/remixicon.dart';
 import '../../controllers/investment_controller.dart';
 import '../../controllers/navigation_controller.dart';
 import '../../routes/app_routes.dart';
-import '../../services/investment_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
@@ -31,23 +30,9 @@ class InvestmentSuccessView extends StatelessWidget {
             ? invCtrl.filteredInvestments.first
             : null);
 
-    final calc = investment != null
-        ? InvestmentCalculator.calculate(
-            principal: investment.investedAmount,
-            returnRatePercent: investment.returnRatePercent,
-            durationMonths: investment.durationMonths,
-          )
-        : null;
-
-    final maturityAmount = investment != null
-        ? (calc?.projectedMaturityAmount ??
-            (investment.investedAmount + investment.expectedReturn))
-        : 0.0;
-    final monthlyReturn = investment != null && investment.durationMonths > 0
-        ? (calc?.monthlyProjectedReturn ??
-            (investment.expectedReturn / investment.durationMonths))
-        : 0.0;
-    final dailyEquivalent = monthlyReturn / 30.0;
+    final maturityAmount = investment?.maturityAmount ?? 0.0;
+    final monthlyReturn = investment?.monthlyProjectedReturn ?? 0.0;
+    final dailyEquivalent = investment?.dailyProjectedReturn ?? 0.0;
 
     return AppSystemUi(
       statusSurface: isDark ? AppColors.backgroundDark : AppColors.background,

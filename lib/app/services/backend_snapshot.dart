@@ -64,7 +64,7 @@ class BackendSnapshot {
         '${project['title'] ?? row['projectName'] ?? ''}';
     return InvestmentModel(
       recordIds: DisplayValue.ids(row),
-      financials: {for (final key in ['totalInterestCredited', 'actualHourlyInterestCredited', 'accruedNotCredited', 'remainingProjectedInterest', 'outstandingPrincipal', 'finalSettlementAmount', 'principalRepaymentCompleted']) key: row[key]},
+      financials: {for (final key in ['totalInterestCredited', 'actualHourlyInterestCredited', 'accruedNotCredited', 'remainingProjectedInterest', 'outstandingPrincipal', 'finalSettlementAmount', 'principalRepaymentCompleted', 'monthlyProjectedReturn', 'dailyProjectedReturn', 'hourlyProjectedReturn']) key: row[key]},
       id: row['id'] as String? ?? '',
       reference: ref,
       projectId: '${row['projectId'] ?? project['id'] ?? ''}',
@@ -78,7 +78,9 @@ class BackendSnapshot {
       durationMonths: (row['tenureMonths'] as num?)?.toInt() ?? 0,
       expectedReturn: number(row['totalExpectedReturns']),
       maturityAmount:
-          number(row['amount']) + number(row['totalExpectedReturns']),
+          row['projectedMaturityAmount'] != null
+              ? number(row['projectedMaturityAmount'])
+              : number(row['amount']) + number(row['totalExpectedReturns']),
       startDate: date(row['startDate']),
       maturityDate: date(row['maturityDate']),
       progressPercent: 0,
