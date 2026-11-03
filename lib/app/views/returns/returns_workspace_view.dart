@@ -1,3 +1,5 @@
+import '../../widgets/next_hourly_payout_card.dart';
+import '../../controllers/navigation_controller.dart';
 import 'monthly_payout_schedule_card.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,7 @@ class ReturnsWorkspaceView extends StatefulWidget {
 class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     with WidgetsBindingObserver {
   final controller = Get.find<ReturnsController>();
+  final _payoutIndicatorKey = GlobalKey();
 
   @override
   void initState() {
@@ -129,6 +132,9 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                         child: LinearProgressIndicator(color: AppColors.primary),
                       ),
 
+                    if (w == null && controller.selectedPeriod.value == 'Hourly')
+                      NextHourlyPayoutCard(key: _payoutIndicatorKey, payout: null, isActive: _payoutIsActive, isLoading: controller.workspaceLoading.value || controller.workspaceError.value.isEmpty, hasError: controller.workspaceError.value.isNotEmpty),
+
                     if (w == null && controller.workspaceError.value.isEmpty)
                       const _ReturnsSkeleton(),
 
@@ -175,11 +181,17 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     );
   }
 
+  bool get _payoutIsActive => !widget.isTab || !Get.isRegistered<NavigationController>() || Get.find<NavigationController>().currentIndex.value == 3;
+
   List<Widget> _buildContent(Map<String, dynamic> w, bool isDark) {
     return [
       // 1. Performance Analytics & Period Chart (at top for live returns overview)
       ReturnsOverview(
         snapshot: w,
+        payoutLoading: controller.workspaceLoading.value,
+        payoutError: controller.workspaceError.value.isNotEmpty,
+        payoutActive: _payoutIsActive,
+        payoutIndicatorKey: _payoutIndicatorKey,
         period: controller.selectedPeriod.value,
         onPeriod: controller.setPeriod,
         selectedDate: controller.selectedDate.value,
@@ -543,7 +555,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
           Row(
             children: [
               Expanded(
-                child: _buildMetricItem('Hourly Rate', '${money(hourlyRate)}/hr', isDark, isHighlight: true),
+                child: _buildMetricItem('Hourly Rate', '${CurrencyFormatter.formatHourlyRate(hourlyRate)}/hr', isDark, isHighlight: true),
               ),
               Expanded(
                 child: _buildMetricItem('Awaiting credit', totalAccrued, isDark),
@@ -896,7 +908,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
     final metrics = [
       ('Invested', money(p['investedAmount'])),
       ('Returns Earned', money(p['totalReturnsEarned'] ?? p['earnedReturns'])),
-      ('Hourly Rate', '${money(p['hourlyReturnRate'])}/hr'),
+      ('Hourly Rate', '${CurrencyFormatter.formatHourlyRate(p['hourlyReturnRate'])}/hr'),
       ('Accrued', money(p['accruedReturns'])),
       ('Start Date', shortDate(p['startDate'])),
       ('Maturity Date', shortDate(p['maturityDate'])),
@@ -989,7 +1001,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
             ),
           ),
           subtitle: Text(
-            '${money(hourly)}/hr • ${monthlyRate.toStringAsFixed(2)}% monthly',
+            '${CurrencyFormatter.formatHourlyRate(hourly)}/hr • ${monthlyRate.toStringAsFixed(2)}% monthly',
             style: TextStyle(
               fontSize: 11,
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,

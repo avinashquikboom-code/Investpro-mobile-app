@@ -176,7 +176,7 @@ void main() {
   testWidgets('hourly chart keeps zero wallet credits instead of substituting the projected rate', (
     t,
   ) async {
-    api.data['hourly'] = {'hourlyEarningRate': '12.00'};
+    api.data['hourly'] = {'hourlyEarningRate': '0.6944', 'totalCreditedReturns': '0.00', 'accruedNotCredited': '0.34722222'};
     api.data['analytics'] = [
       for (var hour = 0; hour < 24; hour++)
         {
@@ -189,7 +189,9 @@ void main() {
     final chart = t.widget<ReturnsBarChart>(find.byType(ReturnsBarChart));
     expect(chart.points, hasLength(24));
     expect(chart.points.every((point) => point.amount == 0), isTrue);
-    expect(find.text('₹12.00'), findsNothing);
+    expect(find.text('₹0.6944/hr'), findsOneWidget);
+    expect(find.text('₹0.69/hr'), findsNothing);
+    expect(api.data['hourly']['accruedNotCredited'], '0.34722222');
     expect(find.text('₹0.00'), findsWidgets);
   });
   testWidgets(
@@ -238,8 +240,8 @@ void main() {
       await mount(t);
       expect(t.widget<Text>(find.byKey(const ValueKey('total-earned-returns'))).data, '₹0.00');
       expect(find.text('No returns yet'), findsOneWidget);
-      await t.ensureVisible(find.text('No upcoming returns scheduled'));
-      expect(find.text('No upcoming returns scheduled'), findsOneWidget);
+      await t.ensureVisible(find.text('No upcoming hourly payout'));
+      expect(find.text('No upcoming hourly payout'), findsOneWidget);
       expect(find.text('No previous period comparison'), findsOneWidget);
     },
   );

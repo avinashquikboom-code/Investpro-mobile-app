@@ -337,7 +337,7 @@ class ReturnsView extends StatelessWidget {
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.centerRight,
                                             child: Text(
-                                              '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr',
+                                              '${CurrencyFormatter.formatHourlyRate(hourlyEq)}/hr',
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
@@ -357,7 +357,7 @@ class ReturnsView extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 _buildSummaryTagRow("Daily Equivalent", CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
                                 const SizedBox(height: 8),
-                                _buildSummaryTagRow("Hourly Equivalent", '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
+                                _buildSummaryTagRow("Hourly Equivalent", '${CurrencyFormatter.formatHourlyRate(hourlyEq)}/hr', 'Projected', const Color(0xFFE0F2FE), const Color(0xFF0369A1), isDark),
                                 const SizedBox(height: 8),
                                 _buildSummaryTagRow("Total Returns Credited", CurrencyFormatter.formatPrecise(totalReturnsVal, decimalDigits: 2), 'Credited', const Color(0xFFE8F7EC), AppColors.primary, isDark),
                                 const SizedBox(height: 8),
@@ -422,7 +422,7 @@ class ReturnsView extends StatelessWidget {
                                       margin: const EdgeInsets.symmetric(horizontal: 6),
                                     ),
                                     Expanded(
-                                      child: _buildScheduleCol('Hourly Equivalent', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', isDark),
+                                      child: _buildScheduleCol('Hourly Equivalent', '${CurrencyFormatter.formatHourlyRate(hourlyEq)}/hr', isDark),
                                     ),
                                   ],
                                 ),
@@ -491,7 +491,7 @@ class ReturnsView extends StatelessWidget {
                                   hourlyRate: hourlyEq,
                                   isDark: isDark,
                                 ),
-                                _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatPrecise(hourlyEq, decimalDigits: 2)}/hr', 0.25, isDark),
+                                _buildAnalyticsBarRow('Hourly Return', '${CurrencyFormatter.formatHourlyRate(hourlyEq)}/hr', 0.25, isDark),
                                 const SizedBox(height: 10),
                                 _buildAnalyticsBarRow('Daily Return', CurrencyFormatter.formatPrecise(dailyEq, decimalDigits: 2), 0.55, isDark),
                                 const SizedBox(height: 10),
@@ -1113,8 +1113,8 @@ class _HourlyEarningsChartWidgetState extends State<HourlyEarningsChartWidget> {
                   const SizedBox(width: 6),
                   Text(
                     selectedHour == null
-                        ? 'Live Rate: ${CurrencyFormatter.formatPrecise(rate, decimalDigits: 2)}/hr'
-                        : '${_formatHour(selectedHour!)}: ${CurrencyFormatter.formatPrecise(rate, decimalDigits: 2)}/hr',
+                        ? 'Live Rate: ${CurrencyFormatter.formatHourlyRate(rate)}/hr'
+                        : '${_formatHour(selectedHour!)}: ${CurrencyFormatter.formatHourlyRate(rate)}/hr',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

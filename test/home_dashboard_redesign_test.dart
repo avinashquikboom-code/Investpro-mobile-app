@@ -33,6 +33,14 @@ class MemoryStore implements LocalStore {
   }
 }
 
+class PayoutPreviewController extends HomeController {
+  PayoutPreviewController(super.repo, super.notifications);
+  @override
+  bool get isLive => true;
+  @override
+  Future<void> loadNextHourlyPayout() async {}
+}
+
 void main() {
   late LocalStorageService storage;
   late DemoRepository repo;
@@ -75,6 +83,35 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('next hourly payout appears directly above Recent Activity', (tester) async {
+    Get.delete<HomeController>();
+    final home = Get.put<HomeController>(PayoutPreviewController(repo, notificationService));
+    home.nextHourlyPayout.value = {
+      'projectName': 'Website development', 'expectedAmount': '0.69',
+      'dueDate': DateTime.now().add(const Duration(minutes: 30)).toIso8601String(),
+    };
+    await mount(tester);
+    expect(find.text('Next Hourly Payout'), findsOneWidget);
+    expect(find.text('₹0.69'), findsOneWidget);
+    final payoutY = tester.getTopLeft(find.byKey(const ValueKey('home-next-hourly-payout'))).dy;
+    expect(payoutY, greaterThan(tester.getBottomLeft(find.text('Total Projects')).dy));
+    expect(payoutY, greaterThan(tester.getBottomLeft(find.text('Active Projects')).dy));
+    expect(find.bySemanticsLabel(RegExp('Next payout amount')), findsOneWidget);
+    expect(find.byIcon(Remix.calendar_line), findsWidgets);
+    final banner = find.byWidgetPredicate((w) => w is BannerAdPlacement && w.placement == 'HOME_BETWEEN_SECTIONS');
+    expect(payoutY, greaterThan(tester.getTopLeft(banner).dy));
+    final payoutBottom = tester.getBottomLeft(find.byKey(const ValueKey('home-next-hourly-payout'))).dy;
+    final recentY = tester.getTopLeft(find.text('Recent Activity')).dy;
+    expect(payoutBottom, lessThan(recentY));
+    expect(recentY - payoutBottom, lessThan(40));
+    await tester.ensureVisible(find.text('Next Hourly Payout'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Next Hourly Payout'));
+    expect(Get.find<NavigationController>().currentIndex.value, 0);
+    await tester.pumpWidget(const SizedBox());
+    Get.delete<HomeController>();
+  });
 
   testWidgets('Renders complete redesigned Home Dashboard with live data', (tester) async {
     repo.currentUser.value = const UserModel(

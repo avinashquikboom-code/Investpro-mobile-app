@@ -80,7 +80,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   for (final width in [320.0, 360.0]) {
-    testWidgets('hourly queue heading fits at $width with larger text', (tester) async {
+    testWidgets('informational hourly indicator fits $width with a large schedule list', (tester) async {
       GoogleFonts.config.allowRuntimeFetching = false;
       tester.view.physicalSize = Size(width, 640);
       tester.view.devicePixelRatio = 1;
@@ -114,16 +114,10 @@ void main() {
         )),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Upcoming Hourly Queue (119)'), findsOneWidget);
+      expect(find.text('Next Hourly Payout'), findsOneWidget);
+      expect(find.text('View all'), findsNothing);
       expect(tester.takeException(), isNull);
-      final action = find.text('View all');
-      await tester.ensureVisible(action);
-      await tester.pumpAndSettle();
-      expect(tester.getRect(action).right, lessThanOrEqualTo(width));
-      await tester.tap(action);
-      await tester.pumpAndSettle();
-      expect(find.text('Upcoming Hourly Payouts'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
     });
   }
 

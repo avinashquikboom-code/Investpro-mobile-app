@@ -20,6 +20,7 @@ import '../../widgets/kyc_verified_badge.dart';
 import '../../widgets/recent_activity_item.dart';
 import '../../widgets/summary_card.dart';
 import '../../widgets/banner_ad_placement.dart';
+import '../../widgets/next_hourly_payout_card.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -491,7 +492,16 @@ class HomeView extends StatelessWidget {
                             },
                           );
                         }),
-                        const SizedBox(height: 28),
+                        SizedBox(height: homeCtrl.isLive ? 0 : 28),
+
+                        if (homeCtrl.isLive)
+                          Obx(() => NextHourlyPayoutCard(
+                            payout: homeCtrl.nextHourlyPayout.value,
+                            hasError: homeCtrl.hourlyPayoutError.value,
+                            isLoading: homeCtrl.hourlyPayoutLoading.value,
+                            isActive: navCtrl == null || navCtrl.currentIndex.value == 0,
+                          )),
+                        if (homeCtrl.isLive) const SizedBox(height: 16),
 
                         // 5. Recent Activity Section Header
                         Row(

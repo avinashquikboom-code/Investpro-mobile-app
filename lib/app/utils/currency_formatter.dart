@@ -6,6 +6,14 @@ class CurrencyFormatter {
   static final NumberFormat _indianFormat = NumberFormat.currency(
     locale: 'en_IN', symbol: '₹', decimalDigits: 2,
   );
+  static final NumberFormat _hourlyRateFormat = NumberFormat.currency(
+    locale: 'en_IN', symbol: '₹', decimalDigits: 4,
+  );
+
+  /// Presentation only. Rate precision is separate from posted wallet cents.
+  /// Never use this formatted value as an accrual or payout calculation input.
+  static String formatHourlyRate(Object? rate) =>
+      _hourlyRateFormat.format(number(rate));
 
   /// Parses API numbers/decimal strings without rounding the calculation value.
   static double number(Object? value) {

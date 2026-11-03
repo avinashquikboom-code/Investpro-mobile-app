@@ -1,5 +1,6 @@
 import '../../services/api_service.dart';
 import '../../routes/app_routes.dart';
+
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,38 +28,32 @@ class _HelpSupportViewState extends State<HelpSupportView> {
     {
       'category': 'Returns',
       'question': 'When will my investment returns be credited?',
-      'answer':
-          'Returns are automatically calculated according to each project\'s payout schedule (monthly or at maturity). Once settled by the treasury, dividends are directly credited to your InvestPro Wallet balance and are immediately withdrawable.',
+      'answer': 'Returns are automatically calculated according to each project\'s payout schedule (monthly or at maturity). Once settled by the treasury, dividends are directly credited to your InvestPro Wallet balance and are immediately withdrawable.',
     },
     {
       'category': 'Withdrawals',
       'question': 'How long do withdrawals take to reflect in my bank?',
-      'answer':
-          'Once approved by our financial verification team, withdrawals are dispatched via automated IMPS/NEFT rails. Funds typically reflect in your primary verified bank account within 2 to 24 business hours.',
+      'answer': 'Once approved by our financial verification team, withdrawals are dispatched via automated IMPS/NEFT rails. Funds typically reflect in your primary verified bank account within 2 to 24 business hours.',
     },
     {
       'category': 'KYC & Security',
       'question': 'What documents are required for KYC verification?',
-      'answer':
-          'We accept government-issued photo identity documents including PAN Card, Aadhaar Card, and Passport. Ensure all four corners are clearly visible and the document is not expired.',
+      'answer': 'We accept government-issued photo identity documents including PAN Card, Aadhaar Card, and Passport. Ensure all four corners are clearly visible and the document is not expired.',
     },
     {
       'category': 'Investments',
       'question': 'Are my investments legally protected and secured?',
-      'answer':
-          'Yes. Every opportunity on InvestPro undergoes rigorous financial vetting, regulatory asset backing, and third-party legal validation before being listed on the platform.',
+      'answer': 'Yes. Every opportunity on InvestPro undergoes rigorous financial vetting, regulatory asset backing, and third-party legal validation before being listed on the platform.',
     },
     {
       'category': 'Banking',
       'question': 'Can I link multiple bank accounts for withdrawals?',
-      'answer':
-          'Yes, you can link multiple savings or current bank accounts. You can designate one account as your primary destination for automated payouts and switch anytime from the Bank Details screen.',
+      'answer': 'Yes, you can link multiple savings or current bank accounts. You can designate one account as your primary destination for automated payouts and switch anytime from the Bank Details screen.',
     },
     {
       'category': 'Investments',
       'question': 'Can I withdraw my capital before project maturity?',
-      'answer':
-          'Investments have committed tenures to guarantee projected returns. Early liquidity options or secondary transfers may be available subject to project terms and administrative approval.',
+      'answer': 'Investments have committed tenures to guarantee projected returns. Early liquidity options or secondary transfers may be available subject to project terms and administrative approval.',
     },
   ];
 
@@ -70,7 +65,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
 
   Future<void> _launchEmail() async {
     const email = 'support@investpro.app';
-    final uri = Uri.parse('mailto:$email?subject=InvestPro%20Support%20Request');
+    final uri = Uri.parse(
+      'mailto:$email?subject=InvestPro%20Support%20Request',
+    );
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
@@ -91,15 +88,18 @@ class _HelpSupportViewState extends State<HelpSupportView> {
   }
 
   Future<void> _launchPhone() async {
-    final uri = Uri.parse('tel:1800482900');
+    final uri = Uri.parse('tel:+919284216276');
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        Get.snackbar('Helpline', 'Call us at 1800-482-900 (Toll-Free, 9 AM - 7 PM)');
+        Get.snackbar(
+          'Helpline',
+          'Call us at +919284216276 (Toll-Free, 9 AM - 7 PM)',
+        );
       }
     } catch (_) {
-      Get.snackbar('Helpline', 'Call us at 1800-482-900');
+      Get.snackbar('Helpline', 'Call us at +91 9284216276');
     }
   }
 
@@ -128,7 +128,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
               ),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -140,7 +142,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                         width: 44,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.borderDark : const Color(0xFFD4E0D9),
+                          color: isDark
+                              ? AppColors.borderDark
+                              : const Color(0xFFD4E0D9),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -154,7 +158,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                           style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                           ),
                         ),
                         IconButton(
@@ -167,7 +173,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       'Our specialist support desk will review and respond to your ticket within 2 hours.',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -178,31 +186,55 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF9FBF9),
+                        color: isDark
+                            ? AppColors.surfaceDarkElevated
+                            : const Color(0xFFF9FBF9),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.borderDark
+                              : AppColors.border,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: category,
                           isExpanded: true,
-                          dropdownColor: isDark ? AppColors.surfaceDarkElevated : Colors.white,
-                          items: [
-                            'Investment Inquiry',
-                            'Withdrawal & Payout',
-                            'KYC & Account Verification',
-                            'Bank Linking Assistance',
-                            'Technical & App Issue',
-                          ].map((cat) => DropdownMenuItem(value: cat, child: Text(cat, style: GoogleFonts.poppins(fontSize: 13)))).toList(),
+                          dropdownColor: isDark
+                              ? AppColors.surfaceDarkElevated
+                              : Colors.white,
+                          items:
+                              [
+                                    'Investment Inquiry',
+                                    'Withdrawal & Payout',
+                                    'KYC & Account Verification',
+                                    'Bank Linking Assistance',
+                                    'Technical & App Issue',
+                                  ]
+                                  .map(
+                                    (cat) => DropdownMenuItem(
+                                      value: cat,
+                                      child: Text(
+                                        cat,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                           onChanged: (val) {
-                            if (val != null) setSheetState(() => category = val);
+                            if (val != null)
+                              setSheetState(() => category = val);
                           },
                         ),
                       ),
@@ -215,7 +247,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -224,16 +258,29 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       style: GoogleFonts.poppins(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Brief summary of the issue',
-                        hintStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                         filled: true,
-                        fillColor: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF9FBF9),
+                        fillColor: isDark
+                            ? AppColors.surfaceDarkElevated
+                            : const Color(0xFFF9FBF9),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
                         ),
                       ),
                     ),
@@ -245,7 +292,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -255,16 +304,29 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       style: GoogleFonts.poppins(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Describe what happened, including dates or references...',
-                        hintStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.textSecondary),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                         filled: true,
-                        fillColor: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF9FBF9),
+                        fillColor: isDark
+                            ? AppColors.surfaceDarkElevated
+                            : const Color(0xFFF9FBF9),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.border,
+                          ),
                         ),
                       ),
                     ),
@@ -276,7 +338,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: busy
                             ? null
@@ -296,19 +360,36 @@ class _HelpSupportViewState extends State<HelpSupportView> {
 
                                 setSheetState(() => busy = true);
                                 try {
-                                  await Get.find<ApiService>().submitRequest(kind:'SUPPORT',title:subj,message:'[$category] $msg',key:requestKey);
+                                  await Get.find<ApiService>().submitRequest(
+                                    kind: 'SUPPORT',
+                                    title: subj,
+                                    message: '[$category] $msg',
+                                    key: requestKey,
+                                  );
                                   Get.back();
-                                  Get.snackbar('Ticket Submitted','Your support request is saved. Track responses in Request History.',snackPosition:SnackPosition.BOTTOM);
+                                  Get.snackbar(
+                                    'Ticket Submitted',
+                                    'Your support request is saved. Track responses in Request History.',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                  );
                                 } catch (_) {
-                                  if(context.mounted) setSheetState(() => busy=false);
-                                  Get.snackbar('Submission failed','Your request was not confirmed. Check your connection and retry.',snackPosition:SnackPosition.BOTTOM);
+                                  if (context.mounted)
+                                    setSheetState(() => busy = false);
+                                  Get.snackbar(
+                                    'Submission failed',
+                                    'Your request was not confirmed. Check your connection and retry.',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                  );
                                 }
                               },
                         child: busy
                             ? const SizedBox(
                                 width: 22,
                                 height: 22,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(
                                 'Submit Support Ticket',
@@ -333,11 +414,20 @@ class _HelpSupportViewState extends State<HelpSupportView> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final categories = ['All', 'Returns', 'Withdrawals', 'Investments', 'KYC & Security', 'Banking'];
+    final categories = [
+      'All',
+      'Returns',
+      'Withdrawals',
+      'Investments',
+      'KYC & Security',
+      'Banking',
+    ];
 
     final filteredFaqs = _faqs.where((faq) {
-      final matchesCategory = _selectedCategory == 'All' || faq['category'] == _selectedCategory;
-      final matchesSearch = _searchQuery.isEmpty ||
+      final matchesCategory =
+          _selectedCategory == 'All' || faq['category'] == _selectedCategory;
+      final matchesSearch =
+          _searchQuery.isEmpty ||
           faq['question']!.toLowerCase().contains(_searchQuery) ||
           faq['answer']!.toLowerCase().contains(_searchQuery);
       return matchesCategory && matchesSearch;
@@ -348,7 +438,13 @@ class _HelpSupportViewState extends State<HelpSupportView> {
       appBar: CustomAppBar(
         title: 'helpSupport'.tr,
         showBackButton: true,
-        actions:[IconButton(tooltip:'Request History',onPressed:()=>Get.toNamed(AppRoutes.requests),icon:const Icon(Remix.file_list_3_line))],
+        actions: [
+          IconButton(
+            tooltip: 'Request History',
+            onPressed: () => Get.toNamed(AppRoutes.requests),
+            icon: const Icon(Remix.file_list_3_line),
+          ),
+        ],
       ),
       body: SafeArea(
         child: ResponsiveHelper.responsiveContainer(
@@ -369,7 +465,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -389,7 +487,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       child: _buildContactChannel(
                         icon: Remix.phone_line,
                         title: 'Toll-Free',
-                        subtitle: '1800-482-900',
+                        subtitle: '+91 9284216276',
                         isDark: isDark,
                         onTap: _launchPhone,
                       ),
@@ -408,21 +506,30 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _searchCtrl,
-                  onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+                  onChanged: (val) =>
+                      setState(() => _searchQuery = val.trim().toLowerCase()),
                   style: GoogleFonts.poppins(fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'Search queries or topics...',
                     hintStyle: GoogleFonts.poppins(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
-                    prefixIcon: const Icon(Remix.search_line, size: 20, color: AppColors.primary),
+                    prefixIcon: const Icon(
+                      Remix.search_line,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Remix.close_line, size: 18),
@@ -434,18 +541,28 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                         : null,
                     filled: true,
                     fillColor: isDark ? AppColors.surfaceDark : Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                      borderSide: BorderSide(
+                        color: isDark ? AppColors.borderDark : AppColors.border,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+                      borderSide: BorderSide(
+                        color: isDark ? AppColors.borderDark : AppColors.border,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -464,21 +581,29 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                             cat,
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                               color: isSelected
                                   ? Colors.white
-                                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                                  : (isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary),
                             ),
                           ),
                           selected: isSelected,
                           selectedColor: AppColors.primary,
-                          backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+                          backgroundColor: isDark
+                              ? AppColors.surfaceDark
+                              : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                             side: BorderSide(
                               color: isSelected
                                   ? AppColors.primary
-                                  : (isDark ? AppColors.borderDark : AppColors.border),
+                                  : (isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.border),
                             ),
                           ),
                           onSelected: (val) {
@@ -500,7 +625,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       'No matching answers found for "$_searchQuery".',
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                   )
@@ -545,7 +672,11 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Remix.customer_service_2_line, color: Color(0xFF4ADE80), size: 22),
+                child: const Icon(
+                  Remix.customer_service_2_line,
+                  color: Color(0xFF4ADE80),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -593,7 +724,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
       color: isDark ? AppColors.surfaceDark : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+        side: BorderSide(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -618,7 +751,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -626,7 +761,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                 subtitle,
                 style: GoogleFonts.poppins(
                   fontSize: 11,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -644,7 +781,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDarkElevated : const Color(0xFFF3F8F5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppColors.borderDark : const Color(0xFFD4E0D9)),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : const Color(0xFFD4E0D9),
+        ),
       ),
       child: Row(
         children: [
@@ -657,7 +796,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -665,7 +806,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   'Submit a formal ticket with your account reference for trackable resolution.',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -676,7 +819,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
             style: ElevatedButton.styleFrom(
               minimumSize: Size.zero,
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
             onPressed: () => _openTicketBottomSheet(context),
@@ -701,20 +846,26 @@ class _HelpSupportViewState extends State<HelpSupportView> {
         color: isDark ? AppColors.surfaceDark : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
+          side: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.border,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             iconColor: AppColors.primary,
-            collapsedIconColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            collapsedIconColor: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondary,
             title: Text(
               faq['question']!,
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
               ),
             ),
             children: [
@@ -724,7 +875,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                   faq['answer']!,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
                     height: 1.45,
                   ),
                 ),

@@ -1,3 +1,4 @@
+import '../../widgets/next_hourly_payout_card.dart';
 import '../../utils/display_value.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,9 @@ import '../../widgets/status_badge.dart';
 class ReturnsOverview extends StatelessWidget {
   final Map<String, dynamic> snapshot;
   final String period;
+  final bool payoutLoading, payoutError;
+  final bool payoutActive;
+  final Key? payoutIndicatorKey;
   final ValueChanged<String> onPeriod;
   final DateTime? selectedDate;
   final ValueChanged<DateTime>? onDate;
@@ -22,6 +26,10 @@ class ReturnsOverview extends StatelessWidget {
     super.key,
     required this.snapshot,
     required this.period,
+    this.payoutLoading = false,
+    this.payoutError = false,
+    this.payoutActive = true,
+    this.payoutIndicatorKey,
     required this.onPeriod,
     this.selectedDate,
     this.onDate,
@@ -85,7 +93,7 @@ class ReturnsOverview extends StatelessWidget {
         rows(data, 'upcoming').where((r) {
           final due = DateTime.tryParse('${r['dueDate']}');
           return due != null &&
-              (data['period'] == 'hourly' || due.isAfter(now)) &&
+              due.isAfter(data['period'] == 'hourly' ? DateTime.now() : now) &&
               ['SCHEDULED', 'PENDING', 'OVERDUE'].contains('${r['status']}'.toUpperCase());
         }).toList()..sort(
           (a, b) =>
@@ -478,7 +486,9 @@ class ReturnsOverview extends StatelessWidget {
           card(Wrap(spacing: 24, runSpacing: 12, children: [
             for (final entry in <(String, String)>[
               ("Today's Total Earnings", money(summary['todayEarnings'])),
-              ('Hourly Return Rate', '${snapshot['hourly']?['hourlyEarningRate'] ?? 'Not available'} /hr'),
+              ('Hourly Return Rate', snapshot['hourly']?['hourlyEarningRate'] == null
+                  ? 'Not available'
+                  : '${CurrencyFormatter.formatHourlyRate(snapshot['hourly']?['hourlyEarningRate'])}/hr'),
               ('Total Returns Credited', money(snapshot['hourly']?['totalCreditedReturns'])),
               ('Last Payout Time', time(snapshot['hourly']?['lastPayoutTime'])),
               ('Next Expected Payout Time', time(snapshot['hourly']?['nextExpectedPayoutTime'])),
@@ -577,6 +587,9 @@ class ReturnsOverview extends StatelessWidget {
           payoutStatus: payoutStatus,
         ),
         const SizedBox(height: 20),
+        if (period == 'Hourly')
+          NextHourlyPayoutCard(key: payoutIndicatorKey, payout: nextReturn({...snapshot, 'period': 'hourly'}), isLoading: payoutLoading, hasError: payoutError, isActive: payoutActive)
+        else
         card(
           LayoutBuilder(
             builder: (context, constraints) {

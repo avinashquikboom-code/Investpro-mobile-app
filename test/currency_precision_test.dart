@@ -9,6 +9,15 @@ import 'package:investpro/app/models/subscription_plan_model.dart';
 import 'package:investpro/app/widgets/recent_activity_item.dart';
 
 void main() {
+  test('hourly rate has four decimals while posted wallet amounts keep two', () {
+    const raw = '0.69444444444444444444';
+    expect(CurrencyFormatter.formatHourlyRate(raw), '₹0.6944');
+    expect(CurrencyFormatter.formatHourlyRate('0.7'), '₹0.7000');
+    expect(CurrencyFormatter.formatHourlyRate(0), '₹0.0000');
+    expect(CurrencyFormatter.format('0.69'), '₹0.69');
+    expect(CurrencyFormatter.format('0.70'), '₹0.70');
+    expect(raw, '0.69444444444444444444');
+  });
   test('currency always shows two decimals with Indian grouping and safe nulls', () {
     for (final entry in <Object?, String>{null: '₹0.00', 0: '₹0.00', 250: '₹250.00', 2000: '₹2,000.00', 125.5: '₹125.50', '1234567.89': '₹12,34,567.89', 'invalid': '₹0.00', double.nan: '₹0.00'}.entries) {
       expect(CurrencyFormatter.format(entry.key), entry.value);
