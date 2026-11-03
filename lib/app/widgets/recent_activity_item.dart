@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/transaction_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
+import 'animated_return_arrow.dart';
 import 'status_badge.dart';
 
 class RecentActivityItem extends StatelessWidget {
@@ -21,6 +22,7 @@ class RecentActivityItem extends StatelessWidget {
   IconData _getIcon() {
     switch (transaction.type) {
       case TransactionType.returnReceived:
+        return Remix.arrow_up_line;
       case TransactionType.deposit:
         return Remix.arrow_down_line;
       case TransactionType.withdrawal:
@@ -86,11 +88,16 @@ class RecentActivityItem extends StatelessWidget {
                   color: iconColor.withValues(alpha: isDark ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  _getIcon(),
-                  color: iconColor,
-                  size: 20,
-                ),
+                child: transaction.type == TransactionType.returnReceived
+                    ? AnimatedReturnArrow(
+                        color: iconColor,
+                        size: 20,
+                      )
+                    : Icon(
+                        _getIcon(),
+                        color: iconColor,
+                        size: 20,
+                      ),
               ),
               const SizedBox(width: 12),
               // Title & Date

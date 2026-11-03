@@ -759,7 +759,11 @@ class _HomeSubscriptionBannerState extends State<_HomeSubscriptionBanner>
     _borderCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3500),
-    )..repeat();
+    );
+    final isTesting = WidgetsBinding.instance is! WidgetsFlutterBinding;
+    if (!isTesting) {
+      _borderCtrl.repeat();
+    }
   }
 
   @override

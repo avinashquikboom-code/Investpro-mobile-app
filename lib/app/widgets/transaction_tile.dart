@@ -5,6 +5,7 @@ import '../models/transaction_model.dart';
 import '../theme/app_colors.dart';
 import '../utils/currency_formatter.dart';
 import '../utils/date_formatter.dart';
+import 'animated_return_arrow.dart';
 import 'status_badge.dart';
 
 class TransactionTile extends StatelessWidget {
@@ -69,7 +70,9 @@ class TransactionTile extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-          child: Icon(icon, color: iconColor, size: 20),
+          child: transaction.type == TransactionType.returnReceived
+              ? AnimatedReturnArrow(color: iconColor, size: 20)
+              : Icon(icon, color: iconColor, size: 20),
         ),
         title: Text(
           transaction.title,
