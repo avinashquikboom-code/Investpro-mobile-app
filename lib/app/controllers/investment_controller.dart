@@ -1,5 +1,6 @@
 import '../services/payment_error.dart';
 import 'dart:async';
+import 'package:open_filex/open_filex.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../services/api_service.dart';
 import '../services/backend_snapshot.dart';
@@ -369,5 +370,98 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       if(!inactive()){paymentError.value='Unable to open secure checkout. Please retry.';completion.complete(false);}
     });
     try{return await completion.future;}finally{_checkout?.clear();}
+  }
+
+  // --- AGREEMENT ACTIONS ---
+  final agreementData = Rxn<Map<String, dynamic>>();
+  final isAgreementLoading = false.obs;
+  final isAgreementDownloading = false.obs;
+  final agreementError = ''.obs;
+
+  Future<void> loadAgreement(String investmentId) async {
+    isAgreementLoading.value = true;
+    agreementError.value = '';
+    try {
+      final data = await Get.find<ApiService>().getInvestmentAgreement(investmentId);
+      if (data != null && data['available'] == true && data['agreement'] is Map) {
+        agreementData.value = Map<String, dynamic>.from(data['agreement'] as Map);
+      } else {
+        agreementData.value = null;
+        if (data != null && data['message'] is String) {
+          agreementError.value = data['message'] as String;
+        }
+      }
+    } catch (e) {
+      agreementError.value = 'Failed to load agreement details';
+    } finally {
+      isAgreementLoading.value = false;
+    }
+  }
+
+  Future<void> viewAgreement(String investmentId) async {
+    await downloadOrOpenAgreement(investmentId, openDirectly: true);
+  }
+
+  Future<void> downloadOrOpenAgreement(String investmentId, {bool openDirectly = false}) async {
+    if (isAgreementDownloading.value) return;
+    isAgreementDownloading.value = true;
+    try {
+      final agreement = agreementData.value;
+      final agreementNumber = agreement?['agreementNumber'] ?? 'AGR-$investmentId';
+      final safeNum = agreementNumber.toString().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final filename = 'InvestPro_Agreement_${investmentId}_$safeNum.pdf';
+
+      final filePath = await Get.find<ApiService>().downloadInvestmentAgreementFile(investmentId, filename);
+      if (filePath == null) {
+        Get.snackbar(
+          'Download Failed',
+          'Could not download agreement PDF. Please check connection and retry.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade700,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      if (openDirectly) {
+        final result = await OpenFilex.open(filePath, type: 'application/pdf');
+        if (result.type != ResultType.done) {
+          Get.snackbar(
+            'Notice',
+            'Agreement downloaded to: $filePath',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.teal.shade700,
+            colorText: Colors.white,
+          );
+        }
+      } else {
+        Get.snackbar(
+          'Agreement Downloaded',
+          'Saved to device: $filename',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.shade800,
+          colorText: Colors.white,
+          mainButton: TextButton(
+            onPressed: () => OpenFilex.open(filePath, type: 'application/pdf'),
+            child: const Text('OPEN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Unable to complete download request: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade700,
+        colorText: Colors.white,
+      );
+    } finally {
+      isAgreementDownloading.value = false;
+    }
+  }
+
+  Future<void> shareAgreement(String investmentId) async {
+    await downloadOrOpenAgreement(investmentId, openDirectly: true);
   }
 }

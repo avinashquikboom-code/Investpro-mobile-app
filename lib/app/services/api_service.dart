@@ -3,6 +3,7 @@ import 'api_diagnostics.dart';
 import 'payment_error.dart';
 import 'dart:math';
 import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -665,6 +666,35 @@ class ApiService extends getx.GetxService {
 
   Future<List<dynamic>?> getInvestments() async => collection('/mobile/investments');
 
+  Future<Map<String, dynamic>?> getInvestmentAgreement(String investmentId) async {
+    try {
+      final res = await dio.get('/mobile/investments/$investmentId/agreement');
+      if (res.data is Map && res.data['success'] == true && res.data['data'] is Map) {
+        return Map<String, dynamic>.from(res.data['data'] as Map);
+      }
+    } catch (e) {
+      debugPrint('[ApiService] getInvestmentAgreement error: $e');
+    }
+    return null;
+  }
+
+  Future<String?> downloadInvestmentAgreementFile(String investmentId, String filename) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = '${dir.path}/$filename';
+      await dio.download(
+        '/mobile/investments/$investmentId/agreement/download',
+        filePath,
+      );
+      return filePath;
+    } catch (e) {
+      debugPrint('[ApiService] downloadInvestmentAgreementFile error: $e');
+      return null;
+    }
+  }
+
+  Future<List<dynamic>?> getAgreements() async => collection('/mobile/agreements');
+
 
   Future<Map<String, dynamic>?> createInvestment({
     required String projectId,
@@ -738,6 +768,20 @@ class ApiService extends getx.GetxService {
 
   Future<List<dynamic>?> getTransactions() async => collection('/mobile/transactions');
 
+
+  Future<Map<String, bool>> getEmailPreferences() async {
+    final response = await dio.get('/mobile/email-preferences');
+    if (response.data['success'] != true) throw Exception('Email preferences unavailable');
+    final data = response.data['data'] as Map<String, dynamic>;
+    return {for (final key in ['serviceEmails', 'dailyReports', 'projectAnnouncements']) key: data[key] == true};
+  }
+
+  Future<Map<String, bool>> updateEmailPreference(String key, bool value) async {
+    final response = await dio.put('/mobile/email-preferences', data: {key: value});
+    if (response.data['success'] != true) throw Exception('Email preferences could not be saved');
+    final data = response.data['data'] as Map<String, dynamic>;
+    return {for (final field in ['serviceEmails', 'dailyReports', 'projectAnnouncements']) field: data[field] == true};
+  }
 
   Future<Map<String, dynamic>?> getProfile() async => object('/mobile/profile');
 

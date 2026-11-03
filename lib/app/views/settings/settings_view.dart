@@ -1,3 +1,4 @@
+import '../../widgets/investor_email_preferences.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -487,6 +488,11 @@ class SettingsView extends StatelessWidget {
                     }),
                   ],
                 ),
+                const SizedBox(height: 20),
+
+                _buildSectionHeader('Email preferences', isDark),
+                const SizedBox(height: 8),
+                _buildCardGroup(isDark: isDark, children: const [InvestorEmailPreferences()]),
                 const SizedBox(height: 20),
 
                 // 5. Support & Legal
