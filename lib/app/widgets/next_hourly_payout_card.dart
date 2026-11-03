@@ -392,7 +392,7 @@ class _NextHourlyPayoutCardState extends State<NextHourlyPayoutCard>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Next Hourly Payout',
+                          widget.payout?['isFinalSettlement'] == true ? 'Final Interest Settlement' : 'Next Hourly Payout',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

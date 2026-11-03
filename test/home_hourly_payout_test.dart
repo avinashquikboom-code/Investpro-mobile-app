@@ -251,4 +251,14 @@ void main() {
     await t.pumpWidget(const SizedBox());
   });
 
+  testWidgets('labels the reconciled final interest separately from normal hourly payouts', (t) async {
+    await t.pumpWidget(MaterialApp(home: Scaffold(body: NextHourlyPayoutCard(
+      payout: {'expectedAmount':'3.89','dueDate':DateTime.now().add(const Duration(hours:2)).toIso8601String(),'isFinalSettlement':true},
+    ))));
+    await t.pump(const Duration(seconds:2));
+    expect(find.text('Final Interest Settlement'), findsOneWidget);
+    expect(find.text('Next Hourly Payout'), findsNothing);
+    await t.pumpWidget(const SizedBox());
+  });
+
 }

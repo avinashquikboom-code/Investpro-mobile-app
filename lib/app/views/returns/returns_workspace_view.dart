@@ -965,7 +965,7 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
         : (monthly / 30.0);
     final hourly = breakdown != null && breakdown['hourlyInterest'] != null
         ? number(breakdown['hourlyInterest'])
-        : (daily / 24.0);
+        : number(p['hourlyReturnRate']);
     final minute = breakdown != null && breakdown['minuteInterest'] != null
         ? number(breakdown['minuteInterest'])
         : (hourly / 60.0);

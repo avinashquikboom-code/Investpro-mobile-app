@@ -11,6 +11,7 @@ void main() {
         projectName: 'Solar Park Phase 1',
         principal: 10000.0,
         monthlyRate: 12.0,
+        knownHourlyInterest: 1.66,
       );
 
       // Expected calculation:
@@ -23,8 +24,8 @@ void main() {
       expect(InterestFormatter.formatDaily(breakdown.dailyInterest), equals('₹40.00'));
 
       // Hourly: 40 / 24 = 1.666666...
-      expect(breakdown.hourlyInterest, closeTo(1.6667, 0.0001));
-      expect(InterestFormatter.formatHourly(breakdown.hourlyInterest), equals('₹1.67'));
+      expect(breakdown.hourlyInterest, equals(1.66));
+      expect(InterestFormatter.formatHourly(breakdown.hourlyInterest), equals('₹1.66'));
 
       // Minute: 1.666666... / 60 = 0.027777...
       expect(breakdown.minuteInterest, closeTo(0.02778, 0.00001));
@@ -38,6 +39,7 @@ void main() {
         projectName: 'Hydroponics Farm',
         principal: 25000.0,
         monthlyRate: 1.5,
+        knownHourlyInterest: 0.52,
       );
 
       // Monthly: 25000 * 1.5 / 100 = 375
@@ -45,7 +47,7 @@ void main() {
       // Daily: 375 / 30 = 12.5
       expect(breakdown.dailyInterest, equals(12.5));
       // Hourly: 12.5 / 24 = 0.5208333...
-      expect(breakdown.hourlyInterest, closeTo(0.5208, 0.0001));
+      expect(breakdown.hourlyInterest, equals(0.52));
       // Minute: 0.5208333... / 60 = 0.00868055...
       expect(breakdown.minuteInterest, closeTo(0.008681, 0.00001));
     });
@@ -57,12 +59,14 @@ void main() {
         projectName: 'Project A',
         principal: 10000.0,
         monthlyRate: 12.0,
+        knownHourlyInterest: 1.66,
       );
       final inv2 = InvestmentInterestBreakdown.calculate(
         investmentId: 'INV-2',
         projectId: 'PRJ-2',
         projectName: 'Project B',
         principal: 20000.0,
+        knownHourlyInterest: 2.77,
         monthlyRate: 10.0, // 20000 * 10 / 100 = 2000 monthly
       );
 
@@ -70,8 +74,13 @@ void main() {
       // inv1: 1200 / 720 = 1.6666667
       // inv2: 2000 / 720 = 2.7777778
       // sum = 3200 / 720 = 4.4444444
-      expect(combinedHourly, closeTo(3200.0 / 720.0, 0.0001));
+      expect(combinedHourly, closeTo(4.43, 0.0001));
     });
+  });
+
+  test('missing hourly data never invents a live payout', () {
+    final value = InvestmentInterestBreakdown.fromJson({'principal':10000, 'monthlyRate':5});
+    expect(value.hourlyInterest, 0);
   });
 
   group('InterestBreakdownSection Widget Test', () {
@@ -90,7 +99,7 @@ void main() {
               'monthlyRate': 12.0,
               'monthlyInterest': 1200.0,
               'dailyInterest': 40.0,
-              'hourlyInterest': 1.6667,
+              'hourlyInterest': 1.66,
               'minuteInterest': 0.02778,
               'status': 'ACTIVE',
             }
@@ -127,7 +136,7 @@ void main() {
       expect(find.text('₹40.00'), findsOneWidget);
 
       expect(find.text('1 Hour'), findsOneWidget);
-      expect(find.text('₹1.67'), findsOneWidget);
+      expect(find.text('₹1.66'), findsOneWidget);
 
       expect(find.text('1 Minute'), findsOneWidget);
       expect(find.text('₹0.03'), findsOneWidget);

@@ -35,7 +35,7 @@ class InvestmentInterestBreakdown {
   /// Dynamic calculation strictly following financial formula:
   /// Monthly Interest = Principal × Monthly Rate / 100
   /// Daily Interest = Monthly Interest / 30
-  /// Hourly Interest = Daily Interest / 24
+  /// Hourly wallet amount is supplied by the backend payout policy.
   /// Minute Interest = Hourly Interest / 60
   /// Never rounds intermediate calculations before deriving smaller time intervals.
   factory InvestmentInterestBreakdown.calculate({
@@ -45,6 +45,7 @@ class InvestmentInterestBreakdown {
     required double principal,
     required double monthlyRate,
     double? knownMonthlyInterest,
+    double? knownHourlyInterest,
     String status = 'ACTIVE',
   }) {
     final monthly = knownMonthlyInterest != null && knownMonthlyInterest > 0
@@ -53,8 +54,8 @@ class InvestmentInterestBreakdown {
 
     // Exact unrounded intermediate divisions
     final daily = monthly / 30.0;
-    final hourly = daily / 24.0;
-    final minute = hourly / 60.0;
+    final hourly = knownHourlyInterest ?? 0.0;
+    final minute = daily / 1440.0;
 
     return InvestmentInterestBreakdown(
       investmentId: investmentId,
@@ -99,6 +100,7 @@ class InvestmentInterestBreakdown {
       projectName: json['projectName']?.toString() ?? 'Investment',
       principal: principal,
       monthlyRate: monthlyRate,
+      knownHourlyInterest: hourly,
       status: json['status']?.toString() ?? 'ACTIVE',
     );
   }
@@ -166,6 +168,7 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
                 projectName: '${p['projectName']}',
                 principal: principal,
                 monthlyRate: monthlyRate,
+                knownHourlyInterest: double.tryParse('${p['hourlyReturnRate']}'),
               ),
             );
           }
@@ -186,8 +189,8 @@ class _InterestBreakdownSectionState extends State<InterestBreakdownSection> {
     final totalPrincipal = investments.fold<double>(0.0, (acc, item) => acc + item.principal);
     final combinedMonthly = investments.fold<double>(0.0, (acc, item) => acc + item.monthlyInterest);
     final combinedDaily = combinedMonthly / 30.0;
-    final combinedHourly = combinedDaily / 24.0;
-    final combinedMinute = combinedHourly / 60.0;
+    final combinedHourly = investments.fold<double>(0.0, (acc, item) => acc + item.hourlyInterest);
+    final combinedMinute = combinedDaily / 1440.0;
 
     return Container(
       width: double.infinity,

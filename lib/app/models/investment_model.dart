@@ -34,7 +34,7 @@ class InvestmentModel {
       : monthlyProjectedReturn / 30;
   double get hourlyProjectedReturn => financials['hourlyProjectedReturn'] != null
       ? CurrencyFormatter.number(financials['hourlyProjectedReturn'])
-      : dailyProjectedReturn / 24;
+      : 0; // Live hourly credits are supplied by the backend payout policy.
   final DateTime startDate;
   final DateTime maturityDate;
   double get progressPercent =>
