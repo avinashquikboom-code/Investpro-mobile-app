@@ -674,9 +674,96 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class _HomeSubscriptionBanner extends StatelessWidget {
+// ─── Animated gradient border painter ────────────────────────────────────────
+class _GradientBorderPainter extends CustomPainter {
+  final double progress;
+  final double borderWidth;
+  final double borderRadius;
+  final double glowRadius;
+
+  _GradientBorderPainter({
+    required this.progress,
+    this.borderWidth = 2.5,
+    this.borderRadius = 14,
+    this.glowRadius = 6,
+  });
+
+  static const List<Color> _colors = [
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFF0D9488), // Teal
+    Color(0xFF34D399), // Mint Green
+    Color(0xFF6EE7B7), // Light Mint
+    Color(0xFF10B981), // Emerald Green (loop)
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+
+    // Sweep gradient that rotates with [progress]
+    final gradient = SweepGradient(
+      colors: _colors,
+      startAngle: 0,
+      endAngle: 2 * 3.141592653589793,
+      transform: GradientRotation(2 * 3.141592653589793 * progress),
+    );
+
+    // Glow paint (outer, wide, low opacity)
+    final glowPaint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth + glowRadius * 2
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    glowPaint.color = glowPaint.color.withValues(alpha: 0.35);
+    canvas.drawRRect(rrect, glowPaint);
+
+    // Solid border paint
+    final borderPaint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawRRect(rrect, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(_GradientBorderPainter old) => old.progress != progress;
+}
+
+// ─── Subscription banner with animated gradient border ────────────────────────
+class _HomeSubscriptionBanner extends StatefulWidget {
   final bool isDark;
   const _HomeSubscriptionBanner({required this.isDark});
+
+  @override
+  State<_HomeSubscriptionBanner> createState() =>
+      _HomeSubscriptionBannerState();
+}
+
+class _HomeSubscriptionBannerState extends State<_HomeSubscriptionBanner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _borderCtrl;
+
+  // Border/glow constants
+  static const double _borderWidth = 2.5;
+  static const double _borderRadius = 14.0;
+  static const double _glowPadding = 4.0; // extra space so glow isn't clipped
+
+  @override
+  void initState() {
+    super.initState();
+    _borderCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _borderCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -686,18 +773,14 @@ class _HomeSubscriptionBanner extends StatelessWidget {
       final planName = subCtrl.currentPlanName;
       final isExpiring = subCtrl.isExpiringSoon;
       final remaining = subCtrl.remainingDays;
+      final isDark = widget.isDark;
 
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
+      // The inner card (unchanged design)
+      final card = Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDarkElevated : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: hasActive
-                ? (isExpiring ? const Color(0xFFF59E0B) : AppColors.primary.withValues(alpha: 0.3))
-                : AppColors.border,
-          ),
+          borderRadius: BorderRadius.circular(_borderRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -738,7 +821,9 @@ class _HomeSubscriptionBanner extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -747,9 +832,12 @@ class _HomeSubscriptionBanner extends StatelessWidget {
                       if (hasActive) ...[
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isExpiring ? AppColors.badgeAmberBg : AppColors.badgeGreenBg,
+                            color: isExpiring
+                                ? AppColors.badgeAmberBg
+                                : AppColors.badgeGreenBg,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -757,7 +845,9 @@ class _HomeSubscriptionBanner extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
-                              color: isExpiring ? AppColors.badgeAmberText : AppColors.badgeGreenText,
+                              color: isExpiring
+                                  ? AppColors.badgeAmberText
+                                  : AppColors.badgeGreenText,
                             ),
                           ),
                         ),
@@ -771,7 +861,9 @@ class _HomeSubscriptionBanner extends StatelessWidget {
                         : 'Unlock exclusive investment opportunities',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -783,16 +875,51 @@ class _HomeSubscriptionBanner extends StatelessWidget {
             TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 visualDensity: VisualDensity.compact,
               ),
               onPressed: () => Get.toNamed(AppRoutes.subscriptionPlans),
               child: Text(
                 hasActive ? 'Manage' : 'Explore',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 12),
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700, fontSize: 12),
               ),
             ),
           ],
+        ),
+      );
+
+      // When no active plan: static border, no animation overhead
+      if (!hasActive) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: card,
+        );
+      }
+
+      // Active plan: animated gradient border via CustomPaint overlay
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: AnimatedBuilder(
+          animation: _borderCtrl,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _GradientBorderPainter(
+                progress: _borderCtrl.value,
+                borderWidth: _borderWidth,
+                borderRadius: _borderRadius,
+                glowRadius: _glowPadding,
+              ),
+              child: child,
+            );
+          },
+          // The card itself is not rebuilt on every animation tick
+          child: card,
         ),
       );
     });
