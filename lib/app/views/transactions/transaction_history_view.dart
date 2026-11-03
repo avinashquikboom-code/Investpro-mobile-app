@@ -12,7 +12,6 @@ import '../../utils/date_formatter.dart';
 import '../../utils/responsive_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/empty_state_widget.dart';
-import '../../widgets/record_id.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/transaction_tile.dart';
 
@@ -52,9 +51,6 @@ class TransactionHistoryView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                RecordId(label: 'Transaction ID', value: txn.recordIds['id']),
-                RecordIds(values: Map.of(txn.recordIds)..remove('id')),
-                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
