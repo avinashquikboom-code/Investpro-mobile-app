@@ -35,8 +35,9 @@ class BannerAdvertisement {
 
   bool matchesPlacement(String target) {
     final cleanTarget = target.trim();
-    if (placements.contains(cleanTarget) || placement == cleanTarget)
+    if (placements.contains(cleanTarget) || placement == cleanTarget) {
       return true;
+    }
     if (cleanTarget == 'PROJECT_DETAILS_BELOW_INVESTMENT' ||
         cleanTarget == 'PROJECT_DETAILS_AFTER_INVESTMENT') {
       return placements.contains('PROJECT_DETAILS_BELOW_INVESTMENT') ||

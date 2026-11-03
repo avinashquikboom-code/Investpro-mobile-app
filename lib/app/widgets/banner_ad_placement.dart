@@ -45,8 +45,9 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
     _load();
     _refreshTimer = Timer.periodic(const Duration(minutes: 50), (_) {
       if (mounted &&
-          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed)
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
         _load();
+      }
     });
   }
 
@@ -82,11 +83,12 @@ class _BannerAdPlacementState extends State<BannerAdPlacement>
       });
       _startCarousel();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _ads = const [];
           _loading = false;
         });
+      }
     }
   }
 

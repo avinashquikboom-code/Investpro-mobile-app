@@ -233,8 +233,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                                   )
                                   .toList(),
                           onChanged: (val) {
-                            if (val != null)
+                            if (val != null) {
                               setSheetState(() => category = val);
+                            }
                           },
                         ),
                       ),
@@ -373,8 +374,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                                     snackPosition: SnackPosition.BOTTOM,
                                   );
                                 } catch (_) {
-                                  if (context.mounted)
+                                  if (context.mounted) {
                                     setSheetState(() => busy = false);
+                                  }
                                   Get.snackbar(
                                     'Submission failed',
                                     'Your request was not confirmed. Check your connection and retry.',
