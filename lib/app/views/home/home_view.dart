@@ -690,9 +690,12 @@ class _GradientBorderPainter extends CustomPainter {
 
   static const List<Color> _colors = [
     Color(0xFF10B981), // Emerald Green
-    Color(0xFF0D9488), // Teal
-    Color(0xFF34D399), // Mint Green
-    Color(0xFF6EE7B7), // Light Mint
+    Color(0xFF3B82F6), // Vivid Blue
+    Color(0xFFA855F7), // Purple
+    Color(0xFFEC4899), // Hot Pink
+    Color(0xFFF59E0B), // Amber / Gold
+    Color(0xFFEF4444), // Red-Orange
+    Color(0xFF06B6D4), // Cyan
     Color(0xFF10B981), // Emerald Green (loop)
   ];
 
