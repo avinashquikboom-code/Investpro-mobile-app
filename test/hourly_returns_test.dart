@@ -65,7 +65,7 @@ void main() {
       'summary': {'totalEarnedReturns': '0.70', 'todayEarnings': '0.70'},
       'hourly': {'hourlyEarningRate': '0.3000', 'totalCreditedReturns': '0.70', 'accruedNotCredited': '0.00', 'lastPayoutTime': '2026-10-30T11:00:00Z', 'nextExpectedPayoutTime': '2026-10-30T12:30:00Z'},
       'analytics': [for (var h = 0; h < 24; h++) {'date': DateTime.utc(2026, 10, 30, h).toIso8601String(), 'label': '${(h % 12 == 0 ? 12 : h % 12).toString().padLeft(2, '0')}:00 ${h < 12 ? 'AM' : 'PM'}', 'amount': h == 11 ? '0.70' : '0.00'}],
-      'payouts': [{'id': 'accrual', 'transactionId': 'transaction', 'investmentId': 'investment', 'projectId': 'project', 'projectName': 'Actual Project', 'date': '2026-10-30T11:00:00Z', 'profitAmount': '0.70', 'status': 'COMPLETED'}],
+      'payouts': [{'id': 'accrual', 'transactionId': 'transaction', 'investmentId': 'investment', 'investmentReference': 'INV-103', 'projectId': 'project', 'projectName': 'Actual Project', 'date': '2026-10-30T11:00:00Z', 'profitAmount': '0.70', 'status': 'COMPLETED'}],
       'upcoming': [{'projectName': 'Actual Project', 'dueDate': '2026-10-30T12:30:00Z', 'expectedAmount': '0.10', 'profitAmount': '0.10', 'status': 'SCHEDULED'}],
     };
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: ReturnsOverview(snapshot: snapshot, period: 'Hourly', onPeriod: (_) {})))));
@@ -73,6 +73,7 @@ void main() {
     expect(chart.points.length, 24); expect(chart.points[1].label, '01:00 AM'); expect(chart.points.last.label, '11:00 PM');
     expect(find.text('Monthly'), findsNothing);
     expect(find.text('Hourly Payout History'), findsOneWidget);
+    expect(find.text('Investment INV-103'), findsOneWidget);
     expect(find.text('Next Hourly Payout'), findsOneWidget);
     expect(find.textContaining('Transaction ID:'), findsNothing);
     expect(find.textContaining('Project ID:'), findsNothing);

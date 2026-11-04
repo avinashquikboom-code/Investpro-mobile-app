@@ -1294,6 +1294,10 @@ class _PayoutHistoryCardState extends State<_PayoutHistoryCard> {
                         c.maxWidth < 310 ||
                         MediaQuery.textScalerOf(context).scale(1) > 1.4;
                     final p = displayItems[i];
+                    final investmentReference = DisplayValue.reference(
+                      p['investmentReference'] ?? p['investmentId'],
+                      internalId: p['investmentId'],
+                    );
                     final amount = Text(
                       '${widget.payoutStatus(p) == 'Completed' ? '+ ' : ''}${widget.money(p['profitAmount'])}',
                       style: GoogleFonts.poppins(
@@ -1335,6 +1339,16 @@ class _PayoutHistoryCardState extends State<_PayoutHistoryCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              if (isHourly && investmentReference != 'N/A')
+                                Text(
+                                  'Investment $investmentReference',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               const SizedBox(height: 2),
                               Wrap(
                                 spacing: 6,
