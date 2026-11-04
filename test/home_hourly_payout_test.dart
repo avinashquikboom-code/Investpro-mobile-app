@@ -57,7 +57,6 @@ void main() {
             'expectedAmount': '0.69',
           },
           {'dueDate': '2029-01-01T01:00:00Z', 'status': 'PAID'},
-          {'dueDate': '2020-01-01T01:00:00Z', 'status': 'SCHEDULED'},
         ],
       };
       repo.currentUser.value = const UserModel(
@@ -68,6 +67,18 @@ void main() {
       );
       await controller.loadNextHourlyPayout();
       expect(controller.nextHourlyPayout.value?['expectedAmount'], '0.69');
+      api.data = {
+        'upcoming': [
+          ...api.data['upcoming'] as List,
+          {
+            'dueDate': '2020-01-01T01:00:00Z',
+            'status': 'SCHEDULED',
+            'expectedAmount': '0.68',
+          },
+        ],
+      };
+      await controller.loadNextHourlyPayout();
+      expect(controller.nextHourlyPayout.value?['expectedAmount'], '0.68');
       api.fail = true;
       await controller.loadNextHourlyPayout();
       expect(controller.hourlyPayoutError.value, isTrue);

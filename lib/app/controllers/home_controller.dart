@@ -59,7 +59,7 @@ class HomeController extends GetxController {
       if (isClosed || request != _payoutRequest) return;
       final upcoming = (snapshot['upcoming'] as List? ?? []).whereType<Map>()
           .map((row) => Map<String, dynamic>.from(row))
-          .where((row) => (DateTime.tryParse('${row['dueDate']}')?.isAfter(DateTime.now()) ?? false) && row['status'] == 'SCHEDULED')
+          .where((row) => DateTime.tryParse('${row['dueDate']}') != null && row['status'] == 'SCHEDULED')
           .toList()
         ..sort((a,b) => DateTime.parse('${a['dueDate']}').compareTo(DateTime.parse('${b['dueDate']}')));
       nextHourlyPayout.value = upcoming.isEmpty ? null : upcoming.first;
