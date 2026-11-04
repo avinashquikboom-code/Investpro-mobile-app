@@ -31,7 +31,7 @@ class SplashBranding extends StatelessWidget {
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Container(width: 6, height: 6, decoration: BoxDecoration(color: admin ? lime : const Color(0xFF258B59), shape: BoxShape.circle)),
                     const SizedBox(width: 9),
-                    Flexible(child: Text(admin ? 'INVESTPRO  /  ADMIN' : 'INVESTPRO  /  INVESTOR', style: GoogleFonts.poppins(fontSize: 10, letterSpacing: 2.3, fontWeight: FontWeight.w600, color: muted), textAlign: TextAlign.center)),
+                    Flexible(child: Text(admin ? 'QB UNIFY  /  ADMIN' : 'QB UNIFY  /  INVESTOR', style: GoogleFonts.poppins(fontSize: 10, letterSpacing: 2.3, fontWeight: FontWeight.w600, color: muted), textAlign: TextAlign.center)),
                   ]),
                   SizedBox(height: bounds.maxHeight < 460 ? 28 : 64),
                   ScaleTransition(scale: scale, child: Container(
@@ -45,8 +45,8 @@ class SplashBranding extends StatelessWidget {
                   )),
                   const SizedBox(height: 30),
                   Text.rich(TextSpan(children: [
-                    TextSpan(text: 'Invest', style: TextStyle(color: ink)),
-                    TextSpan(text: 'Pro', style: TextStyle(color: admin ? lime : const Color(0xFF27855A))),
+                    TextSpan(text: 'QB ', style: TextStyle(color: ink)),
+                    TextSpan(text: 'Unify', style: TextStyle(color: admin ? lime : const Color(0xFF27855A))),
                   ]), style: GoogleFonts.poppins(fontSize: 40, fontWeight: FontWeight.w700, letterSpacing: -1.8)),
                   const SizedBox(height: 12),
                   Text(admin ? 'A clearer view.\nBetter decisions.' : 'Small steps.\nGreater possibilities.', textAlign: TextAlign.center,

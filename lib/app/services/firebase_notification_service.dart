@@ -42,9 +42,9 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   int _sessionGeneration = 0;
 
   static const String channelId = 'investpro_high_importance_channel';
-  static const String channelName = 'QB Unify Push Notifications';
+  static const String channelName = 'QB Unify';
   static const String channelDescription =
-      'High-priority transaction, investment and update notifications';
+      'QB Unify high-priority transaction, investment and update notifications';
 
   static const String campaignChannelId = 'investpro_campaigns';
   static const String campaignChannelName = 'QB Unify Campaigns & Promotions';
@@ -239,13 +239,19 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
     }
 
     final notification = message.notification;
-    final title =
-        notification?.title ?? message.data['title'] ?? 'QB Unify Notice';
-    final body =
+    var title =
+        notification?.title ?? message.data['title'] ?? 'QB Unify';
+    if (title.isEmpty || title == 'InvestPro Notice' || title == 'QB Unify Notice' || title == 'InvestPro') {
+      title = 'QB Unify';
+    } else {
+      title = title.replaceAll('InvestPro', 'QB Unify');
+    }
+    var body =
         notification?.body ??
         message.data['body'] ??
         message.data['message'] ??
         '';
+    body = body.replaceAll('InvestPro', 'QB Unify');
     final typeStr = (message.data['type'] ?? 'SYSTEM').toString();
     final isCampaign = typeStr.toUpperCase() == 'CAMPAIGN' ||
         message.data['type']?.toString().toUpperCase() == 'CAMPAIGN' ||

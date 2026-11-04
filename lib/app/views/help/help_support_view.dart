@@ -479,7 +479,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
                       child: _buildContactChannel(
                         icon: Remix.mail_line,
                         title: 'Email',
-                        subtitle: 'support@investpro.app',
+                        subtitle: 'support@qbunify.online',
                         isDark: isDark,
                         onTap: _launchEmail,
                       ),
