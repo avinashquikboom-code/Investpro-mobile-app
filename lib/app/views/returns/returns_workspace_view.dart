@@ -12,7 +12,7 @@ import 'package:remixicon/remixicon.dart';
 import '../../controllers/returns_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/currency_formatter.dart';
-import '../../widgets/app_app_bar.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/project_image.dart';
 import 'returns_withdrawal_view.dart';
 import 'returns_overview.dart';
@@ -82,11 +82,22 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: widget.isTab
-          ? null
-          : const AppAppBar(title: 'Returns', showBackButton: true),
+      appBar: CustomAppBar(
+        title: 'returns'.tr,
+        showBackButton: !widget.isTab,
+        actions: [
+          IconButton(
+            icon: const Icon(Remix.refresh_line, color: AppColors.primary),
+            tooltip: 'Refresh Returns',
+            onPressed: () async {
+              await controller.refreshData();
+              await BannerAdPlacement.refreshAll();
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
-        top: widget.isTab,
+        top: false,
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
@@ -104,23 +115,13 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
                   children: [
                     if (widget.isTab) ...[
                       Text(
-                        'Returns',
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.primaryDark,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
                         'Track your investment returns and payouts',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
                     ],
 
                     if (controller.workspaceError.value.isNotEmpty)
@@ -186,16 +187,18 @@ class _ReturnsWorkspaceViewState extends State<ReturnsWorkspaceView>
   List<Widget> _buildContent(Map<String, dynamic> w, bool isDark) {
     return [
       // 1. Performance Analytics & Period Chart (at top for live returns overview)
-      ReturnsOverview(
-        snapshot: w,
-        payoutLoading: controller.workspaceLoading.value,
-        payoutError: controller.workspaceError.value.isNotEmpty,
-        payoutActive: _payoutIsActive,
-        payoutIndicatorKey: _payoutIndicatorKey,
-        period: controller.selectedPeriod.value,
-        onPeriod: controller.setPeriod,
-        selectedDate: controller.selectedDate.value,
-        onDate: controller.setDate,
+      _KeepAliveWrapper(
+        child: ReturnsOverview(
+          snapshot: w,
+          payoutLoading: controller.workspaceLoading.value,
+          payoutError: controller.workspaceError.value.isNotEmpty,
+          payoutActive: _payoutIsActive,
+          payoutIndicatorKey: _payoutIndicatorKey,
+          period: controller.selectedPeriod.value,
+          onPeriod: controller.setPeriod,
+          selectedDate: controller.selectedDate.value,
+          onDate: controller.setDate,
+        ),
       ),
       const SizedBox(height: 20),
 
@@ -1347,4 +1350,21 @@ class _ReturnsSkeleton extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _KeepAliveWrapper extends StatefulWidget {
+  final Widget child;
+  const _KeepAliveWrapper({required this.child});
+  @override
+  State<_KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<_KeepAliveWrapper> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
 }

@@ -11,7 +11,6 @@ import '../../models/return_model.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/responsive_helper.dart';
-import '../../widgets/app_app_bar.dart';
 import '../../widgets/app_system_ui.dart';
 import '../../widgets/banner_ad_placement.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -35,14 +34,19 @@ class ReturnsView extends StatelessWidget {
       statusSurface: isDark ? AppColors.backgroundDark : AppColors.background,
       child: Scaffold(
         backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-        appBar: !isTab
-            ? const AppAppBar(
-                title: 'Returns',
-                showBackButton: true,
-              )
-            : null,
+        appBar: CustomAppBar(
+          title: 'returns'.tr,
+          showBackButton: !isTab,
+          actions: [
+            IconButton(
+              icon: const Icon(Remix.refresh_line, color: AppColors.primary),
+              tooltip: 'Refresh Returns',
+              onPressed: returnsCtrl.refreshData,
+            ),
+          ],
+        ),
         body: SafeArea(
-          top: isTab,
+          top: false,
           child: RefreshIndicator(
             color: AppColors.primary,
             onRefresh: returnsCtrl.refreshData,
@@ -55,21 +59,8 @@ class ReturnsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Screen Header
+                    // 1. Screen Header / Description
                     if (isTab) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Returns',
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.primaryDark,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Text(
                         'Track your investment returns and payouts',
                         style: GoogleFonts.poppins(
@@ -80,7 +71,7 @@ class ReturnsView extends StatelessWidget {
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
                     ],
 
                     // 2. Total Returns Card
