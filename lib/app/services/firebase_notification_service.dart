@@ -42,12 +42,12 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
   int _sessionGeneration = 0;
 
   static const String channelId = 'investpro_high_importance_channel';
-  static const String channelName = 'InvestPro Push Notifications';
+  static const String channelName = 'QB Unify Push Notifications';
   static const String channelDescription =
       'High-priority transaction, investment and update notifications';
 
   static const String campaignChannelId = 'investpro_campaigns';
-  static const String campaignChannelName = 'InvestPro Campaigns & Promotions';
+  static const String campaignChannelName = 'QB Unify Campaigns & Promotions';
   static const String campaignChannelDescription =
       'Special investment campaigns, project launches, promotions and announcements';
 
@@ -240,7 +240,7 @@ class FirebaseNotificationService extends GetxService with WidgetsBindingObserve
 
     final notification = message.notification;
     final title =
-        notification?.title ?? message.data['title'] ?? 'InvestPro Notice';
+        notification?.title ?? message.data['title'] ?? 'QB Unify Notice';
     final body =
         notification?.body ??
         message.data['body'] ??

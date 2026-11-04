@@ -28,7 +28,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
     {
       'category': 'Returns',
       'question': 'When will my investment returns be credited?',
-      'answer': 'Returns are automatically calculated according to each project\'s payout schedule (monthly or at maturity). Once settled by the treasury, dividends are directly credited to your InvestPro Wallet balance and are immediately withdrawable.',
+      'answer': 'Returns are automatically calculated according to each project\'s payout schedule (monthly or at maturity). Once settled by the treasury, dividends are directly credited to your QB Unify Wallet balance and are immediately withdrawable.',
     },
     {
       'category': 'Withdrawals',
@@ -43,7 +43,7 @@ class _HelpSupportViewState extends State<HelpSupportView> {
     {
       'category': 'Investments',
       'question': 'Are my investments legally protected and secured?',
-      'answer': 'Yes. Every opportunity on InvestPro undergoes rigorous financial vetting, regulatory asset backing, and third-party legal validation before being listed on the platform.',
+      'answer': 'Yes. Every opportunity on QB Unify undergoes rigorous financial vetting, regulatory asset backing, and third-party legal validation before being listed on the platform.',
     },
     {
       'category': 'Banking',
@@ -64,9 +64,9 @@ class _HelpSupportViewState extends State<HelpSupportView> {
   }
 
   Future<void> _launchEmail() async {
-    const email = 'support@investpro.app';
+    const email = 'support@qbunify.online';
     final uri = Uri.parse(
-      'mailto:$email?subject=InvestPro%20Support%20Request',
+      'mailto:$email?subject=QB%20Unify%20Support%20Request',
     );
     try {
       if (await canLaunchUrl(uri)) {

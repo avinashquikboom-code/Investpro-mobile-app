@@ -333,7 +333,7 @@ class AuthController extends GetxController {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Text(
           identity.isNotEmpty
-              ? 'A recovery link has been sent to $identity if an account is registered with InvestPro.'
+              ? 'A recovery link has been sent to $identity if an account is registered with QB Unify.'
               : 'Please enter your registered email or phone to reset your password.',
           textAlign: TextAlign.center,
         ),

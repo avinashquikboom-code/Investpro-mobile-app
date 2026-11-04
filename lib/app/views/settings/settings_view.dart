@@ -61,7 +61,7 @@ class SettingsView extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Choose your preferred language for the InvestPro interface.',
+                'Choose your preferred language for the QB Unify interface.',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
@@ -223,7 +223,7 @@ class SettingsView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Log Out of InvestPro?',
+                'Log Out of QB Unify?',
                 style: GoogleFonts.poppins(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -517,7 +517,7 @@ class SettingsView extends StatelessWidget {
                       onTap: () => _showLegalDialog(
                         context,
                         'Terms of Service',
-                        'By using InvestPro, you agree to our investor agreement, dispute resolution policies, and platform terms of service. All investments carry risk, and investors should review project disclosures before investing.',
+                        'By using QB Unify, you agree to our investor agreement, dispute resolution policies, and platform terms of service. All investments carry risk, and investors should review project disclosures before investing.',
                         isDark,
                       ),
                     ),
@@ -530,7 +530,7 @@ class SettingsView extends StatelessWidget {
                       onTap: () => _showLegalDialog(
                         context,
                         'Privacy Policy',
-                        'InvestPro strictly complies with national financial data privacy standards. Your KYC records and bank accounts are encrypted in transit and at rest and are never sold to third parties.',
+                        'QB Unify strictly complies with national financial data privacy standards. Your KYC records and bank accounts are encrypted in transit and at rest and are never sold to third parties.',
                         isDark,
                       ),
                     ),
@@ -550,7 +550,7 @@ class SettingsView extends StatelessWidget {
                       isDark: isDark,
                       onTap: () {
                         Get.snackbar(
-                          'InvestPro System',
+                          'QB Unify System',
                           'Your app is running the latest production build 1.0.0.',
                           snackPosition: SnackPosition.BOTTOM,
                         );

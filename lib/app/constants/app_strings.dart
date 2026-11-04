@@ -4,7 +4,7 @@ class AppTranslations extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {
     'en_US': {
-      'appName': 'InvestPro',
+      'appName': 'QB Unify',
       'tagline': 'Grow Your Wealth With Trusted Investments',
       'welcomeBack': 'Welcome Back',
       'loginSubtitle': 'Login to your account',
@@ -19,7 +19,7 @@ class AppTranslations extends Translations {
       'secureAndTrusted': 'Secure & Trusted',
       'createAccount': 'Create Account',
       'createAccountSubtitle':
-          'Join InvestPro and start your investment journey',
+          'Join QB Unify and start your investment journey',
       'investor': 'Investor',
       'admin': 'Admin',
       'fullName': 'Full Name',
@@ -31,7 +31,7 @@ class AppTranslations extends Translations {
       'register': 'Register',
       'alreadyHaveAccount': 'Already have an account? Login',
       'helloGreeting': 'Hello, @name',
-      'welcomeToApp': 'Welcome to InvestPro',
+      'welcomeToApp': 'Welcome to QB Unify',
       'totalPortfolioValue': 'Total Portfolio Value',
       'acrossProjects': 'Across @count active projects',
       'totalInvested': 'Total Invested',
@@ -113,7 +113,7 @@ class AppTranslations extends Translations {
       'profileTab': 'Profile',
     },
     'hi_IN': {
-      'appName': 'इन्वेस्टप्रो',
+      'appName': 'क्यूबी यूनिफाय',
       'tagline': 'विश्वसनीय निवेश के साथ अपनी संपत्ति बढ़ाएं',
       'welcomeBack': 'वापसी पर स्वागत है',
       'loginSubtitle': 'अपने खाते में लॉगिन करें',
@@ -128,7 +128,7 @@ class AppTranslations extends Translations {
       'secureAndTrusted': 'सुरक्षित और विश्वसनीय',
       'createAccount': 'खाता बनाएं',
       'createAccountSubtitle':
-          'इन्वेस्टप्रो से जुड़ें और अपनी निवेश यात्रा शुरू करें',
+          'क्यूबी यूनिफाय से जुड़ें और अपनी निवेश यात्रा शुरू करें',
       'investor': 'निवेशक',
       'admin': 'व्यवस्थापक',
       'fullName': 'पूरा नाम',
@@ -140,7 +140,7 @@ class AppTranslations extends Translations {
       'register': 'पंजीकरण करें',
       'alreadyHaveAccount': 'पहले से खाता है? लॉगिन करें',
       'helloGreeting': 'नमस्ते, @name',
-      'welcomeToApp': 'इन्वेस्टप्रो में आपका स्वागत है',
+      'welcomeToApp': 'क्यूबी यूनिफाय में आपका स्वागत है',
       'totalPortfolioValue': 'कुल पोर्टफोलियो मूल्य',
       'acrossProjects': '@count सक्रिय परियोजनाओं में',
       'totalInvested': 'कुल निवेश',
@@ -221,7 +221,7 @@ class AppTranslations extends Translations {
       'profileTab': 'प्रोफ़ाइल',
     },
     'mr_IN': {
-      'appName': 'इन्व्हेस्टप्रो',
+      'appName': 'क्यूबी युनिफाय',
       'tagline': 'विश्वासार्ह गुंतवणुकीसह तुमची संपत्ती वाढवा',
       'welcomeBack': 'पुन्हा स्वागत आहे',
       'loginSubtitle': 'तुमच्या खात्यात लॉगिन करा',
@@ -236,7 +236,7 @@ class AppTranslations extends Translations {
       'secureAndTrusted': 'सुरक्षित आणि विश्वासार्ह',
       'createAccount': 'खाते तयार करा',
       'createAccountSubtitle':
-          'इन्व्हेस्टप्रोमध्ये सामील व्हा आणि गुंतवणूक सुरू करा',
+          'क्यूबी युनिफायमध्ये सामील व्हा आणि गुंतवणूक सुरू करा',
       'investor': 'गुंतवणूकदार',
       'admin': 'अ‍ॅडमिन',
       'fullName': 'पूर्ण नाव',
@@ -248,7 +248,7 @@ class AppTranslations extends Translations {
       'register': 'नोंदणी करा',
       'alreadyHaveAccount': 'आधीच खाते आहे? लॉगिन करा',
       'helloGreeting': 'नमस्कार, @name',
-      'welcomeToApp': 'इन्व्हेस्टप्रोमध्ये स्वागत आहे',
+      'welcomeToApp': 'क्यूबी युनिफायमध्ये स्वागत आहे',
       'totalPortfolioValue': 'एकूण पोर्टफोलिओ मूल्य',
       'acrossProjects': '@count सक्रिय प्रकल्पांमध्ये',
       'totalInvested': 'एकूण गुंतवणूक',

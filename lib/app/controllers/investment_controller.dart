@@ -365,7 +365,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       completion.complete(false);
     });
     runZonedGuarded(() {
-      _checkout!.open({'key':order['keyId'],'order_id':order['orderId'],'amount':amount,'currency':'INR','name':'InvestPro'});
+      _checkout!.open({'key':order['keyId'],'order_id':order['orderId'],'amount':amount,'currency':'INR','name':'QB Unify'});
     },(error,stack) {
       if(!inactive()){paymentError.value='Unable to open secure checkout. Please retry.';completion.complete(false);}
     });
@@ -409,7 +409,7 @@ class InvestmentController extends GetxController with WidgetsBindingObserver {
       final agreement = agreementData.value;
       final agreementNumber = agreement?['agreementNumber'] ?? 'AGR-$investmentId';
       final safeNum = agreementNumber.toString().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
-      final filename = 'InvestPro_Agreement_${investmentId}_$safeNum.pdf';
+      final filename = 'QB_Unify_Agreement_${investmentId}_$safeNum.pdf';
 
       final filePath = await Get.find<ApiService>().downloadInvestmentAgreementFile(investmentId, filename);
       if (filePath == null) {

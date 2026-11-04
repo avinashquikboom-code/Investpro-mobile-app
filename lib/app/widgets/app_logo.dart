@@ -43,7 +43,7 @@ class AppLogo extends StatelessWidget {
         if (showText) ...[
           SizedBox(height: effectiveSpacing),
           Text(
-            'InvestPro',
+            'QB Unify',
             style: GoogleFonts.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,

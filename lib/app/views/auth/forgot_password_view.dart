@@ -497,7 +497,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Your password has been reset successfully. You can now log into InvestPro with your new password.',
+              'Your password has been reset successfully. You can now log into QB Unify with your new password.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 13,

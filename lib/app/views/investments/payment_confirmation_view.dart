@@ -79,11 +79,11 @@ class _PaymentConfirmationViewState extends State<PaymentConfirmationView>
     } else {
       settings = OfflinePaymentConfig.parse({
         'enabled': true,
-        'accountHolderName': 'InvestPro Capital PVT LTD',
+        'accountHolderName': 'QB Unify Capital PVT LTD',
         'bankName': 'HDFC Bank',
         'accountNumber': '50200012345678',
         'ifscCode': 'HDFC0001234',
-        'upiId': 'investpro@hdfcbank',
+        'upiId': 'qbunify@hdfcbank',
         'maxBytes': 5242880,
       });
     }

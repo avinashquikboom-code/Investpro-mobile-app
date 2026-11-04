@@ -242,7 +242,7 @@ class SubscriptionController extends GetxController with WidgetsBindingObserver 
       });
       checkout.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse _) async { if (!stale() && !await _recover()) { error.value = 'Payment was cancelled or unsuccessful. You can choose a plan again or skip.'; if (!stale()) completion.complete(false); } });
       checkout.on(Razorpay.EVENT_EXTERNAL_WALLET, (ExternalWalletResponse _) { if (!stale()) { error.value = 'Return to My Plan to check payment before retrying. You can also skip for now.'; completion.complete(false); } });
-      checkout.open({'key': gateway['keyId'], 'order_id': gateway['orderId'], 'amount': gateway['amount'], 'currency': 'INR', 'name': 'InvestPro', 'description': '${plan.name} Subscription'});
+      checkout.open({'key': gateway['keyId'], 'order_id': gateway['orderId'], 'amount': gateway['amount'], 'currency': 'INR', 'name': 'QB Unify', 'description': '${plan.name} Subscription'});
       final success = await completion.future;
       if (success && session == api.sessionVersion) {
         try { await writeIntent(slot, ''); await writeIntent('subscription_pending_${me['id']}_${plan.id}', ''); } catch (_) {}

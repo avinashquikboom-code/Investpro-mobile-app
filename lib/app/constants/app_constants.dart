@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'InvestPro';
+  static const String appName = 'QB Unify';
   static const String appTagline = 'Grow Your Wealth With Trusted Investments';
   static const String appVersion = '1.0.0';
 
